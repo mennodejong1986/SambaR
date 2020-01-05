@@ -1,0 +1,39 @@
+# spid-file generated: Thu Jul 27 11:07:28 BST 2017
+
+# VCF Parser questions
+PARSER_FORMAT=VCF
+
+# Only output SNPs with a phred-scaled quality of at least:
+VCF_PARSER_QUAL_QUESTION=
+# Select population definition file:
+VCF_PARSER_POP_FILE_QUESTION=
+# What is the ploidy of the data?
+VCF_PARSER_PLOIDY_QUESTION=DIPLOID
+# Do you want to include a file with population definitions?
+VCF_PARSER_POP_QUESTION=false
+# Output genotypes as missing if the phred-scale genotype quality is below:
+VCF_PARSER_GTQUAL_QUESTION=
+# Do you want to include non-polymorphic SNPs?
+VCF_PARSER_MONOMORPHIC_QUESTION=false
+# Only output following individuals (ind1, ind2, ind4, ...):
+VCF_PARSER_IND_QUESTION=
+# Only input following regions (refSeqName:start:end, multiple regions: whitespace separated):
+VCF_PARSER_REGION_QUESTION=
+# Output genotypes as missing if the read depth of a position for the sample is below:
+VCF_PARSER_READ_QUESTION=
+# Take most likely genotype if "PL" or "GL" is given in the genotype field?
+VCF_PARSER_PL_QUESTION=false
+# Do you want to exclude loci with only missing data?
+VCF_PARSER_EXC_MISSING_LOCI_QUESTION=false
+
+# PED Writer questions
+WRITER_FORMAT=PED
+
+# Save MAP file
+PED_WRITER_MAP_FILE_QUESTION=out.map
+# Replacement character for allele encoded as 0 (0 encodes for missing data in PED):
+PED_WRITER_ZERO_CHAR_QUESTION=
+# Specify the locus/locus combination you want to write to the PED file:
+PED_WRITER_LOCUS_COMBINATION_QUESTION=
+# Do you want to save an additional MAP file with loci information?
+PED_WRITER_MAP_QUESTION=true

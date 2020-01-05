@@ -1,0 +1,23 @@
+# spid-file generated: Mon Oct 30 10:32:17 GMT 2017
+
+# GENEPOP Parser questions
+PARSER_FORMAT=GENEPOP
+
+# Enter the size of the repeated motif (same for all loci: one number; different: comma separated list (e.g.: 2,2,3,2):
+GENEPOP_PARSER_REPEAT_SIZE_QUESTION=
+# Select the type of the data:
+GENEPOP_PARSER_DATA_TYPE_QUESTION=SNP
+# How are Microsat alleles coded?
+GENEPOP_PARSER_MICROSAT_CODING_QUESTION=REPEATS
+
+# PED Writer questions
+WRITER_FORMAT=PED
+
+# Save MAP file
+PED_WRITER_MAP_FILE_QUESTION=out.map
+# Replacement character for allele encoded as 0 (0 encodes for missing data in PED):
+PED_WRITER_ZERO_CHAR_QUESTION=
+# Specify the locus/locus combination you want to write to the PED file:
+PED_WRITER_LOCUS_COMBINATION_QUESTION=
+# Do you want to save an additional MAP file with loci information?
+PED_WRITER_MAP_QUESTION=true
