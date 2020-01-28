@@ -56,18 +56,22 @@ harborseals<-function()
 #grep 'Oosterhout' sampleinfo.txt | head -30 | cut -f1,2
 #grep 'Hoge_Veluwe' sampleinfo.txt | head -30 | cut -f1,2
 #C:\Users\Tatiana\Menno\Programs\plink\plink --file NLUK –-cow –-chr-set 95 --keep selectedindividuals.txt --thin-count 80000 --recode --make-bed --out NLUK.80000snps.90samples
+# C:\Users\Menno_de_Jong\Documents\software\plink_win64_20200107\plink --bfile NLUK --recode --cow --chr-set 80 --tab --out
+# C:\Users\Menno_de_Jong\Documents\software\plink_win64_20200107\plink --file NLUK –-chr-set 80 --make-bed --recode A --out NLUK
 tits<-function()
 	{
-	source("G:/PhD/General/SAMBAR/SAMBAR2019.txt")
+	source("D:/PhD/General/SAMBAR/SAMBAR2019.txt")
 	getpackages(myrepos='http://cran.us.r-project.org')
-	setwd("C:/Users/Tatiana/Menno/Otherpeople/greattits/")
-	importdata(inputprefix="NLUK.80000snps.90samples",sumstatsfile=FALSE,depthfile=FALSE)
+	#setwd("C:/Users/Tatiana/Menno/Otherpeople/greattits/")
+	setwd("C:/Users/Menno_de_Jong/Documents/SNPdatasets/tits")
+	importdata(inputprefix="NLUK",sumstatsfile=FALSE,depthfile=FALSE)
 	filterdata(indmiss=0.25,snpmiss=0.1)
 	findstructure()
 	calcdistance()
 	calcdiversity()
 	selectionanalyses(export="pdf",do_meta=TRUE,do_pheno=FALSE,do_outflank=TRUE)
-	inds$type	<- ifelse(inds$pop=="Wytham",TRUE,FALSE)
+	#inds$type	<- ifelse(inds$pop=="Wytham",TRUE,FALSE)
+	inds$type	<- ifelse(inds$pop=="Buunderkamp",TRUE,FALSE)
 	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,add_bayescan=FALSE,phenolabels=c("UK","mainland"))
 	backupdata("tits")
 	}
@@ -155,14 +159,19 @@ rus<-function()
 	calcdiversity()
 	selectionanalyses(export="pdf",do_meta=TRUE,do_outflank=TRUE)
 	}	
-	
+
 #C:\Users\Tatiana\Menno\Programs\plink\plink --file 9pops –-cow –-allow-extra-chr --make-bed --recode A --out 9pops
+#C:\Users\Menno_de_Jong\Documents\software\plink_win64_20200107\plink --file 9pops –-cow –-allow-extra-chr --make-bed --recode A --out 9pops
+#C:\Users\Menno_de_Jong\Documents\software\plink_win64_20200107\plink --file 7pops –-cow –-allow-extra-chr --make-bed --recode A --out 7pops
 yinhla<-function(dospecies=FALSE)
 	{
-	source("G:/PhD/General/SAMBAR/SAMBAR2019.txt")
+	source("D:/PhD/General/SAMBAR/SAMBAR2019.txt")
 	getpackages(myrepos='http://cran.us.r-project.org')
-	setwd("C:/Users/Tatiana/Menno/Otherpeople/Yinhla")
+	#setwd("C:/Users/Tatiana/Menno/Otherpeople/Yinhla")
+	setwd("C:/Users/Menno_de_Jong/Documents/SNPdatasets/Yinhla/9pops")
 	importdata(inputprefix="9pops",sumstatsfile=FALSE,depthfile=FALSE)
+	setwd("C:/Users/Menno_de_Jong/Documents/SNPdatasets/Yinhla/onespecies")
+	importdata(inputprefix="7pops",sumstatsfile=FALSE,depthfile=FALSE)
 	if(dospecies)
 		{
 		inds$pop3				<- ifelse(inds$pop2=="Watertunnel"|inds$pop2=="Trypot","Gazella","Tropicalis")
@@ -176,8 +185,11 @@ yinhla<-function(dospecies=FALSE)
 	findstructure()
 	calcdistance()
 	calcdiversity()
-	inds$filter	<<- inds$filter&inds$pop!="Watertunnel"&inds$pop!="Trypot"
-	inds$type	<<- ifelse(inds$pop=="Longbeach"|inds$pop=="SealBeach",TRUE,FALSE)	
+	if(comparespecies)
+		{
+		inds$filter	<- inds$filter&inds$pop!="Watertunnel"&inds$pop!="Trypot"
+		inds$type	<- ifelse(inds$pop=="Longbeach"|inds$pop=="SealBeach",TRUE,FALSE)	
+		}
 	selectionanalyses(export="pdf",do_meta=TRUE,do_outflank=TRUE)					
 	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,do_outflank=FALSE)	# outflank returns error
 	selectionanalyses(export="pdf",do_meta=FALSE,do_pairwise=TRUE,do_outflank=TRUE)	# outflank returns error
@@ -215,22 +227,21 @@ vania<-function()
 # C:\Users\Tatiana\Menno\Programs\plink\plink --file rein.cowasref –-cow –-allow-extra-chr --make-bed --recode A --out rein.cowasref
 doreindeer<-function()
 	{
-	source("G:/PhD/General/SAMBAR/SAMBAR2019.txt")
-	setwd("C:/Users/Tatiana/Menno/ReindeerCombined/ReinasRef/Multiplesnpsperread/Stacksrefmap")
-	#getpackages(myrepos='http://cran.us.r-project.org')
+	source("D:/PhD/General/SAMBAR/SAMBAR2019.txt")
+	#setwd("C:/Users/Tatiana/Menno/ReindeerCombined/ReinasRef/Multiplesnpsperread/Stacksrefmap")
+	setwd("C:/Users/Menno_de_Jong/Documents/SNPdatasets/Reindeer")
+	getpackages(myrepos='http://cran.us.r-project.org')
 	importdata(inputprefix="reinasref.multiplesnps",sumstatsfile=TRUE,depthfile=TRUE)
 	filterdata(indmiss=0.25,snpmiss=0.1)
 	findstructure()
 	calcdistance()
 	calcdiversity(nrsites=9627819)
 	# calcdiversity(nrsites=3969066)		# cow as ref
-	inds$type<<-ifelse(inds$pop=="Norway",FALSE,TRUE)
+	inds$type<-ifelse(inds$pop=="Norway",FALSE,TRUE)
 	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,add_bayescan=TRUE,phenolabels=c("founder","source"),bayescan_mapfile="bayescaninput.map")
 	multiplotscaffold(my_bed="putativegenes.within200kb.genenames.bed",background_pop="Norway",doexport=TRUE,x_range=NULL,y_loc=c(0.4,0.65))
 	}
 
-
-	
 # roe deer:
 # C:\Users\Tatiana\Menno\Programs\plink\plink --file roe.roeasref.q20 –-cow –-allow-extra-chr --make-bed --recode A --out roe.roeasref.q20
 doroe<-function()
@@ -308,22 +319,25 @@ combine_roe<-function(getpifromsharedsnps=FALSE)
 	}
 
 #C:\Users\Tatiana\Menno\Programs\plink\plink --file spermwhale_3popr70p3.Bcluster –-cow –-allow-extra-chr --make-bed --recode A --out spermwhale_3popr70p3.Bcluster	
+#C:\Users\Menno_de_Jong\Documents\software\plink_win64_20200107\plink --file spermwhale_3popr70p3.Bcluster –-cow –-allow-extra-chr --make-bed --recode A --out spermwhale_3popr70p3.Bcluster
 # Biagio:
 dospermwhale<-function()
 	{
-	source("G:/PhD/General/SAMBAR/SAMBAR2019.txt")
+	source("D:/PhD/General/SAMBAR/SAMBAR2019.txt")
 	getpackages(myrepos='http://cran.us.r-project.org')
 	#setwd("C:/Users/Tatiana/Menno/Biagio/3pop")
 	#importdata(inputprefix="spermwhale_3popr70p3",geofile="geofile.txt",sumstatsfile=FALSE,depthfile=TRUE,vcfsamplefile="populationsfile_10pops.txt")
 	#importdata(inputprefix="spermwhale_3popr70p3",geofile="geofile.txt",sumstatsfile=FALSE,depthfile=TRUE,vcfsamplefile="populationsfile_3pops.txt")
-	setwd("C:/Users/Tatiana/Menno/Biagio/Bcluster")
+	#setwd("C:/Users/Tatiana/Menno/Biagio/Bcluster")
+	setwd("C:/Users/Menno_de_Jong/Documents/SNPdatasets/Biagio")
 	importdata(inputprefix="spermwhale_3popr70p3.Bcluster",geofile="geofile.txt",sumstatsfile=FALSE,depthfile=TRUE)
 	filterdata(indmiss=0.5,snpmiss=0.1)
-	addsampleinfo()
+	#addsampleinfo()
 	#subset_pop(include_pops=c("Azores","Canarian","Madeira","NorthSpain"))
 	findstructure()
 	calcdistance()
-	calcdiversity(nrsites=25350544)
+	#calcdiversity(nrsites=25350544)
+	calcdiversity(nrsites=10530740)
 	backupdata("spermwhale")
 	selectionanalyses(export="pdf",do_meta=TRUE,do_fsthet=FALSE,do_outflank=TRUE)
 	inds$type	<- ifelse(inds$pop=="Mediterranean",TRUE,FALSE)
@@ -337,22 +351,23 @@ dospermwhale<-function()
 # Erandi:
 dobirds<-function()
 	{
-	source("G:/PhD/General/SAMBAR/SAMBAR2019.txt")
-	#getpackages(myrepos='http://cran.us.r-project.org')
-	setwd("C:/Users/Tatiana/Menno/Erandi")
+	source("D:/PhD/General/SAMBAR/SAMBAR2019.txt")
+	getpackages(myrepos='http://cran.us.r-project.org')
+	#setwd("C:/Users/Tatiana/Menno/Erandi")
+	setwd("C:/Users/Menno_de_Jong/Documents/SNPdatasets/Erandi")
 	#importdata(inputprefix="mindepth3",sumstatsfile=FALSE,depthfile=TRUE,vcfsamplefile="delimited.txt")
-	importdata(inputprefix="populations.snps",sumstatsfile=TRUE,depthfile=FALSE)
+	importdata(inputprefix="brownbooby",sumstatsfile=TRUE,depthfile=FALSE)
 	filterdata(indmiss=0.5,snpmiss=0.1)
 	findstructure()
 	calcdistance()
 	calcdiversity()
 	selectionanalyses(export="pdf",do_meta=TRUE,do_fsthet=FALSE,do_outflank=FALSE)
-	inds$type<<-ifelse(inds$pop=="SJ18",FALSE,TRUE)
-	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,do_fsthet=FALSE,do_outflank=FALSE)
-	inds$type<<-ifelse(inds$pop=="SPM",FALSE,TRUE)
-	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,do_fsthet=FALSE,do_outflank=FALSE)
-	inds$type<<-ifelse(inds$pop=="M16",FALSE,TRUE)
-	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,do_fsthet=FALSE,do_outflank=FALSE)
+	inds$type<-ifelse(inds$pop=="SJ18",FALSE,TRUE)
+	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,do_fsthet=FALSE,do_outflank=TRUE)
+	inds$type<-ifelse(inds$pop=="SPM",FALSE,TRUE)
+	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,do_fsthet=FALSE,do_outflank=TRUE)
+	inds$type<-ifelse(inds$pop=="M16",FALSE,TRUE)
+	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,do_fsthet=FALSE,do_outflank=TRUE)
 	}
 
 dodummy<-function()
@@ -387,8 +402,7 @@ dosubsets<-function()
 
 getcitations<-function()
 	{
-	mysoftwares			<- c("stats","pegas","fsthet","mapplots","rworldmap","ade4","bibtex","curl","colorspace","ape","scales","vegan","adegenet","StAMPP","scatterplot3d","plot3D","zoo","devtools","vioplot","gplots","RColorBrewer","migest","plyr","circlize","pcadapt","grid","gridGraphics","gridExtra","MASS","poppr","qvalue","gdsfmt","SNPRelate","LEA","OutFLANK")
-	mysoftwares			<- mysoftwares[order(mysoftwares)]
+	mysoftwares			<- c("ade4","adegenet","ape","bibtex","car","circlize","colorspace","curl","devtools","fsthet","factoextra","FactoMineR","gdsfmt","gplots","grid","gridExtra","gridGraphics","LEA","mapplots","MASS","migest","OutFLANK","pcadapt","pegas","plot3D","plyr","poppr","psych","raster","RcppEigen","RColorBrewer","Rcpp","rworldmap","qvalue","scales","scatterplot3d","SNPRelate","StAMPP","stats","VennDiagram","vegan","vioplot","zoo") 
 	setwd(mysambar$sambardir)
 	write.bib(mysoftwares, file = "SambaR_Rpackages.bib", append = FALSE, verbose = TRUE)
 	cat("A file called 'SambaR_Rpackages.bib' has been exported to the SambaR directory.",sep="\n")
@@ -397,7 +411,7 @@ getcitations<-function()
 
 getversions<-function()
 	{
-	mysoftwares			<- c("ade4","adegenet","ape","bibtex","circlize","colorspace","curl","devtools","fsthet","gdsfmt","gplots","grid","gridExtra","gridGraphics","LEA","mapplots","MASS","migest","OutFLANK","pcadapt","pegas","plot3D","plyr","poppr","qvalue","RColorBrewer","rworldmap","scales","scatterplot3d","SNPRelate","StAMPP","stats","vegan","vioplot") 
+	mysoftwares			<- c("ade4","adegenet","ape","bibtex","circlize","colorspace","curl","devtools","fsthet","gdsfmt","gplots","grid","gridExtra","gridGraphics","LEA","mapplots","MASS","migest","OutFLANK","pcadapt","pegas","plot3D","plyr","poppr","qvalue","RcppEigen","RColorBrewer","rworldmap","scales","scatterplot3d","SNPRelate","StAMPP","stats","vegan","vioplot","zoo") 
 	mysoftwares			<- mysoftwares[order(mysoftwares)]
 	myversions			<- vector()
 	for (j in c(1:length(mysoftwares)))
@@ -410,7 +424,7 @@ getversions<-function()
 	mydf				<- data.frame(package=mysoftwares,version=myversions)	
 	mydf$combined			<- paste(mydf$package,mydf$version,sep="-")
 	myversions			<<- mydf
-	cat("All R package versions stored in an dataframe called 'myversions'.",sep="\n")
+	cat("To see the list of installed R packages (versions), type 'myversions'.",sep="\n")
 	}	
 
 exportmethods<-function(ind_miss=0.25,snp_miss=0.1,minmac=2,hefilter=TRUE,minimumspacing=500)
@@ -435,10 +449,70 @@ exportmethods<-function(ind_miss=0.25,snp_miss=0.1,minmac=2,hefilter=TRUE,minimu
 	myzoo			<- myversions$combined[myversions$package=="zoo"]
 	setwd(mysambar$sambardir)
 	ntotalinds		<- nrow(inds)
+	if(any(!inds$filter))
+		{
+		npopmin			<- min(as.vector(table(inds$filter,inds$pop)[2,]))
+		npopmax			<- max(as.vector(table(inds$filter,inds$pop)[2,]))
+		}else{
+		npopmin			<- min(as.vector(table(inds$filter,inds$pop)[1,]))
+		npopmax			<- max(as.vector(table(inds$filter,inds$pop)[1,]))
+		}
 	nretainedinds	<- nrow(inds[inds$filter,])
 	ntotalsnps		<- nrow(snps)
 	nretainedsnps	<- nrow(snps[snps$filter2,])
 	nthinnedsnps	<- nrow(snps[snps$filter,])
+	if("meandepth"%in%colnames(inds))
+		{
+		rdmean	<- round(mean(inds$meandepth,na.rm=TRUE),1)
+		rdmin	<- round(min(inds$meandepth,na.rm=TRUE),1)
+		rdmax	<- round(max(inds$meandepth,na.rm=TRUE),1)
+		if(min(inds$miss,na.rm=TRUE)<0.1)
+			{
+			rd0.1	<- round(min(inds$meandepth[inds$miss<=0.1],na.rm=TRUE),1)
+			}else{
+			rd0.1	<- NA
+			}
+		if(min(inds$miss,na.rm=TRUE)<0.005)
+			{
+			rd0.01	<- round(min(inds$meandepth[inds$miss<=0.01],na.rm=TRUE),1)
+			}else{
+			rd0.01	<- NA
+			}
+		if(min(inds$miss,na.rm=TRUE)<0.005)
+			{
+			rd0.005	<- round(min(inds$meandepth[inds$miss<=0.005],na.rm=TRUE),1)
+			}else{
+			rd0.005	<- NA
+			}
+		if(min(inds$miss,na.rm=TRUE)<0.001)
+			{
+			rd0.001	<- round(min(inds$meandepth[inds$miss<=0.001],na.rm=TRUE),1)
+			}else{
+			rd0.001	<- NA
+			}
+		}else{
+		rdmean	<- NA
+		rdmin	<- NA
+		rdmax	<- NA
+		rd0.1	<- NA
+		rd0.01	<- NA
+		rd0.005	<- NA
+		rd0.001	<- NA
+		}
+	if("meandepth"%in%colnames(snps))
+		{
+		snpmedian	<- round(median(snps$meandepth,na.rm=TRUE),1)
+		snpmean		<- round(mean(snps$meandepth,na.rm=TRUE),1)
+		snpmax		<- round(max(snps$meandepth,na.rm=TRUE),1)
+		snpmin		<- round(min(snps$meandepth,na.rm=TRUE),1)
+		}else{
+		snpmedian	<- NA
+		snpmean		<- NA
+		snpmax		<- NA
+		snpmin		<- NA
+		}
+	myGC		<- round(nrow(snps[snps$GC&snps$filter,])/nrow(snps[snps$filter,]),2)
+	mytransit	<- round(nrow(snps[snps$transit&snps$filter,])/nrow(snps[snps$filter,]),2)
 	fileConn	<- file("SambaR_methods.txt")
 	writeLines(c("This file contains a template for your methods section. Remove the lines which are not applicable to your study.",
 	"Full citations can be found in the 'SambaR_Rpackages.bib' file.",
@@ -446,14 +520,18 @@ exportmethods<-function(ind_miss=0.25,snp_miss=0.1,minmac=2,hefilter=TRUE,minimu
 	"DATA PREPARATION",
 	"PGD-Spider (Lischer and Excoffier, 2012) or vcftools (Danecek et al., 2011) was used to convert the SNP data into PED and MAP format.",
 	"The vcftools (Danecek et al., 2011) flags --depth and --site-depth were used to calculate read depth per individual and per SNP.",
+	paste("The mean sequence depth per individual ranged from ",rdmin," to ",rdmax," reads per SNP, with an average of ",rdmean," reads per SNP per individual.",sep=""),
+	paste("Individuals with less than 10, 1, 0.5 and 0.25 percent missing data had a minimum cover of respectively ",rd0.1,", ",rd0.01,", ",rd0.005,", and ",rd0.001," reads (see figure 'missingdatapersample').",sep=""), 
+	paste("The mean sequence depth per individual per SNP ranged from ",snpmin," to ",snpmax," reads per SNP, with a mean and median of respectively ",snpmean," and ",snpmedian," reads (see figure 'Locusdepth').",sep=""),
 	"Binary files (BED, RAW and BIM) were generated from PED and MAP files using PLINK (Purcell et al., 2017, i.e. using the flags --make-bed and --recode A).",
 	"DATA MANAGEMENT",
-	paste("SNP data management and analyses were performed in ",myrversion," (R Core Team, 2019) using wrapper functions of the R package SambaR.",sep=""),
+	paste("SNP data management and analyses were performed in ",myrversion," (R Core Team, 2019) using wrapper functions of the R package SambaR (github page: https://github.com/mennodejong1986/SambaR ).",sep=""),
 	paste("The data was imported into R and stored in a genlight object using the function 'read.PLINK' of the R package ",myadegenet," (Jombart, 2008; Jombart and Ahmed, 2011).",sep=""), 
 	paste("The data was filtered using the function 'filterdata' of the R package SambaR, with indmiss=",ind_miss,", snpmiss=",snp_miss,", min_mac=",minmac,", dohefilter=",hefilter," and minimum_spacing=",minimumspacing,".",sep=""),
-	paste("After filtering ",nretainedinds," out of ",ntotalinds," individuals were retained.",sep=""),
-	paste("After filtering ",nretainedsnps," out of ",ntotalsnps," SNPs were retained. This filtered dataset was used for selection analyses.",sep=""),
-	paste("After filtering and thinning ",nthinnedsnps," out of ",ntotalsnps," SNPs were retained. This filtered and thinned dataset was used for structure analyses.",sep=""),
+	paste("After filtering ",nretainedinds," out of ",ntotalinds," individuals (",npopmin,"-",npopmax," per population) were retained (see figures 'Missingdata_perpop', 'Retainedinds_perpop' and 'Discardedinds_perpop').",sep=""),
+	paste("After filtering ",nretainedsnps," out of ",ntotalsnps," SNPs were retained (see figure 'Filterclasses'). This filtered dataset was used for selection analyses.",sep=""),
+	paste("After filtering and thinning ",nthinnedsnps," out of ",ntotalsnps," SNPs were retained (see figure 'Filterclasses'). This filtered and thinned dataset was used for structure analyses.",sep=""),
+	paste("The GC-content of the retained dataset equalled ",myGC," (see figure 'Minoralleles') and the 'transversion vs transition'-ratio equalled ",mytransit," (see figure 'Transitions_vs_transversions.filtered').",sep=""),
 	"PLOTTING",
 	paste("Geographical maps were generated with the function 'getMap' of the R package ",myrworldmap," (South, 2011). Piecharts were added using the function 'add.pie' of the R package ",mymapplots," (Gerritsen, 2018).",sep=""),
 	"STRUCTURE ANALYSES",
@@ -468,7 +546,7 @@ exportmethods<-function(ind_miss=0.25,snp_miss=0.1,minmac=2,hefilter=TRUE,minimu
 	"Bayesian population assignment probabilities were calculated and plotted using the functions 'assign2pop' and 'plotassign2pop' of the R package SambaR.",
 	paste("Admixture coefficients were calculated with the functions 'obj.snmf' and 'Q' of the R package ",mylea," (Frichot and Francois, 2014). Alpha was set to 10, tolerance to 0.00001, and number of iterations to 200.",sep=""), 
 	"Ancestry coefficients were calculated with the software Admixture-1.3 (Alexander et al., 2009) and plotted using SambaR.",
-	paste("Genotype networks were generated with function 'haploNet' of the R package ",mypegas," (Paradis, 2010).",sep=""),
+	#paste("Genotype networks were generated with function 'haploNet' of the R package ",mypegas," (Paradis, 2010).",sep=""),
 	"GENETIC DISTANCE ANALYSES",
 	paste("Nei's genetic distance was calculated with the function 'stamppNeisD' of the R package ",mystampp," (Pembleton et al., 2013).",sep=""),
 	"Wright's Fst and Weir & Cockerham Fst (Weir and Cockerham, 1984) estimates were calculated with the functions 'locusWrightFst', 'locusWCFst' and 'multilocusWeirFst' of the R package SambaR.",
@@ -491,7 +569,7 @@ exportmethods<-function(ind_miss=0.25,snp_miss=0.1,minmac=2,hefilter=TRUE,minimu
 	""),fileConn)
 	close(fileConn)
 	}
-		
+
 getpackages<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE)
 	{
 	if(getRversion()<'3.5.0')
@@ -511,7 +589,7 @@ getpackages<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE)
 			}
 		}
 	# from CRAN:
-	mysoftwares	<- c("adegenet","ape","bibtex","car","circlize","colorspace","curl","devtools","gplots","grid","gridExtra","gridGraphics","MASS","migest","pcadapt","plot3D","plyr","poppr","RColorBrewer","Rcpp","scales","scatterplot3d","StAMPP","vegan","vioplot","zoo")  
+	mysoftwares	<- c("adegenet","ape","bibtex","car","circlize","colorspace","curl","devtools","gplots","grid","gridExtra","gridGraphics","MASS","migest","pcadapt","phangorn","plot3D","plyr","poppr","psych","RColorBrewer","Rcpp","scales","scatterplot3d","StAMPP","vegan","vioplot","zoo")  
 	myvector	<- rep(NA,length(mysoftwares))
 	for (i in c(1:length(mysoftwares)))
 		{
@@ -554,21 +632,26 @@ getpackages<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE)
 	if("fsthet" %in% rownames(installed.packages()) == FALSE) {install.packages('fsthet',repos=myrepos)}						# selection analysis
 	if("PopGenome" %in% rownames(installed.packages()) == FALSE) {install.packages('PopGenome',repos=myrepos)}					# selection analysis
 	if("bibtex" %in% rownames(installed.packages()) == FALSE) {install.packages('bibtex',repos=myrepos)}						# selection analysis
+	if("psych" %in% rownames(installed.packages()) == FALSE) {install.packages('psych',repos=myrepos)}							# needed for RDA analysis
+	if("sp" %in% rownames(installed.packages()) == FALSE) {install.packages("sp",repos=myrepos)}								# tess3r plots
+	if("rworldmap" %in% rownames(installed.packages()) == FALSE) {install.packages("rworldmap",repos=myrepos)}					# tess3r plots
+	if("raster" %in% rownames(installed.packages()) == FALSE) {install.packages("raster",repos=myrepos)}						# tess3r plots
+	if("RcppEigen" %in% rownames(installed.packages()) == FALSE) {install.packages("RcppEigen",repos=myrepos)}					# tess3r plots
+	if("tess3r" %in% rownames(installed.packages()) == FALSE)  {install_github("bcm-uga/TESS3_encho_sen")}						# tess3r plots
+	if("phangorn" %in% rownames(installed.packages()) == FALSE) {install.packages("phangorn",repos=myrepos)}					# tree plots
+	if("seqinr" %in% rownames(installed.packages()) == FALSE) {install.packages("seqinr",repos=myrepos)}						# tree plots?
 	#if("Demerelate" %in% rownames(installed.packages()) == FALSE) {install.packages('Demerelate',repos=myrepos)}				# relatedness estimates (does not work for me coz does not give the matrix I want) 
 	#if("synbreed" %in% rownames(installed.packages()) == FALSE) {install.packages('synbreed',repos=myrepos)}					# relatedness estimates (does not work for me coz cannot get package BGLR) 
-	#if("GENESIS" %in% rownames(installed.packages()) == FALSE) {install.packages('GENESIS',repos=myrepos)}					# relatedness estimates
+	#if("GENESIS" %in% rownames(installed.packages()) == FALSE) {install.packages('GENESIS',repos=myrepos)}						# relatedness estimates
 	# from Bioconductor:
 	myvector	<- rep(NA,4)
-	mysoftwares	<- c("qvalue","OutFLANK","gdsfmt","SNPRelate","LEA")
+	mysoftwares	<- c("gdsfmt","OutFLANK","LEA","SNPRelate","qvalue")
 	for (i in c(1:length(mysoftwares)))
 		{
 		myvector[i]	<- !(mysoftwares[i] %in% rownames(installed.packages()))
 		}
 	if(any(myvector))
 		{
-		#source("http://bioconductor.org/biocLite.R")																			# to download bioconductor packages  
-		#if("qvalue" %in% rownames(installed.packages()) == FALSE) 	{biocLite("qvalue",suppressUpdates=noupdates)}				# for selection analysis OUTFLANK  
-		#if("gdsfmt" %in% rownames(installed.packages()) == FALSE) 	{biocLite("gdsfmt",suppressUpdates=noupdates)}				# for PCA analysis SNPRelate
 		if(getRversion()>='3.5.0')									
 			{
 			if(!requireNamespace("BiocManager", quietly = TRUE))		{install.packages("BiocManager",repos=myrepos)}
@@ -641,6 +724,14 @@ getpackages<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE)
 	library(fsthet)
 	library(PopGenome)
 	library(bibtex)
+	if("vegan"%in%(.packages()) == FALSE) {library(vegan)}
+	if("psych"%in%(.packages()) == FALSE) {library(psych)}	
+	library(sp)
+	library(rworldmap)
+	library(raster)
+	library(tess3r)
+	library(phangorn)
+	library(seqinr)
 	#library(Demerelate)
 	#library(synbreed)
 	#library(DNAcopy)
@@ -729,7 +820,11 @@ importdata<-function(inputprefix,sumstatsfile=FALSE,vcfsamplefile=NULL,geofile=N
 	mygenlight 			<<- read.PLINK((paste(inputprefix,"raw",sep=".",collapse = NULL)),parallel=FALSE)
 	if(any(grepl("_",pop(mygenlight))))
 		{
-		return(cat("ERROR: SambaR does not accept population names which contain an underscore.\nPlease edit population names and try again.",sep="\n"))	
+		return(cat("ERROR: SambaR does not accept population names which contain an underscore.\nPlease edit population names and try again. \nThis means: make changes in the PED-file, convert PED/MAP to raw/bim using PLINK, and afterwards rerun the importdata() function.",sep="\n"))	
+		}
+	if(any(nchar(as.character(pop(mygenlight)))>10))
+		{
+		return(cat("ERROR: Because of plot margins, SambaR does not accept population names which contain more than 10 characters.\nPlease edit population names and try again. \nThis means: make changes in the PED-file, convert PED/MAP to raw/bim using PLINK, and afterwards rerun the importdata() function.",sep="\n"))
 		}
 	#
 	# create snps dataframe:
@@ -843,6 +938,14 @@ importdata<-function(inputprefix,sumstatsfile=FALSE,vcfsamplefile=NULL,geofile=N
 		if(any(!as.vector(vcfinput$name)==as.vector(inds$name)))
 			{
 			return(cat("ERROR: Sample names in vcfinput file do not correspond with names in inds dataset.",sep="\n"))
+			}
+		if(any(grepl("_",vcfinput$pop)))
+			{
+			return(cat("ERROR: SambaR does not accept population names which contain an underscore.\nPlease edit population names and try again. \nThis means: make changes in the vcfsamplefile and afterwards rerun the importdata() function.",sep="\n"))	
+			}
+		if(any(nchar(as.character(vcfinput$pop))>10))
+			{
+			return(cat("ERROR: Because of plot margins, SambaR does not accept population names which contain more than 10 characters.\nPlease edit population names and try again. \nThis means: make changes in the vcfsamplefile, and afterwards rerun the importdata() function.",sep="\n"))
 			}
 		inds$pop		<<- vcfinput$pop
 		inds$pop2		<<- inds$pop		# 08_11_2018: this column can go once every function calls inds$pop rather than inds$pop2 
@@ -1263,16 +1366,18 @@ addsampleinfo<-function(samplefile="sample_info.txt",filteronly=TRUE)
 				return(cat("ERROR: number of samples in sample info does not correspond with number of individuals in inds dataframe.",sep="\n"))	
 				}
 			}
-		if(any(!as.character(myinfo$name)==as.character(indsretained$name)[indsretained$filter]))
+		if(any(!as.character(myinfo$name)==as.character(indsretained$name)))
 			{
 			return(cat("ERROR: sample names in sample info file do not correspond with inds$name column.",sep="\n"))	
 			}
+		present_in_inds	<- colnames(myinfo)%in%colnames(inds)
 		if(length(present_in_inds[!present_in_inds])==1)
 			{
 			return(cat("Column names within sample info file already present in inds data frame.",sep="\n"))	
 			}
-		indstemp	<- indstemp[,!present_in_inds]
-		indstemp	<- merge(inds,myinfo,all=TRUE,by="name")
+		myinfotemp	<- myinfo[,!present_in_inds]
+		myinfotemp$name	<- myinfo$name
+		indstemp	<- merge(inds,myinfotemp,all=TRUE,by="name")
 		indstemp	<- indstemp[order(indstemp$name),]
 		if(any(!row.names(as.matrix(mygenlight))==as.vector(indstemp$name)))
 			{
@@ -1858,6 +1963,9 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,chromosomes=FALSE,min_mac=2,dohefi
 	plotHe_perind(export="pdf")
 	plotHe_perind(export="png")
 	plotHe_perind(export="wmf")
+	if(!silent){cat("plotgenocounts_ind",sep="\n")}
+	plotgenocounts_inds(export=TRUE,addlabels=TRUE)
+	plotgenocounts_inds(export=TRUE,addlabels=TRUE)
 	if(length(mysambar$populations)>1)
 		{
 		if(!silent){cat("retainedinds_perpop",sep="\n")}
@@ -1985,6 +2093,8 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,chromosomes=FALSE,min_mac=2,dohefi
 	cat("A description of the methods has been written to a txt.file called 'SambaR_methods.txt' within the directory:",sep="\n")
 	cat(mysambar$sambardir,sep="\n")
 	setwd(mysambar$inputdatadir)
+	cat("To export the retained dataset in immanc format (i.e. Bayesass input) as well as PED/MAP format (for relatedness and LD calculations in plink), type on the command line:",sep="\n")
+	cat("exportsambarfiles()",sep="\n")
 	}
 
 exportsambarfiles<-function()
@@ -2287,6 +2397,11 @@ snp_maf<-function(popnames=mysambar$populations,indthreshold=0.25)
 	snps$maf			<<- round(snps$minorcount/snps$nonmissallelecount,3)
 	#snps$maf 			<<- glMean(mygenlight[indfilter,])		# glMean gives wrong estimate if data consists of 1 snp only
 	popnoind			<<- vector()
+	# check for SNPs for with no data left after filtering: (this is captured by snps$poly)
+	# if(any(is.na(snps$maf)))
+	#	{
+	#	cat("WARNING: After filtering, no data retained for 1 or more snps",sep="\n")
+	#	}
 	# Per population:
 	for (i in (1:length(popnames)))
 		{
@@ -2530,6 +2645,7 @@ snp_hetero<-function(popnames=mysambar$populations,indthreshold=0.25,snpthreshol
 	snps$AA		<<- AA_vector	
 	snps$Aa		<<- Aa_vector	
 	snps$aa		<<- aa_vector	
+	# snps$mono	<<- snps$Aa+snps$aa==0		# 1801220: snps with no variation after filtering, but this is already captured by snps$poly
 	# optionally check if everything adds up:
 	mysum		<- AA_vector+Aa_vector+aa_vector+na_vector
 	mysum2		<- AA_vector+Aa_vector+aa_vector
@@ -2903,7 +3019,7 @@ retainedsites_perpop<-function(export=NULL)
 		if(export=="wmf"){win.metafile("Retainedsites.perpop.wmf",family=mysambar$myfont,width=npops*2.5,height=6)}
 		}
 	par(mar=c(4,8,0.5,0.5))
-	boxplot(inds$nsites2[inds$filter]~inds$pop[inds$filter],col=mysambar$mycolour[order(mysambar$populations)],las=1,xlab="",ylab="",cex.axis=1.5,cex.axis=2,pch=16)
+	boxplot(inds$nsites2[inds$filter]~inds$pop[inds$filter],col=mysambar$mycolour[order(mysambar$populations)],las=1,xlab="",ylab="",cex.axis=1.5,pch=16)
 	mtext(side=2,"Number of retained sites",line=5,cex=2)
 	mtext(side=1,"Population",line=2.75,cex=1.75)
 	if(!is.null(export)){dev.off()}
@@ -3194,7 +3310,7 @@ boxplot_locusHe<-function(export=NULL,popnames=mysambar$populations)
 	myhe	<- as.vector(unlist(temp))
 	mypops	<- rep(popnames,each=nrow(temp))
 	mydf	<- data.frame(pop=mypops,hetero=myhe)
-	boxplot(mydf$hetero~mydf$pop,col=mysambar$mycolour[order(mysambar$populations)],las=1,xlab="",ylab="",cex.axis=1.5,cex.axis=2,pch=16)
+	boxplot(mydf$hetero~mydf$pop,col=mysambar$mycolour[order(mysambar$populations)],las=1,xlab="",ylab="",cex.axis=1.5,pch=16)
 	# add means:
 	mymeans <- aggregate(hetero ~ pop, mydf, mean)
 	points(c(1:npops),mymeans$hetero,pch=16,col="white",cex=1)
@@ -3435,7 +3551,7 @@ missingness_perpop<-function(export=NULL,addylabel=TRUE)
 		if(export=="wmf"){win.metafile(paste("Missingdata",mylabel,"wmf",sep="."),family=mysambar$myfont,width=npops*2.5,height=6)}
 		}
 	par(mar=c(4,5,0.5,0.5))
-	boxplot(inds$miss~inds$pop,col=mysambar$mycolour[order(mysambar$populations)],las=1,xlab="",ylab="",cex.axis=1.5,cex.axis=2,pch=16)
+	boxplot(inds$miss~inds$pop,col=mysambar$mycolour[order(mysambar$populations)],las=1,xlab="",ylab="",cex.axis=1.5,pch=16)
 	if(addylabel)
 		{	
 		mtext(side=2,"Proportion missing data",line=3.25,cex=2)
@@ -3594,7 +3710,62 @@ plotgenocounts<-function(popnames=mysambar$populations,export=FALSE,myout=NULL,a
 		}
 	if(export){dev.off()}
 	}
-	
+
+plotgenocounts_inds<-function(export=FALSE,addlabels=TRUE)
+	{
+	indstemp		<- inds[inds$filter,]
+	indstemp		<- indstemp[order(indstemp$pop),]
+	myout			<- indstemp[indstemp$filter,c("n0","n1","n2")]
+	myout			<- myout/(indstemp$nsites2)
+	myout2			<- t(myout)
+	myout			<<- myout
+	myout2			<<- myout2
+	ninds			<- nrow(myout)
+	indnames		<- indstemp$nr
+	if(ninds>1)
+		{
+		x			<- matrix(0,ncol=ninds,nrow=ninds*3)
+		for(j in c(1:ninds))
+			{
+			mydata	<- myout2[,j]
+			x[(j*3-2):(j*3),j]	<- mydata
+			}
+		}else{
+		x			<- myout2
+		}
+	mycolours		<- indstemp$popcol
+	mycols			<- vector()
+	for(j in c(1:ninds))
+		{
+		mycol	<- mycolours[j]
+		colfunc <- colorRampPalette(c("grey",mycol))
+		mycol2	<- colfunc(3)
+		mycols	<- c(mycols,mycol2)
+		}
+	# plot:
+	if(export)
+		{
+		plotname	<- ifelse(addlabels,"Genocounts_inds.withlabels.pdf","Genocounts_inds.pdf")
+		pdf(paste(plotname,"pdf",sep="."),height=ninds*0.25,width=15)
+		}
+	# par(mar=c(4,10,2.5,2.5))
+	xx<-barplot(x,col=mycols,border=NA,space=0.1,horiz=TRUE,names.arg=indnames,las=1,cex.names=0.75)
+	if(addlabels)
+		{
+		for(j in c(1:ninds))
+			{
+			poppoints	<- x[,j]
+			poppoints	<- poppoints[poppoints!=0]
+			poppoints	<- cumsum(poppoints)
+			barmid		<- xx[j]
+			text(poppoints,barmid,labels = c(0,1,2),adj=1,cex=1.5)
+			}
+		mtext("Genotype proportions",side=3,line=-0.5,cex=3.5)
+		mtext("0: homozygous major; 1: heterozygous; 2: homozygous minor",side=3,line=-3,cex=2.5)
+		}
+	if(export){dev.off()}
+	}
+
 plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2="alignmentscores.cowasref.txt",myrefs=c("reindeer","cow"),plotcols=c("grey","black"))
 	{
 	if(export){pdf("Mapping_scores.pdf")}
@@ -3643,7 +3814,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,do_nei=TRUE,do_pi=TRUE,do_dapc=TRUE,onlyLEA=FALSE,symbol_size=2,colour_vector=NULL,silent=TRUE)
+findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,do_nei=TRUE,do_tree=TRUE,do_pi=TRUE,do_dapc=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=2,colour_vector=NULL,silent=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -3688,55 +3859,14 @@ findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,d
 		#	wahlundplot(export="png")
 		#	wahlundplot(export="wmf")
 		#	}								# 26-09-2019: incorrect at the moment, needs to be improved
-		if(length(mysambar$populations)>2)
-			{
-			cat("Executing correspondence analysis...",sep="\n")
-			# for populations:
-			if(!silent){cat("makeinputfca",sep="\n")}
-			makeinputfca()
-			if(!silent){cat("run_ca",sep="\n")}
-			run_ca(mydf=fca_input,addlegend=FALSE,export="eps",symbolsize=symbol_size)
-			run_ca(mydf=fca_input,addlegend=FALSE,export="pdf",symbolsize=symbol_size)
-			run_ca(mydf=fca_input,addlegend=FALSE,export="png",symbolsize=symbol_size)
-			run_ca(mydf=fca_input,addlegend=FALSE,export="wmf",symbolsize=symbol_size)
-			run_ca(mydf=fca_input,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="eps",symbolsize=symbol_size)
-			run_ca(mydf=fca_input,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="pdf",symbolsize=symbol_size)
-			run_ca(mydf=fca_input,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="png",symbolsize=symbol_size)
-			run_ca(mydf=fca_input,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="wmf",symbolsize=symbol_size)
-			}else{
-			cat("Currently less than 3 population defined. Skipping correspondence analysis for populations.",sep="\n")
-			}
-		if(!silent){cat("makeinputfca_ind",sep="\n")}
-		makeinputfca_ind()
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=FALSE,export="eps",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=FALSE,export="pdf",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=FALSE,export="png",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=FALSE,export="wmf",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=FALSE,dolabels=TRUE,export="eps",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=FALSE,dolabels=TRUE,export="pdf",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=FALSE,dolabels=TRUE,export="png",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=FALSE,dolabels=TRUE,export="wmf",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="eps",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="pdf",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="png",symbolsize=symbol_size)
-		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="wmf",symbolsize=symbol_size)
-		if(do_nei)
-			{
-			cat("Creating Nei's genetic distance matrix...",sep="\n")
-			ind_neimatrix(export=NULL)
-			if(!silent){cat("plot_ind_neimatrix",sep="\n")}
-			plot_ind_neimatrix(export="eps")
-			plot_ind_neimatrix(export="pdf")
-			plot_ind_neimatrix(export="png")
-			plot_ind_neimatrix(export="wmf")
-			}
-		cat("Creating pcoa plot based on nucleotide diversity using Sambar functions and Ape...",sep="\n")
-		if(!silent){cat("calcpi",sep="\n")}
-		calcpi(pi_per_pop=FALSE)
-		calcpi(pi_per_pop=TRUE)
-		if(!silent){cat("ape_pcoa",sep="\n")}
 		if(do_pi)
 			{
+			cat("Creating pcoa plot based on pairwise sequence similarity using Sambar functions and Ape...",sep="\n")
+			if(!silent){cat("calcpi",sep="\n")}
+			calcpi(pi_per_pop=FALSE)
+			calcpi(pi_per_pop=TRUE)
+			if(!silent){cat("ape_pcoa",sep="\n")}
+			cat("If you receive an error after this line, rerun findstructure with the flag 'do_pi' set to FALSE (i.e., findstructure(do_pi=FALSE)).",sep="\n")  
 			ape_pcoa(labels=FALSE,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
 			ape_pcoa(labels=FALSE,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
 			ape_pcoa(labels=FALSE,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
@@ -3748,6 +3878,13 @@ findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,d
 			}
 		if(do_nei)
 			{
+			cat("Creating Nei's genetic distance matrix...",sep="\n")
+			ind_neimatrix(export=NULL)
+			if(!silent){cat("plot_ind_neimatrix",sep="\n")}
+			plot_ind_neimatrix(export="eps")
+			plot_ind_neimatrix(export="pdf")
+			plot_ind_neimatrix(export="png")
+			plot_ind_neimatrix(export="wmf")
 			cat("Creating pcoa plot based on Nei's genetic distance using StAMPP and Ape...",sep="\n")
 			ape_pcoa(labels=FALSE,method="nei",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
 			ape_pcoa(labels=FALSE,method="nei",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
@@ -3757,6 +3894,12 @@ findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,d
 			ape_pcoa(labels=TRUE,method="nei",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
 			ape_pcoa(labels=TRUE,method="nei",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
 			ape_pcoa(labels=TRUE,method="nei",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
+			if(nrow(snps[snps$filter,])>1000)
+				{
+				cat("Creating pcoa plots based on Nei's genetic distance using small subsets of loci...",sep="\n")
+				plotmulti_pcoa(mymethod="nei",export="pdf",randomsubset=FALSE)
+				plotmulti_pcoa(mymethod="nei",export="pdf")
+				}
 			}
 		cat("Creating pcoa plot based on Hamming's genetic distance using poppr and Ape...",sep="\n")
 		ape_pcoa(labels=FALSE,method="hamming",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
@@ -3769,13 +3912,60 @@ findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,d
 		ape_pcoa(labels=TRUE,method="hamming",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
 		if(nrow(snps[snps$filter,])>1000)
 			{
-			cat("Creating pcoa plots based on Nei's genetic distance using various number of loci...",sep="\n")
-			plotmulti_pcoa(mymethod="nei",export="pdf",randomsubset=FALSE)
-			plotmulti_pcoa(mymethod="nei",export="pdf")
-			cat("Creating pcoa plots based on Hamming's genetic distance using various number of loci...",sep="\n")
+			cat("Creating pcoa plots based on Hamming's genetic distance using small subsets of loci...",sep="\n")
 			plotmulti_pcoa(mymethod="hamming",export="pdf",randomsubset=FALSE)
 			plotmulti_pcoa(mymethod="hamming",export="pdf")
 			}
+		if(do_tree)
+			{
+			cat("Creating NJ tree based on Hamming's genetic distance (i.e. using bitwise.dist function of poppr package)...",sep="\n")
+			popprtree(mymethod="NJ")
+			#cat("Creating UPGMA tree based on Hamming's genetic distance (i.e. using bitwise.dis function of poppr package)...",sep="\n")
+			#popprtree(mymethod="UPGMA")
+			}
+		if(length(mysambar$populations)>2)
+			{
+			cat("Executing correspondence analysis...",sep="\n")
+			# for populations:
+			if(nrow(snps[snps$filter,])<100000)
+				{
+				if(!silent){cat("makeinputfca",sep="\n")}
+				makeinputfca()
+				if(!silent){cat("run_ca for populations",sep="\n")}
+				run_ca(mydf=fca_input,perpop=TRUE,doall=FALSE)
+				if(!silent){cat("plot_ca for populations",sep="\n")}
+				plot_ca(addlegend=FALSE,export="eps",symbolsize=symbol_size)
+				plot_ca(addlegend=FALSE,export="pdf",symbolsize=symbol_size)
+				plot_ca(addlegend=FALSE,export="png",symbolsize=symbol_size)
+				plot_ca(addlegend=FALSE,export="wmf",symbolsize=symbol_size)
+				plot_ca(addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="eps",symbolsize=symbol_size)
+				plot_ca(addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="pdf",symbolsize=symbol_size)
+				plot_ca(addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="png",symbolsize=symbol_size)
+				plot_ca(addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="wmf",symbolsize=symbol_size)
+				}else{
+				cat("More than 100.000 SNPs present in retained dataset. For sake of computation time, skipping correspondence analyses for populations.",sep="\n")
+				}
+			}else{
+			cat("Currently less than 3 population defined. Skipping correspondence analysis for populations.",sep="\n")
+			}
+		if(!silent){cat("makeinputfca_ind",sep="\n")}
+		makeinputfca_ind()
+		if(!silent){cat("run_ca for individuals",sep="\n")}
+		run_ca(mydf=fca_input_ind,perpop=FALSE,doall=FALSE)
+		if(!silent){cat("plot_ca for individuals",sep="\n")}
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=FALSE,export="eps",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=FALSE,export="pdf",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=FALSE,export="png",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=FALSE,export="wmf",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=FALSE,dolabels=TRUE,export="eps",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=FALSE,dolabels=TRUE,export="pdf",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=FALSE,dolabels=TRUE,export="png",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=FALSE,dolabels=TRUE,export="wmf",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="eps",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="pdf",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="png",symbolsize=symbol_size)
+		plot_ca(perpop=FALSE,doall=FALSE,addlegend=TRUE,legendpos=legend_pos,legendcex=legend_cex,export="wmf",symbolsize=symbol_size)
+		#
 		cat("Creating pca plot using snprelate...",sep="\n")
 		snprelate_pca(export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)	
 		snprelate_pca(export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
@@ -3797,11 +3987,13 @@ findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,d
 		if(do_dapc)
 			{
 			cat("Creating dapc plot...",sep="\n")	
-			genlight2genind()
-			if(!silent){cat("adegenet_dapc",sep="\n")}
-			# adegenet_dapc(maxclusters=Kmax,export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size) 
-			adegenet_dapc(maxclusters=Kmax,export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
-			adegenet_dapc(maxclusters=Kmax,export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
+			if(do_genind)
+				{
+				genlight2genind()
+				if(!silent){cat("adegenet_dapc",sep="\n")}
+				}
+			adegenet_dapc(maxclusters=Kmax,export="pdf",use_genind=do_genind,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
+			adegenet_dapc(maxclusters=Kmax,export="png",use_genind=do_genind,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)
 			}
 		if(length(mysambar$populations)>1)
 			{
@@ -3828,12 +4020,17 @@ findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,d
 			}
 		}
 	cat("Creating admixture barplot using LEA...",sep="\n")
-	# LEAstructureplot(maxdemes=Kmax,export="eps",addindnr=TRUE,colourvector=colour_vector)	# It takes too long to do all graphical formats.
-	# LEAstructureplot(maxdemes=Kmax,export="eps",addindnr=FALSE,colourvector=colour_vector)
+	runLEA(maxdemes=Kmax)
+	if(!silent){cat("eps",sep="\n")}
+	LEAstructureplot(maxdemes=Kmax,export="eps",addindnr=TRUE,colourvector=colour_vector)
+	LEAstructureplot(maxdemes=Kmax,export="eps",addindnr=FALSE,colourvector=colour_vector)
+	if(!silent){cat("pdf",sep="\n")}
 	LEAstructureplot(maxdemes=Kmax,export="pdf",addindnr=TRUE,colourvector=colour_vector)
 	LEAstructureplot(maxdemes=Kmax,export="pdf",addindnr=FALSE,colourvector=colour_vector)
-	# LEAstructureplot(maxdemes=Kmax,export="png",addindnr=TRUE,colourvector=colour_vector)
-	# LEAstructureplot(maxdemes=Kmax,export="png",addindnr=FALSE,colourvector=colour_vector)
+	#if(!silent){cat("png",sep="\n")}
+	#LEAstructureplot(maxdemes=Kmax,export="png",addindnr=TRUE,colourvector=colour_vector)
+	#LEAstructureplot(maxdemes=Kmax,export="png",addindnr=FALSE,colourvector=colour_vector)
+	if(!silent){cat("wmf",sep="\n")}
 	LEAstructureplot(maxdemes=Kmax,export="wmf",addindnr=TRUE,colourvector=colour_vector)
 	LEAstructureplot(maxdemes=Kmax,export="wmf",addindnr=FALSE,colourvector=colour_vector)
 	# optionally order by longitude:
@@ -3845,6 +4042,7 @@ findstructure<-function(add_legend=TRUE,legend_pos="right",legend_cex=2,Kmax=6,d
 			cat("SambaR will not order LEA structure plots by longitude.",sep="\n")
 			}else{
 			if(!silent){cat("LEAstructureplot by longitude",sep="\n")}
+			runLEA(maxdemes=Kmax,order_on_longitude=TRUE)
 			LEAstructureplot(maxdemes=Kmax,export="pdf",addindnr=TRUE,order_on_longitude=TRUE,colourvector=colour_vector)
 			LEAstructureplot(maxdemes=Kmax,export="pdf",addindnr=FALSE,order_on_longitude=TRUE,colourvector=colour_vector)	
 			LEAstructureplot(maxdemes=Kmax,export="wmf",addindnr=TRUE,order_on_longitude=TRUE,colourvector=colour_vector)
@@ -3925,6 +4123,24 @@ create_sambarmaps<-function(K_max=6,radius_ratio=30)
 			}else{
 			cat("Could not find object called dapcqmatrixlist. Run the findstructure() function and try again.",sep="\n")
 			}
+		cat("Creating Tessellation plots...",sep="\n")
+		# map tess qmatrix:
+		runtess3(export="pdf",myrepos='http://cran.us.r-project.org',maxK=K_max)
+		maptess(use_lea=FALSE,mydemes=c(2:K_max),export="pdf",multiplot=FALSE)
+		maptess(use_lea=FALSE,mydemes=c(2:5),export="pdf",multiplot=TRUE)
+		# barplot tess:
+		tesslist<-list()
+		for(ndemes in c(2:(K_max)))	
+			{
+			tesslist[[ndemes-1]] 	<- qmatrix(tessout,K=ndemes)
+			}
+		plotstructure(qmatrixlist=tesslist,export="pdf",plotname="TESS.structureplot",addindnr=TRUE,order_on_longitude=FALSE)
+		plotstructure(qmatrixlist=tesslist,export="pdf",plotname="TESS.structureplot",addindnr=TRUE,order_on_longitude=TRUE)
+		plotstructure(qmatrixlist=tesslist,export="pdf",plotname="TESS.structureplot",addindnr=FALSE,order_on_longitude=FALSE)
+		plotstructure(qmatrixlist=tesslist,export="pdf",plotname="TESS.structureplot",addindnr=FALSE,order_on_longitude=TRUE)
+		# map LEA qmatrix
+		maptess(use_lea=TRUE,mydemes=c(2:K_max),export="pdf",multiplot=FALSE)
+		maptess(use_lea=TRUE,mydemes=c(2:5),export="pdf",multiplot=TRUE)
 		cat("Creating mantel plot...",sep="\n")
 		multi_mantel_plot(popnames=mysambar$populations,doexport=TRUE)
 		cat("Plotting location of samples...",sep="\n")
@@ -3963,7 +4179,23 @@ makeinputfca<-function(popnames=mysambar$populations,remove0=FALSE)
 
 makeinputfca_ind<-function(popnames=mysambar$populations,doall=FALSE)
 	{
-	fcatemp					<- as.matrix(mygenlight)
+	if(is.null(mysambar$imputedmatrix))
+		{
+		sambarimpute()
+		}
+	if(doall)
+		{
+		fca_input_ind		<<- t(mysambar$imputedmatrix[,snps$filter])
+		}else{
+		fca_input_ind		<<- t(mysambar$imputedmatrix[inds$filter,snps$filter])
+		}
+	}
+	
+# input dataset:
+sambarimpute<-function(doall=FALSE)
+	{
+	# impute data (because no missing values allowed):
+	mymatrix				<- as.matrix(mygenlight)
 	# impute data (because no missing values allowed):
 	cat("Imputing data...",sep="\n")
 	for (i in c(1:nrow(inds)))
@@ -3971,7 +4203,7 @@ makeinputfca_ind<-function(popnames=mysambar$populations,doall=FALSE)
 		myind				<- as.vector(inds$name)[i]
 		#cat(myind,sep="\n")
 		#cat(i,sep="\n")
-		myrow				<- fcatemp[i,]
+		myrow				<- mymatrix[i,]
 		myrow_data			<- myrow[!is.na(myrow)]
 		myrow_na			<- myrow[is.na(myrow)]
 		nmiss				<- length(myrow_na)
@@ -3980,7 +4212,7 @@ makeinputfca_ind<-function(popnames=mysambar$populations,doall=FALSE)
 			myrow_na[1:nmiss]	<- sample(as.vector(myrow[!is.na(myrow)]),nmiss,replace=TRUE)
 			myrow_all			<- c(myrow_data,myrow_na)
 			myrow_all			<- myrow_all[order(names(myrow_all))]
-			fcatemp[i,]			<- myrow_all
+			mymatrix[i,]		<- myrow_all
 			}else{
 			if(inds$filter[i]&doall)
 				{
@@ -3988,16 +4220,11 @@ makeinputfca_ind<-function(popnames=mysambar$populations,doall=FALSE)
 				}
 			}
 		}
-	if(doall)
-		{
-		fca_input_ind		<<- t(fcatemp[,snps$filter])
-		}else{
-		fca_input_ind		<<- t(fcatemp[inds$filter,snps$filter])
-		}
-	fcatemp		<<- fcatemp
+	mysambar$imputedmatrix	<<- mymatrix
+	cat("Imputed data stored at mysambar$imputedmatrix.",sep="\n")
 	}
 
-run_ca<-function(mydf=fca_input,perpop=TRUE,mymethod="dudi",doall=FALSE,do_scree=FALSE,export=NULL,dolabels=FALSE,addlegend=TRUE,popnames=mysambar$populations,symboltype=16,symbolsize=2.5,legendpos="topleft",legendcex=1.5,resetgraphics=TRUE,doinstall=FALSE)
+run_ca<-function(mydf=fca_input,perpop=TRUE,mymethod="dudi",doall=FALSE,popnames=mysambar$populations,doinstall=FALSE)
 	{
 	if(perpop&length(popnames)<3)
 		{
@@ -4049,28 +4276,33 @@ run_ca<-function(mydf=fca_input,perpop=TRUE,mymethod="dudi",doall=FALSE,do_scree
 	# mydf	<- unique(mydf)							# remove duplicates rows
 	if(mymethod=="factominer")
 		{
-		res.ca 	<- CA(mydf,ncp=5,graph=FALSE)			 # this gives sometimes to error: Error in eigen(crossprod(X, X), symmetric = TRUE) : infinite or missing values in 'x'
+		res.ca 	<<- CA(mydf,ncp=5,graph=FALSE)			 # this gives sometimes to error: Error in eigen(crossprod(X, X), symmetric = TRUE) : infinite or missing values in 'x'
 		}
 	if(mymethod=="dudi")
 		{
-		res.ca <- dudi.coa(mydf,scannf=FALSE,nf=5)		
+		res.ca <<- dudi.coa(mydf,scannf=FALSE,nf=5)		
 		}
 	#
 	if(mymethod=="factominer")
 		{
-		eig.val <- as.data.frame(get_eigenvalue(res.ca))
-		mycoord	<- res.ca$col$coord
-		perc1	<- round(res.ca$eig[1,2],1)
-		perc2	<- round(res.ca$eig[2,2],1)
+		eig.val <<- as.data.frame(get_eigenvalue(res.ca))
+		mycoord	<<- res.ca$col$coord
+		perc1	<<- round(res.ca$eig[1,2],1)
+		perc2	<<- round(res.ca$eig[2,2],1)
 		}
 	if(mymethod=="dudi")
 		{
-		ca_out 	<- get_ca_col(res.ca)
-		mycoord	<- ca_out$coord
-		eig.val <- get_eigenvalue(res.ca)
-		perc1	<- round(eig.val$variance.percent[1],1)
-		perc2	<- round(eig.val$variance.percent[2],1)
+		ca_out 	<<- get_ca_col(res.ca)
+		mycoord	<<- ca_out$coord
+		eig.val <<- get_eigenvalue(res.ca)
+		perc1	<<- round(eig.val$variance.percent[1],1)
+		perc2	<<- round(eig.val$variance.percent[2],1)
 		}
+	}
+
+plot_ca<-function(do_scree=FALSE,export=NULL,doall=FALSE,perpop=TRUE,popnames=mysambar$populations,dolabels=FALSE,addlegend=TRUE,symboltype=16,symbolsize=2.5,legendpos="topleft",legendcex=1.5,resetgraphics=TRUE)
+	{
+	npops	<- length(popnames)
 	# screeplot:
 	if(do_scree)
 		{
@@ -4141,7 +4373,6 @@ run_ca<-function(mydf=fca_input,perpop=TRUE,mymethod="dudi",doall=FALSE,do_scree
 		}
 	if(!is.null(export)){dev.off()}
 	}
-	
 	
 hwe<-function(myinput=mygenlight,popnames=mysambar$populations,indselection=inds$filter,mycolours=unique(inds$popcol),export=NULL,addlabels=TRUE)
 	{
@@ -4359,8 +4590,12 @@ ReadGRMBin<-function(prefix, AllN=F, size=4)
 
 # requires ReadGRMBin:
 # 02-12-2019: assumes all individuals are included
-do_gctamatrix<-function(export=NULL,gctaprefix="spermwhale_3popr70p3",popnames=mysambar$populations,n_bins=5,currentdir=FALSE)
+do_gctamatrix<-function(export=NULL,gctaprefix=NULL,popnames=mysambar$populations,n_bins=5,currentdir=FALSE,legpos_x=0.1,legpos_y=0.35,matcol="orange")
 	{
+	if(is.null(gctaprefix))
+		{
+		return(cat("ERROR: provide a name to gctaprefix argument (i.e. base name of input files). Default is NULL.",sep="\n"))
+		}
 	if(!currentdir)
 		{
 		setwd(mysambar$inputfilesdir)
@@ -4397,23 +4632,28 @@ do_gctamatrix<-function(export=NULL,gctaprefix="spermwhale_3popr70p3",popnames=m
 	gctamatrix_reordered<- gctamatrix[order(indstemp$pop),order(indstemp$pop)]
 	# Ready to plot:
 	# non filtered:
-	do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctamatrix_reordered,my_inds=inds_reordered,my_snps=snps,my_col="orange",addlab=FALSE,exportname="GCTAmatrix.metapop.no_axis",mytitle="Relatedness",myBreaks=mybreaks)		
-	do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctamatrix_reordered,my_inds=inds_reordered,my_snps=snps,my_col="orange",addlab=TRUE,exportname="GCTAmatrix.metapop.with_axis",mytitle="Relatedness",myBreaks=mybreaks)		
+	do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctamatrix_reordered,my_inds=inds_reordered,my_snps=snps,my_col=matcol,addlab=FALSE,exportname="GCTAmatrix.metapop.no_axis",mytitle="Relatedness",myBreaks=mybreaks,legposx=legpos_x,legposy=legpos_y)		
+	do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctamatrix_reordered,my_inds=inds_reordered,my_snps=snps,my_col=matcol,addlab=TRUE,exportname="GCTAmatrix.metapop.with_axis",mytitle="Relatedness",myBreaks=mybreaks,legposx=legpos_x,legposy=legpos_y)		
 	# filtered:
 	gctafiltermat	<- gctamatrix_reordered[inds_reordered$filter,inds_reordered$filter]
-	do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctafiltermat,my_inds=inds_reordered,my_snps=snps,my_col="orange",addlab=FALSE,exportname="GCTAmatrix.metapop.filter.no_axis",mytitle="Relatedness",myBreaks=mybreaks)
-	do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctafiltermat,my_inds=inds_reordered,my_snps=snps,my_col="orange",addlab=TRUE,exportname="GCTAmatrix.metapop.filter.with_axis",mytitle="Relatedness",myBreaks=mybreaks)
+	do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctafiltermat,my_inds=inds_reordered,my_snps=snps,my_col=matcol,addlab=FALSE,exportname="GCTAmatrix.metapop.filter.no_axis",mytitle="Relatedness",myBreaks=mybreaks,legposx=legpos_x,legposy=legpos_y)
+	do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctafiltermat,my_inds=inds_reordered,my_snps=snps,my_col=matcol,addlab=TRUE,exportname="GCTAmatrix.metapop.filter.with_axis",mytitle="Relatedness",myBreaks=mybreaks,legposx=legpos_x,legposy=legpos_y)
 	#
 	# for each population:
 	for (mypop in popnames)
 		{
 		gctapop		<- gctamatrix[inds$filter&inds$pop==mypop,inds$filter&inds$pop==mypop]
 		indspop		<- inds[inds$filter&inds$pop==mypop,]
-		do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctapop,my_inds=indspop,my_snps=snps,my_col="orange",addlab=FALSE,exportname=paste("GCTAmatrix",mypop,"no_axis",sep="."),mytitle=mypop,myBreaks=mybreaks)
-		do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctapop,my_inds=indspop,my_snps=snps,my_col="orange",addlab=TRUE,exportname=paste("GCTAmatrix",mypop,"with_axis",sep="."),mytitle=mypop,myBreaks=mybreaks)
+		do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctapop,my_inds=indspop,my_snps=snps,my_col=matcol,addlab=FALSE,exportname=paste("GCTAmatrix",mypop,"no_axis",sep="."),mytitle=mypop,myBreaks=mybreaks,legposx=legpos_x,legposy=legpos_y)
+		do_heatmap(export_type=export,nbins=n_bins,mymatrix=gctapop,my_inds=indspop,my_snps=snps,my_col=matcol,addlab=TRUE,exportname=paste("GCTAmatrix",mypop,"with_axis",sep="."),mytitle=mypop,myBreaks=mybreaks,legposx=legpos_x,legposy=legpos_y)
 		}
-	cat("Matrix heatmaps have been exported to:",sep="\n")
-	cat(getwd(),sep="\n")
+	if(!is.null(export))
+		{
+		cat("Matrix heatmaps have been exported to:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
+	cat("Note that the position of the legend can be editted with the 'legpos_x' and 'legpos_y'. Default is respectively 0.1 and 0.35.",sep="\n")
+	cat("The colour tone of the matrix can be editted with the argument 'matcol'. Default is 'orange'.",sep="\n")
 	if(!currentdir)
 		{
 		setwd(mysambar$sambardir)
@@ -4444,7 +4684,6 @@ plot_ind_neimatrix<-function(bin_size=0.025,export=NULL)
 		# First create indstemp file with all samples clustered together per population:
 		indstemp			<- inds[order(inds$pop),]
 		do_heatmap(export_type=export,nbins=5,mymatrix=neimatrix,my_inds=indstemp,my_snps=snps,my_col="orange",exportname="Neimatrix.ind",mytitle="Nei's genetic distance")		
-		#apetree(mymatrix=neimatrix,my_inds=indstemp)
 		}
 
 # phylogenetic tree
@@ -4458,6 +4697,42 @@ apetree<-function(mymatrix=neimatrix,my_inds=inds)
 	mytree				<- nj(mymatrix)
 	plot(mytree,edge.color=my_inds$popcol[my_inds$filter],cex=0.5)
 	}		
+
+popprtree<-function(do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist")
+	{
+	if(!(mymethod=="upgma"|mymethod=="NJ"))
+		{
+		return(cat("ERROR: mymethod has to be either 'upgma' or 'NJ'.",sep="\n"))
+		}
+	# method can be: 'upgma' and 
+	my_gl		<- mygenlight[inds$filter,snps$filter]
+	mypops		<- pop(my_gl)
+	my_gl		<- my_gl[order(mypops),]
+	mypops		<- pop(my_gl)
+	ninds		<- length(mypops)
+	my_colours	<- mysambar$mycolours[mypops]
+	mygeno		<- my_gl
+	# Note: alternatively mygeno can be a distance matrix, such as neimatrix, and then mydistance should be set to 'nei.dist'
+	# Other options are rogers.dist, edwards.dist, reynolds.dist
+	if(do_analysis)
+		{
+		mytree 		<<- aboot(mygeno,tree=mymethod,distance=mydistance,sample=100,showtree=F,cutoff=50,quiet=F)
+		}
+	plot.phylo(mytree,cex=0.8,font=2,adj=0,tip.color=my_colours)
+	nodelabels(mytree$node.label, adj = c(1.3, -0.5), frame = "n", cex = 0.8,font = 3, xpd = TRUE)
+	#legend(35,10,c("CA","OR","WA"),cols, border = FALSE, bty = "n")
+	# plot:
+	mydistance	<- ifelse(mydistance=="bitwise.dist","Hammingdist",mydistance)
+	plotname	<- paste("Tree",mydistance,mymethod,"pdf",sep=".")
+	pdf(plotname,width=14,height=ninds*0.15+2)
+	par(cex.axis=2)
+	plot.phylo(mytree,cex=1,font=1,adj=0,tip.color=my_colours)
+	nodelabels(mytree$node.label,adj=c(1.3,-0.5),frame="n",cex=1,font=3,xpd = TRUE)
+	#legend('topleft',legend=mysambar$populations,fill=mysambar$mycolours,bty="n",cex = 2.5)
+	axis(side = 1,cex=2)
+	mtext("Genetic distance",side=1,line=3,cex=2.5)
+	dev.off()
+	}
 
 # PCoA: Principal Coordinates Analysis (NOTE: this is different from principal component analysis or PCA). Depends on StAMPP (Nei's genetic distance) and Ape (pcoa):
 # ape_pcoa(method="hamming",symbolkey="sex",legendpos="topleft")
@@ -4512,9 +4787,15 @@ ape_pcoa<-function(indselection=inds$filter,method="nei",snpselection=snps$filte
 			return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
 			}
 		if(!silent){cat("Executing pcoa analyses...",sep="\n")}
-		mypi			<<- pimatrix
+		# mypi			<<- pimatrix
 		p 				<- pcoa(pimatrix, correction="none", rn=NULL)	
+		# myp				<<- p
 		# 15-11-2019: untraceable error when running the function above: Error in array(STATS, dims[perm]) : 'dims' cannot be of length 0
+		# 26-01-2020: another untraceable error when running the function above: 
+		# Error in data.frame(eig[1:k], rel.eig, rel.eig.cor, bs, cum.eig.cor, cum.bs) : 
+		# arguments imply differing number of rows: 90, 92
+		# In addition: Warning message:
+		# In sqrt(eig[1:k2]) : NaNs produced
 		}
 	if(!silent){cat("Finished pcoa analyses. Plotting...",sep="\n")}
 	if(resetgraphics){graphics.off()}
@@ -4567,9 +4848,11 @@ ape_pcoa<-function(indselection=inds$filter,method="nei",snpselection=snps$filte
 	if(!is.null(export))
 		{
 		dev.off()
-		#path1<- paste(getwd(),exportname,sep="/")
-		#path2<- paste(path1,"pca.wmf",sep = ".")
-		#print(paste("PCoA-plot has been written to", path2, sep =" "))
+		if(!is.null(symbolkey))
+			{
+			path1<- paste(getwd())
+			cat(paste("PCoA-plot has been written to: ", paste(path1,(paste("pcoa",method,my_symbol,sep=".")),sep="/"), sep =""),sep="\n")
+			}
 		}
 	}
 
@@ -4813,6 +5096,9 @@ genlight2genind<-function(input=mygenlight)
 	{
 	# When trying to run dapc analysis with genlight, I got an ERROR stating that on a Windows computer mc.cores is not possible.
 	# I decided to work around this problem by converting genlight object to genind object. 
+	# 27-01-2020: for big datasets (e.g 350,000 SNPs for 90 individuals) genind conversion is not feasible.
+	# 27-01-2020: the error I got before I don't get now, so it seems that conversion is not necessary anyway.
+	#
 	# The conversion does take time, so first check whether it is needed or whether you already did it:
 	if(!is.null(mysambar$genind))
 		{
@@ -4890,21 +5176,26 @@ adegenet_pca<-function(export=NULL,nfactor=10)
 #Choose the number discriminant functions to retain (>=1):	 3
 #If you have your samples assigned to more than one population, this will be done automatically for you, so you won’t be prompted.  
 
-adegenet_dapc<-function(export=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=0.6,symbolsize=2,addlegend=TRUE,legendpos="right",legendcex=1.5,use_current_dir=FALSE)
+adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_pca=10,min_explainedvariance=80,sumstatsplot=TRUE,maxclusters=5,transparent=0.6,symbolsize=2,addlegend=TRUE,legendpos="right",legendcex=1.5,use_current_dir=FALSE)
 	{	
-	if(is.null(mysambar$genind))
+	if(is.null(mysambar$genind)&use_genind)
 		{
 		return(cat("ERROR: No genind object stored at mysambar$genind. Did you run the genlight2genind()-function?",sep="\n"))
 		}
 	if(!use_current_dir){setwd(mysambar$structuredir)}
 	# First create indstemp file with all samples clustered together per population:
-	mygenind		<- mysambar$genind
-	mymatrixtemp	<- as.matrix(mygenind)
+	if(use_genind)
+		{
+		mygeno		<- mysambar$genind
+		}else{
+		mygeno		<- mygenlight[inds$filter,snps$filter]
+		}
+	mymatrixtemp	<- as.matrix(mygeno)
 	mypopnames		<- inds$pop[inds$filter]
 	mymatrixtemp	<- mymatrixtemp[order(mypopnames),]
-	mygenind		<- as.genind(mymatrixtemp)
+	mygeno			<- as.genind(mymatrixtemp)
 	indstemp		<- inds[order(inds$pop),]
-	pop(mygenind)	<- as.factor(indstemp$pop2[inds$filter])
+	pop(mygeno)		<- as.factor(indstemp$pop2[inds$filter])
 	if(any(!row.names(mymatrixtemp)==as.vector(indstemp$name[indstemp$filter])))
 		{
 		return(cat("ERROR: after reordering (clustering per sample) rownames of mymatrixtemp do not correspond with indstemp$name column. Contact developer of SambaR.",sep="\n"))
@@ -4924,7 +5215,7 @@ adegenet_dapc<-function(export=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=
 		cat("Therefore, Sambar randomly assigned the samples to 2 populations.",sep="\n")
 		myhalf			<- floor(nind/2)
 		myrandomlabels	<- c(rep("random_pop1",myhalf),rep("random_pop2",(nind-myhalf)))
-		pop(mygenind)	<- myrandomlabels
+		pop(mygeno)		<- myrandomlabels
 		mypopulations	<- c("random_pop1","random_pop2")
 		npops			<- 2
 		}else{
@@ -4945,7 +5236,7 @@ adegenet_dapc<-function(export=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=
 		par(mfrow=c(1,3),mar=c(5,6,5,2),cex.axis=2,cex.lab=2.5,cex.main=2.5)
 		#
 		## plot pca eigenvalues:
-		dapc.out 		<- dapc(mygenind,n.pca=100,n.da=100)	# we set n.pca and n.da for now really high so pc's cover 100 of explained variance (and for nda no choice is made yet(?))
+		dapc.out 		<- dapc(mygeno,n.pca=100,n.da=100)	# we set n.pca and n.da for now really high so pc's cover 100 of explained variance (and for nda no choice is made yet(?))
 		mypcaeigen 		<- dapc.out$pca.eig
 		mypcaeigensum 	<- 100*cumsum(mypcaeigen)/sum(mypcaeigen)
 		mytotalpca		<- length(mypcaeigensum)
@@ -4957,12 +5248,12 @@ adegenet_dapc<-function(export=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=
 		# accepted way is using built-in function of dapc, which calculates a so called a score, and outputs a plot at the same time:
 		my_ascore 		<- optim.a.score(dapc.out)			
 		mynpca			<- my_ascore$best
-		# if mynpca is below 10, use my method: 
-		if(mynpca<10)
+		# if mynpca is below 15 (or other number set by min_pca, use my method: 
+		if(mynpca<min_pca)
 			{
 			cat(paste("Based on the a-score statistic,",mynpca,"is the optimal number of PCs. This seems too low, so using 80 percent explained variance as threshold instead.",sep=" "),sep="\n")
 			#mynpca		<- which((diff(mypcaeigensum)<0.5))[1]	# this way all samples in a population become one indistuingable big blot
-			mynpca		<- which(mypcaeigensum>80)[1]
+			mynpca		<- which(mypcaeigensum>min_explainedvariance)[1]
 			}else{
 			cat(paste("Based on the a-score statistic,",mynpca,"is the optimal number of PCs. DAPC-analyses will be executed using this value.",sep=" "),sep="\n")
 			}
@@ -4974,7 +5265,7 @@ adegenet_dapc<-function(export=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=
 		mymaxcluster	<- 10
 		mymaxcluster	<- ifelse(npops>10,npops,mymaxcluster)
 		mymaxcluster	<- ifelse(nind<10,nind-1,mymaxcluster)
-		grp 			<- find.clusters(mygenind,max.n.clust=mymaxcluster,n.pca=mynpca,choose.n.clust=FALSE)	
+		grp 			<- find.clusters(mygeno,max.n.clust=mymaxcluster,n.pca=mynpca,choose.n.clust=FALSE)	
 		plot(grp$Kstat,main="Bic value",xlab="Number of clusters",ylab="BIC",type='b',col="grey20")
 		if(!is.null(export)){dev.off()}
 		#
@@ -4996,7 +5287,7 @@ adegenet_dapc<-function(export=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=
 		#	tempcols=mycols1
 		#	}
 		# par(mar=c(4.5,15,1,2.5),cex.axis=2,cex.lab=2.5,cex.main=2.5)
-		# sumtemp <- summary(dapc(mygenind, n.da=20, n.pca=mynpca))$assign.per.pop*100
+		# sumtemp <- summary(dapc(mygeno, n.da=20, n.pca=mynpca))$assign.per.pop*100
 		# barplot(sumtemp, xlab="% of reassignment to actual cluster",horiz=TRUE,las=1,col=tempcols,xlim=c(0,100))
 		# if(!is.null(export)){dev.off()}
 		#
@@ -5014,12 +5305,14 @@ adegenet_dapc<-function(export=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=
 		cat(paste("K =",i,sep=" "),sep="\n")
 		#
 		## create table showing correspondence between DAPC inferred clusters and expected population division (depends on library(gplots)):
-		grp 				<- find.clusters(mygenind,max.n.clust=20,n.pca=mynpca,n.clust=i)
+		grp 				<- find.clusters(mygeno,max.n.clust=20,n.pca=mynpca,n.clust=i)
 		# From the adegenet manual: For small number of clusters (less than tens), all DA eigenvalues can be saved. 
 		# I set n.da to upper limit of 20, but only 'ncluster - 1' are saved when running dapc function   
-		dapc.out 			<- dapc(mygenind,grp$grp,n.pca=mynpca,n.da=20)			
-		mytable				<- as.matrix(table(pop(mygenind),grp$grp))	
-		colnames(mytable)	<-paste("cluster",levels(grp$grp),sep="_")
+		dapc.out 			<- dapc(mygeno,grp$grp,n.pca=mynpca,n.da=20)	 
+		# 18-01-2020: note: if you exclude grp$grp then you get very nice structured plots, but that doesn't mean it is meaningful. I am not sure, but I think without grp$grp you are simply depicting dapc simulated data.  
+		# dapc.out 			<- dapc(mygeno,n.pca=mynpca,n.da=20)
+		mytable				<- as.matrix(table(pop(mygeno),grp$grp))	
+		colnames(mytable)	<- paste("cluster",levels(grp$grp),sep="_")
 		myoverlap[[i-1]]	<- mytable
 		#
 		# matrix with population membership probabilities:
@@ -5302,33 +5595,41 @@ assign2pop<-function(popnames=mysambar$populations,mylabels=inds$name2[inds$filt
 	# Peatkau et al, 1995, Microsatellite analysis of population structure in Canadian polar bears; 
 	# Pritchard et al, 2000, Inference of population structure using multilocus genotype data;
 	#
-	# What we want to know is: what is the probability that an individual belongs to a certain population given it's observed genotype?
-	# This can be denoted as Pr(hypothesis|observation) or in short Pr(H|O).
-	# The hypothesis H is the population assignment and the observation O is the genotype score. The genotype score is either 0 (homozygous major), 1 (heterozygous), or 2 (homozygous minor).
-	# To find the answer we are going to use the following Bayesian formula:
-	# Pr(H|O) = (Pr(O|H)*Pr(H))/Pr(O)
-	# in which:
-	# Pr(H) 	= 1/npops 			# flat prior distribution
-	# Pr(O|H) 	= probability of observed genotypes given the population minor allele frequencies
-	# Pr(O)		= sum of product of Pr(H) and Pr(O|H) for all populations
-	# Since we use a flat prior distribution, the formula can be simplified to:
-	# Pr(H1|O) 	= Pr(O|H1)/(Pr(O|H1)+Pr(O|H2)+ ... + Pr(O|Hn))	# in which n denotes number of populations
-	# For example: say we have two bottles, one (A) with 10 red and 90 white balls, and the other (B) with 1 red and 99 red balls.
-	# A ball is drawn from either bottle (you don't know which), and it happens to be red. From which bottle is the ball drawn?
-	# Pr(A|red) = Pr(red|A)/(Pr(red|A)+Pr(red|B)) = 0.1/(0.1+0.01) = 0.91
-	# Pr(B|red) = Pr(red|B)/(Pr(red|A)+Pr(red|B)) = 0.01/(0.1+0.01) = 0.09
-	# Similarly, we are going to calculate the probabilities that a sample has been drawn from any of our populations:
-	# Pr(popA|genotype) = Pr(genotype|popA)/(Pr(genotype|popA)+Pr(genotype|popB))
-	# Pr(popB|genotype) = Pr(genotype|popB)/(Pr(genotype|popA)+Pr(genotype|popB)) 
-	# For example, say we have 2 populations, and for a particular locus one population (A) has a minor allele frequency (MAF) of 10 percent, and the other a MAF of 1 percent.
-	# What is the chance that an individual which is homozygous for both major alleles (i.e. genotype 0) belongs to either popA or popB?
-	# Pr(popA|0) = Pr(0|popA)/(Pr(0|popA)+Pr(0|popB)) = (0.9*0.9)/(0.9*0.9+0.99*0.99) = 0.45 
-	# Pr(popB|0) = Pr(0|popB)/(Pr(0|popA)+Pr(0|popB)) = (0.99*0.99)/(0.9*0.9+0.99*0.99) = 0.55
-	# This example only shows one locus. When having multiple loci, we calculate the probabilities Pr(geno|popA) and Pr(geno|popB) by multiplying each locus specific probability (assuming they are independent):
-	# Pr(geno|popA) = Pr(locus_1|popA)*Pr(locus_2|popA)*...*Pr(locus_k|popA)						# in which k denotes total number of loci
-	# Pr(geno|popB) = Pr(locus_1|popB)*Pr(locus_2|popB)*...*Pr(locus_k|popB)						# in which k denotes total number of loci
-	# In the script this is (roughly) written as: Pr_geno[j] <- (j-1)*Pr_geno[j-1]*Pr_locus[j]		# in which j denotes each jth locus
-	# Excluded from the calculation are all snps for which one of either alleles are not represented in all populations. Those loci would make the probability converge to 0 or 1, and hence they are omitted. 
+	fileConn	<- file("popassign.bayesian.explained.txt")
+	writeLines(c("The 'popassign.bayesian'-plots depict the probability that a certain individual belongs to a certain population given it's observed genotype.",
+	"This can be denoted as Pr(hypothesis|observation) or in short Pr(H|O).",
+	"The hypothesis H is the population assignment and the observation O is the genotype score. The genotype score is either 0 (homozygous major), 1 (heterozygous), or 2 (homozygous minor).",
+	"To calculate these probabilities SambaR use the following Bayesian formula:",
+	"Pr(H|O) 	= (Pr(O|H)*Pr(H))/Pr(O)",
+	"in which:",
+	"Pr(H) 		= 1/npops # flat prior distribution",
+	"Pr(O|H) 	= probability of observed genotypes given the population minor allele frequencies",
+	"Pr(O)		= sum of product of Pr(H) and Pr(O|H) for all populations",
+	"Because the prior distribution is flat, the formula can be simplified to:",
+	"Pr(H1|O) 	= Pr(O|H1)/(Pr(O|H1)+Pr(O|H2)+ ... + Pr(O|Hn))	# in which n denotes number of populations",
+	"For example: say we have two bottles, one (A) with 10 red and 90 white balls, and the other (B) with 1 red and 99 red balls.",
+	"A ball is drawn from either bottle (you don't know which), and it happens to be red. From which bottle is the ball drawn?",
+	"Pr(A|red) = Pr(red|A)/(Pr(red|A)+Pr(red|B)) = 0.1/(0.1+0.01) = 0.91",
+	"Pr(B|red) = Pr(red|B)/(Pr(red|A)+Pr(red|B)) = 0.01/(0.1+0.01) = 0.09",
+	"Similarly, we are going to calculate the probabilities that a sample has been drawn from any of our populations:",
+	"Pr(popA|genotype) = Pr(genotype|popA)/(Pr(genotype|popA)+Pr(genotype|popB))",
+	"Pr(popB|genotype) = Pr(genotype|popB)/(Pr(genotype|popA)+Pr(genotype|popB))", 
+	"For example, say we have 2 populations, and for a particular locus one population (A) has a minor allele frequency (MAF) of 10 percent, and the other a MAF of 1 percent.",
+	"What is the probability that an individual which is homozygous for both major alleles (i.e. genotype 0) belongs to either popA or popB?",
+	"Pr(popA|0) = Pr(0|popA)/(Pr(0|popA)+Pr(0|popB)) = (0.9*0.9)/(0.9*0.9+0.99*0.99) = 0.45", 
+	"Pr(popB|0) = Pr(0|popB)/(Pr(0|popA)+Pr(0|popB)) = (0.99*0.99)/(0.9*0.9+0.99*0.99) = 0.55",
+	"This example only shows one locus. When having multiple loci, we calculate the probabilities Pr(geno|popA) and Pr(geno|popB) by multiplying each locus specific probability (assuming they are independent):",
+	"Pr(geno|popA) = Pr(locus_1|popA)*Pr(locus_2|popA)*...*Pr(locus_k|popA)							# in which k denotes total number of loci",
+	"Pr(geno|popB) = Pr(locus_1|popB)*Pr(locus_2|popB)*...*Pr(locus_k|popB)							# in which k denotes total number of loci",
+	"In the script this is (roughly) written as: Pr_geno[j] <- (j-1)*Pr_geno[j-1]*Pr_locus[j]		# in which j denotes each jth locus",
+	"Excluded from the calculation are all snps for which one of either alleles are not represented in all populations. Those loci would make the probability converge to 0 or 1, and hence they are omitted.", 
+	"",
+	"If you use this Bayesian population assignment probability test for publication, please cite SambaR.", 
+	"Similar methods have previously been published by:",
+	"Peatkau et al, 1995, Microsatellite analysis of population structure in Canadian polar bears", 
+	"Pritchard et al, 2000, Inference of population structure using multilocus genotype data",
+	""),fileConn)
+	close(fileConn)
 	#
 	# also another way:
 	# simply counting how often (for how many loci) a genotype is derived from a population
@@ -5516,13 +5817,19 @@ plotassign2pop<-function(export=NULL,bayesian=TRUE,popnames=mysambar$populations
 	if(!is.null(export)){dev.off()}
 	}
 
-plotstructure<-function(colourvector=NULL,export=NULL,shortpop=NULL,popnames=mysambar$populations,addindnr=TRUE,order_on_longitude=FALSE)
+plotstructure<-function(qmatrixlist=NULL,colourvector=NULL,plotname="Structureplot",export=NULL,shortpop=NULL,popnames=mysambar$populations,addindnr=TRUE,order_on_longitude=FALSE)
 	{
-	setwd(mysambar$inputfilesdir)
-	filenames 	<- list.files(pattern = ".*.qmatrix.txt")
-	filenames	<- filenames[order(filenames,decreasing=T)]
-	qmatrixlist <- lapply(filenames,function(x)read.table(x,header=FALSE)) 
-	nmatrices	<- length(filenames) 
+	# input is either:
+	# - name of list with qmatrices to qmatrixlist flag
+	# - or txt files with qmatrices in inputfilesdir (if qmatrixlist is set to NULL (default) 
+	if(is.null(qmatrixlist))
+		{
+		setwd(mysambar$inputfilesdir)
+		filenames 	<- list.files(pattern = ".*.qmatrix.txt")
+		filenames	<- filenames[order(filenames,decreasing=T)]
+		qmatrixlist <- lapply(filenames,function(x)read.table(x,header=FALSE)) 
+		}
+	nmatrices	<- length(qmatrixlist) 
 	nsamples	<- nrow(qmatrixlist[[1]])
 	maxdemes	<- ncol(qmatrixlist[[1]])
 	npops		<- length(popnames)
@@ -5557,10 +5864,10 @@ plotstructure<-function(colourvector=NULL,export=NULL,shortpop=NULL,popnames=mys
 		mywidth2	<- nsamples*80+200
 		orderlabel	<- ifelse(order_on_longitude,"geo","alphabet")
 		indlabel	<- ifelse(addindnr,"indnr","noxaxis")
-		if(export=="eps"){postscript(paste("Structureplot",orderlabel,indlabel,"eps",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
-		if(export=="pdf"){pdf(paste("Structureplot",orderlabel,indlabel,"pdf",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
-		if(export=="png"){png(paste("Structureplot",orderlabel,indlabel,"png",sep="."),"Structureplot.LEA.indnr.png",family=mysambar$myfont,width=560,height=myheight2)}
-		if(export=="wmf"){win.metafile(paste("Structureplot",orderlabel,indlabel,"wmf",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
+		if(export=="eps"){postscript(paste(plotname,orderlabel,indlabel,"eps",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
+		if(export=="pdf"){pdf(paste(plotname,orderlabel,indlabel,"pdf",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
+		if(export=="png"){png(paste(plotname,orderlabel,indlabel,"png",sep="."),family=mysambar$myfont,width=560,height=myheight2)}
+		if(export=="wmf"){win.metafile(paste(plotname,orderlabel,indlabel,"wmf",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
 		}
 	if(is.null(colourvector))
 		{	
@@ -5648,7 +5955,8 @@ plotstructure<-function(colourvector=NULL,export=NULL,shortpop=NULL,popnames=mys
 		mycolours	<- colourvector[1:ndemes]
 		if(k==nmatrices&&addindnr)
 			{
-			mycex		<- ifelse(maxdemes<4,0.5,0.75)
+			#mycex		<- ifelse(maxdemes<4,0.5,0.75)
+			mycex		<- ifelse(nsamples>100,ifelse(nsamples>200,0.25,0.35),0.5)	# 28-01-2020
 			barplot(t(qmatrix),col=mycolours,border=NA,space=0,xlab="",ylab ="",names.arg=indstemp$nr[indstemp$filter],cex.names=mycex,las=2)
 			if(length(popnames>1)){abline(v=mylocs2,lwd=2)}
 			}else{
@@ -5680,13 +5988,13 @@ plotstructure<-function(colourvector=NULL,export=NULL,shortpop=NULL,popnames=mys
 		}else{
 		mtext("Individuals",side=1,line=1.5,outer=TRUE,cex=1.75)
 		}
-	if(!is.null(export)){dev.off()}
 	names(qmatrixlist)	<- paste("K",mydemes,sep="_")
 	qmatrixlist			<<- qmatrixlist
 	if(!is.null(export))
 		{
 		dev.off()
-		cat("Structure plot exported either to working directory or to inputfilesdir.",sep="\n")
+		cat("Structure plot exported to:",sep="\n")
+		cat(getwd(),sep="\n")
 		}
 	}	
 		
@@ -5733,9 +6041,108 @@ plotassign2pop_hetero<-function(popnames=mysambar$populations)
 	dev.off()
 	}	
 
+runLEA<-function(maxdemes=6,popnames=mysambar$populations,order_on_longitude=FALSE)
+	{
+	# Export data:
+	# First create indstemp file with all samples clustered together per population:
+	mymatrixtemp			<- as.matrix(mygenlight)
+	if(!order_on_longitude)
+		{
+		mymatrixtemp		<- mymatrixtemp[order(inds$pop),]
+		indstemp			<- inds[order(inds$pop),]
+		}else{
+		popcoorddf			<- inds[,c("pop","longitude","latitude")]
+		poplong 			<- aggregate(popcoorddf$longitude,by=list(popcoorddf$pop),FUN=mean, na.rm=TRUE)
+		poplat 				<- aggregate(popcoorddf$latitude,by=list(popcoorddf$pop),FUN=mean, na.rm=TRUE)
+		inds$poplong		<<- NA
+		inds$poplat			<<- NA
+		for(j in c(1:nrow(poplong)))
+			{
+			mypop			<- poplong$Group.1[j]
+			inds$poplong[inds$pop==mypop]	<<- poplong$x[j]
+			inds$latlong[inds$pop==mypop]	<<- poplat$x[j]
+			}
+		mymatrixtemp		<- mymatrixtemp[order(inds$poplong),]
+		indstemp			<- inds[order(inds$poplong),]
+		popnames			<- popnames[order(poplong$x)]
+		shortpop			<- shortpop[order(poplong$x)]
+		}
+	if(any(!row.names(mymatrixtemp)==as.vector(indstemp$name)))
+		{
+		return(cat("ERROR: after reordering (clustering per sample) rownames of mymatrixtemp do not correspond with indstemp$name column. Contact developer of SambaR.",sep="\n"))
+		}
+	mygenlighttemp		<- as.genlight(mymatrixtemp)
+	pop(mygenlighttemp)	<- as.factor(indstemp$pop2)
+	genlight2ped(exportname="LEAinput",input=mygenlighttemp,in_inds=indstemp,indsfilter=indstemp$filter)
+	#
+	# Reading data:
+	LEA_input		<- ped2geno("LEAinput.ped","LEAinput.geno")
+	obj.snmf		<- snmf("LEAinput.geno",K=2:maxdemes,ploidy=2,entropy=T,alpha = 100,project="new")
+	# Creating LEA matrices:
+	mydemes			<- c(2:maxdemes)
+	leaqmatrixlist	<- list()
+	for(ndemes in mydemes)
+		{
+		cat(paste("K = ",ndemes,sep=""), sep ="\n")	
+		obj.snmf	<- snmf("LEAinput.geno", K = ndemes, alpha = 100, project = "new")
+		qmatrix 	<- Q(obj.snmf, K = ndemes)
+		leaqmatrixlist[[ndemes-1]]	<- qmatrix
+		}
+	names(leaqmatrixlist)	<- paste("K",mydemes,sep="_")
+	if(order_on_longitude)
+		{
+		leaqmatrixlist_longitude	<<- leaqmatrixlist
+		}else{
+		leaqmatrixlist				<<- leaqmatrixlist
+		}
+	#
+	# to subsequently create pca:
+	# mypc = pca("LEAinput.geno", scale = TRUE)
+	# plot(mypc$projections,col=indstemp$popcol[indstemp$filter],pch=16)
+	# remove.pcaProject("LEAinput.pcaProject")
+	remove.snmfProject("LEAinput.snmfProject")
+	# if function above doesn't work, delete directory and files like this:
+	unlink("LEAinput.snmf", recursive=TRUE)
+	}
+
 LEAstructureplot<-function(maxdemes=6,colourvector=NULL,export=NULL,shortpop=NULL,popnames=mysambar$populations,addindnr=TRUE,order_on_longitude=FALSE)
 	{
+	if(order_on_longitude)
+		{
+		leaqmatrixlist	<- leaqmatrixlist_longitude
+		}else{
+		leaqmatrixlist	<- leaqmatrixlist
+		}
 	nsamples		<- nrow(inds[inds$filter,])
+	#
+	# First create indstemp file with all samples clustered together per population:
+	mymatrixtemp			<- as.matrix(mygenlight)
+	if(!order_on_longitude)
+		{
+		mymatrixtemp		<- mymatrixtemp[order(inds$pop),]
+		indstemp			<- inds[order(inds$pop),]
+		}else{
+		popcoorddf			<- inds[,c("pop","longitude","latitude")]
+		poplong 			<- aggregate(popcoorddf$longitude,by=list(popcoorddf$pop),FUN=mean, na.rm=TRUE)
+		poplat 				<- aggregate(popcoorddf$latitude,by=list(popcoorddf$pop),FUN=mean, na.rm=TRUE)
+		inds$poplong		<<- NA
+		inds$poplat			<<- NA
+		for(j in c(1:nrow(poplong)))
+			{
+			mypop			<- poplong$Group.1[j]
+			inds$poplong[inds$pop==mypop]	<<- poplong$x[j]
+			inds$latlong[inds$pop==mypop]	<<- poplat$x[j]
+			}
+		mymatrixtemp		<- mymatrixtemp[order(inds$poplong),]
+		indstemp			<- inds[order(inds$poplong),]
+		popnames			<- popnames[order(poplong$x)]
+		shortpop			<- shortpop[order(poplong$x)]
+		}
+	if(any(!row.names(mymatrixtemp)==as.vector(indstemp$name)))
+		{
+		return(cat("ERROR: after reordering (clustering per sample) rownames of mymatrixtemp do not correspond with indstemp$name column. Contact developer of SambaR.",sep="\n"))
+		}
+	#
 	if(!is.null(export))
 		{
 		myheight1	<- maxdemes*1.25+1.5
@@ -5768,37 +6175,6 @@ LEAstructureplot<-function(maxdemes=6,colourvector=NULL,export=NULL,shortpop=NUL
 			shortpop	<- substr(popnames,1,3)
 			}
 		}
-	# Export data:
-	# First create indstemp file with all samples clustered together per population:
-	mymatrixtemp		<- as.matrix(mygenlight)
-	if(!order_on_longitude)
-		{
-		mymatrixtemp		<- mymatrixtemp[order(inds$pop),]
-		indstemp			<- inds[order(inds$pop),]
-		}else{
-		popcoorddf			<- inds[,c("pop","longitude","latitude")]
-		poplong 			<- aggregate(popcoorddf$longitude,by=list(popcoorddf$pop),FUN=mean, na.rm=TRUE)
-		poplat 				<- aggregate(popcoorddf$latitude,by=list(popcoorddf$pop),FUN=mean, na.rm=TRUE)
-		inds$poplong		<<- NA
-		inds$poplat			<<- NA
-		for(j in c(1:nrow(poplong)))
-			{
-			mypop			<- poplong$Group.1[j]
-			inds$poplong[inds$pop==mypop]	<<- poplong$x[j]
-			inds$latlong[inds$pop==mypop]	<<- poplat$x[j]
-			}
-		mymatrixtemp		<- mymatrixtemp[order(inds$poplong),]
-		indstemp			<- inds[order(inds$poplong),]
-		popnames			<- popnames[order(poplong$x)]
-		shortpop			<- shortpop[order(poplong$x)]
-		}
-	if(any(!row.names(mymatrixtemp)==as.vector(indstemp$name)))
-		{
-		return(cat("ERROR: after reordering (clustering per sample) rownames of mymatrixtemp do not correspond with indstemp$name column. Contact developer of SambaR.",sep="\n"))
-		}
-	mygenlighttemp		<- as.genlight(mymatrixtemp)
-	pop(mygenlighttemp)	<- as.factor(indstemp$pop2)
-	genlight2ped(exportname="LEAinput",input=mygenlighttemp,in_inds=indstemp,indsfilter=indstemp$filter)
 	nsamples		<- nrow(indstemp[indstemp$filter,])
 	# get info needed for plot:
 	mylocs			<- vector()
@@ -5810,23 +6186,18 @@ LEAstructureplot<-function(maxdemes=6,colourvector=NULL,export=NULL,shortpop=NUL
 		}
 	mylocs2		<- mylocs		# I should come up here with a way to omit black line of first population (because not necessary)
 	mylocs2		<<- mylocs
-	# Reading data:
-	LEA_input	<- ped2geno("LEAinput.ped","LEAinput.geno")
-	obj.snmf	<- snmf("LEAinput.geno",K=2:maxdemes,ploidy=2,entropy=T,alpha = 100,project="new")
-	# plot(obj.snmf, col = "blue4", cex = 1.4, pch = 19)
+	#
 	mydemes		<- c(2:maxdemes)
-	leaqmatrixlist	<- list()
 	par(mfrow=c(length(mydemes),1),mar=c(0.5,5,0.5,0.5),oma=c(4,1,5,1),cex.axis=1.5,cex.lab=2.5,cex.main=2.5)
 	for(ndemes in mydemes)
 		{
 		cat(paste("K = ",ndemes,sep=""), sep ="\n")	
-		obj.snmf	<- snmf("LEAinput.geno", K = ndemes, alpha = 100, project = "new")
-		qmatrix 	<- Q(obj.snmf, K = ndemes)
-		leaqmatrixlist[[ndemes-1]]	<- qmatrix
+		qmatrix		<- leaqmatrixlist[[ndemes-1]]
 		mycolours	<- colourvector[1:ndemes]
 		if(ndemes==maxdemes&&addindnr)
 			{
-			mycex		<- ifelse(maxdemes<4,0.5,0.75)
+			#mycex		<- ifelse(maxdemes<4,0.5,0.75)
+			mycex		<- ifelse(nsamples>100,ifelse(nsamples>200,0.25,0.35),0.5)
 			barplot(t(qmatrix),col=mycolours,border=NA,space=0,xlab="",ylab ="",names.arg=indstemp$nr[indstemp$filter],cex.names=mycex,las=2)
 			if(length(popnames>1)){abline(v=mylocs2,lwd=2)}
 			}else{
@@ -5859,15 +6230,6 @@ LEAstructureplot<-function(maxdemes=6,colourvector=NULL,export=NULL,shortpop=NUL
 		mtext("Individuals",side=1,line=1.5,outer=TRUE,cex=1.75)
 		}
 	if(!is.null(export)){dev.off()}
-	names(leaqmatrixlist)	<- paste("K",mydemes,sep="_")
-	leaqmatrixlist			<<- leaqmatrixlist
-	# to subsequently create pca:
-	# mypc = pca("LEAinput.geno", scale = TRUE)
-	# plot(mypc$projections,col=indstemp$popcol[indstemp$filter],pch=16)
-	# remove.pcaProject("LEAinput.pcaProject")
-	remove.snmfProject("LEAinput.snmfProject")
-	# if function above doesn't work, delete directory and files like this:
-	unlink("LEAinput.snmf", recursive=TRUE)
 	}
 
 maplea<-function(maxdemes=6,radiusratio=30,exporttype=NULL,popnames=mysambar$populations,plotperpop=FALSE,addlabels=FALSE)
@@ -5961,7 +6323,7 @@ mapdapc<-function(maxdemes=5,radiusratio=30,exporttype=NULL,popnames=mysambar$po
 		}
 	}
 	
-mapqmatrix<-function(coord=NULL,qmatrix=NULL,popnames=mysambar$populations,mycols=mysambar$mycolours,radius_ratio=30,doinstall=FALSE,aligncolours=TRUE,export=NULL,exportname="qmatrix.map",mylabels=NULL,mytitle=NULL,mytitle2=NULL,silent=TRUE)
+mapqmatrix<-function(coord=NULL,qmatrix=NULL,popnames=mysambar$populations,mycols=NULL,radius_ratio=30,doinstall=FALSE,aligncolours=TRUE,export=NULL,exportname="qmatrix.map",mylabels=NULL,mytitle=NULL,mytitle2=NULL,silent=TRUE)
 	{
 	# radius_ratio is the ratio between radius and either longitude or latitude span (the smaller of the two)
 	# e.g: if longitude ranges from 10 to 20, and radius_ratio is set to 40, the radius of the piecharts will equal 10/40 = 0.25. 
@@ -5972,6 +6334,10 @@ mapqmatrix<-function(coord=NULL,qmatrix=NULL,popnames=mysambar$populations,mycol
 	if(is.null(qmatrix))
 		{
 		return(cat("ERROR: you should input a qmatrix to qmatrix flag.",sep="\n"))
+		}
+	if(is.null(mycols))
+		{
+		mycols	<- c("blue","darkgreen","darkred","orange","darkorchid4","#654321","yellow","deepskyblue","greenyellow","indianred1","gray20")
 		}
 	if(doinstall)
 		{
@@ -6032,8 +6398,8 @@ mapqmatrix<-function(coord=NULL,qmatrix=NULL,popnames=mysambar$populations,mycol
 		}
 	#testcoord	<<- coord
 	plot(coord,xlab="",ylab="",type="n",las=1)
-	plot(newmap,add=T,col="grey90",border="grey")
-	box()
+	plot(newmap,add=T,col="grey90",border="white")
+	box(col="grey90")
 	longrange	<- max(coord$longitude)-min(coord$longitude)
 	latrange	<- max(coord$latitude)-min(coord$latitude)
 	if(latrange<longrange)
@@ -6105,7 +6471,7 @@ plotlocations<-function(export=NULL,exportname="sample_locations",mytitle=NULL,m
 	
 multi_mantel_plot<-function(popnames=mysambar$populations,doexport=FALSE)
 	{
-	if("tajdlist_meta" %in% names(mysambar))
+	if(!"tajdlist_meta" %in% names(mysambar))
 		{
 		calcpi(pi_per_pop=FALSE)
 		}
@@ -6116,7 +6482,7 @@ multi_mantel_plot<-function(popnames=mysambar$populations,doexport=FALSE)
 	nrpops	<- length(popnames)
 	if(nrpops>1)
 		{
-		if("tajdlist_pop" %in% names(mysambar))
+		if(!"tajdlist_pop" %in% names(mysambar))
 			{
 			calcpi(pi_per_pop=TRUE)
 			}
@@ -6244,35 +6610,34 @@ mantel_plot<-function(pi_df=tajdlist_meta[[1]],export=FALSE,addlegend=TRUE,expor
 	#mytest	<- mantel.rtest(geo_distmatrix,pi_distmatrix,nrepet = 9999)
 	#abline(lm(pi_distmatrix ~ geo_distmatrix),lty=2,lwd=2)
 	}
-	
-# If you can not install tess with install_github, you might try to install from binary.
-# To do so, first download as zip from: "bcm-uga/TESS3_encho_sen"
-# Note: this didn't work for me so far:
-gettess<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE,mylib=NULL,mypath="C:/Users/Tatiana/Menno/Programs/TESS3r/TESS3_encho_sen-master.zip")
-	{
-	install.packages(mypath,repos=NULL,type="binary")
-	library(tess3r)
-	}
-	
-# Under construction:
-runtess3<-function(myrepos='http://cran.us.r-project.org',mypath="C:/Users/Tatiana/Menno/Programs/Geneland/Geneland_4.0.8.zip")
+
+runtess3<-function(export="pdf",nloci=NULL,maxK=6,myrepos='http://cran.us.r-project.org')
 	{
 	# get required packages:
-	# if("tess3r" %in% rownames(installed.packages()) == FALSE)		{install.packages(mypath,repos=NULL,type="binary")}
-	# if("tess3r" %in% rownames(installed.packages()) == FALSE)  {install_github("bcm-uga/TESS3_encho_sen")}
-	# if("rworldmap" %in% rownames(installed.packages()) == FALSE) {install.packages("rworldmap",repos=myrepos)}
-	# library(tess3r)
-	# library(rworldmap)
+	if("sp" %in% rownames(installed.packages()) == FALSE) {install.packages("sp",repos=myrepos)}
+	if("tess3r" %in% rownames(installed.packages()) == FALSE)  {install_github("bcm-uga/TESS3_encho_sen")}
+	if("rworldmap" %in% rownames(installed.packages()) == FALSE) {install.packages("rworldmap",repos=myrepos)}
+	library(sp)
+	library(tess3r)
+	library(rworldmap)
+	# If you can not install tess with install_github, you might try to install from binary.
+	# To do so, first download as zip from: "bcm-uga/TESS3_encho_sen"
+	# install.packages(mypath=...,repos=NULL,type="binary")
+	#
 	# create TESS3 object:
-	# note: input for tess2tess: first column longitude, second column latitude. If you reverse the order, you will eventually get an ERROR when plotting
-	mycoord					<- as.matrix(inds[inds$filter,c("longitude","latitude")])	
-	# However, in tess3 list it is reversed: first latitude, then longitude
+	mycoord					<- as.matrix(inds[inds$filter,c("longitude","latitude")])	# in tess3 first latitude, then longitude. Input for tess2tess: first column longitude, second column latitude. If you reverse the order, you will eventually get an ERROR when plotting
 	mytess3					<- list()
-	mygeno					<- as.matrix(mygenlight)[inds$filter,c(1:100)]
+	if(!is.null(nloci))
+		{
+		mygeno					<- as.matrix(mygenlight)[inds$filter,c(1:nloci)]
+		}else{
+		mygeno					<- as.matrix(mygenlight)[inds$filter,snps$filter]
+		}
 	mytess3$X				<- mygeno
 	mytess3$coord			<- as.matrix(inds[inds$filter,c("latitude","longitude")])	
+	#
 	# run the analysis:
-	tessout  				<- tess3(X = mytess3$X, coord = tesscoord,K = 1:7, ploidy = 2, openMP.core.num = 4)
+	tessout  				<<- tess3(X = mytess3$X, coord = mycoord, K = 1:maxK, ploidy = 2, openMP.core.num = 4)
 	#
 	# Cluster plot: the best choice for the K value is mostly (but not strictly) when the cross-validation curve exhibits a plateau or starts increasing.
 	graphics.off()
@@ -6280,9 +6645,151 @@ runtess3<-function(myrepos='http://cran.us.r-project.org',mypath="C:/Users/Tatia
 		{
 		if(export=="pdf"){pdf("Tess.numberofclusters.pdf")}
 		}
-	plot(tessout, pch = 19, col = "blue",xlab = "Number of ancestral populations",ylab = "Cross-Validation score")
+	plot(tessout,pch=19,col ="blue",xlab ="Number of ancestral populations",ylab ="Cross-Validation score",type='l')
 	if(!is.null(export)){dev.off()}
 	# other plots still to be incorporated
+	}
+
+maptess<-function(use_lea=FALSE,mydemes=c(2:5),export=NULL,marine=TRUE,myrepos='http://cran.us.r-project.org',mysize=10,myratio=1.75,mycex=0.75,multiplot=FALSE,myresolution=c(600,600),ncolour=20)
+	{
+	# by default this function expects to find in the global environment an object called 'tessout', output of tess3 function of the tess3r package.
+	# tessout is generated with SambaR's runtess3 function.
+	# if (use_lea is TRUE, function expects to find leaqmatrixlist
+	#
+	# multiplot is designed for 4 tiles
+	#
+	my.colors	<- c("blue","darkgreen","darkred","orange","darkorchid4","#654321","yellow","gray20","deepskyblue","greenyellow","indianred1")
+	my.palette 	<- CreatePalette(my.colors,(ncolour+1))
+	for(i in c(1:length(my.palette)))
+		{
+		my.palette[i][[1]]	<- my.palette[i][[1]][1:ncolour]
+		}
+	# map.max: all colours
+	# map.all: only one colour
+	# mapmethod	<- ifelse(mapmax,"map.max","map.all")
+	#
+	# select data:
+	mysubset   	<- as.matrix(mygenlight)[inds$filter,snps$filter]
+	tesscoord	<- as.matrix(inds[inds$filter,c("longitude","latitude")])
+	nsamples	<- nrow(mysubset)
+	tesscoord2	<- as.data.frame(tesscoord)
+	#
+	if(marine)
+		{
+		# if needed, load required packages:
+		if("sp" %in% rownames(installed.packages()) == FALSE) {install.packages("sp",repos=myrepos)}
+		if("rworldmap" %in% rownames(installed.packages()) == FALSE) {install.packages("rworldmap",repos=myrepos)}
+		if("raster" %in% rownames(installed.packages()) == FALSE) {install.packages("raster",repos=myrepos)}
+		library(sp)
+		library(rworldmap)
+		library(raster)
+		newmap 		<- getMap(resolution = "low")
+		# create polygon:
+		lonmin		<- min(tesscoord[,1])
+		lonmax 		<- max(tesscoord[,1])
+		londiff 	<- lonmax-lonmin
+		latmin 		<- min(tesscoord[,2])
+		latmax 		<- max(tesscoord[,2])
+		latdiff 	<- latmax-latmin
+		lonmin		<- lonmin-0.2*londiff		# add margin
+		lonmax		<- lonmax+0.2*londiff		# add margin
+		latmin		<- latmin-0.2*latdiff		# add margin
+		latmax		<- latmax+0.2*latdiff		# add margin
+		x_coord 	<- c(lonmin,lonmax,lonmax,lonmin) 
+		y_coord 	<- c(latmin,latmin,latmax,latmax)
+		xym 		<- cbind(x_coord, y_coord)
+		p			<- Polygon(xym)
+		ps 			<- Polygons(list(p),1)
+		sps			<- SpatialPolygons(list(ps))
+		myratio		<- (lonmax-lonmin)/(latmax-latmin)
+		}
+	graphics.off()
+	if((!is.null(export))&multiplot)
+		{
+		if(use_lea)
+			{
+			exportname	<- paste("LEA.allK.map",nsamples,"samples.pdf",sep=".")
+			}else{
+			exportname	<- paste("Tess.allK.map",nsamples,"samples.pdf",sep=".")
+			}
+		if(myratio>1)
+			{
+			if(export=="pdf"){pdf(exportname,height=mysize,width=mysize*myratio)}
+			}else{
+			if(export=="pdf"){pdf(exportname,height=mysize*1/myratio,width=mysize)}
+			}
+		}
+	if(multiplot)
+		{
+		layout(matrix(c(1:4),2,2,byrow = TRUE))
+		par(mar=c(1.5,1.5,1,0.5),oma=c(3,3,1.5,1),cex.axis=2.25,cex.lab=2.5,cex.main=2.5)
+		}
+	for(ndemes in mydemes)
+		{
+		cat(paste("Plotting map for K = ",ndemes,sep=""),sep="\n")
+		if(use_lea)
+			{
+			mymatrix			<- leaqmatrixlist[[ndemes-1]]
+			colnames(mymatrix)	<- NULL
+			# reorder:
+			indstemp			<- inds[inds$filter,]
+			indstemp			<- indstemp[order(indstemp$poplong),]
+			mymatrix			<- mymatrix[order(indstemp$name),]
+			# convert to tess qmatrix class:
+			myqmatrix			<- as.qmatrix(mymatrix)
+			}else{
+			myqmatrix 			<- qmatrix(tessout, K = ndemes)
+			}
+		if(!is.null(export)&(!multiplot))
+			{
+			if(use_lea)
+				{
+				exportname	<- paste("LEA.map",ndemes,"clusters",nsamples,"samples.pdf",sep=".")
+				}else{
+				exportname	<- paste("Tess.map",ndemes,"clusters",nsamples,"samples.pdf",sep=".")
+				}
+			if(myratio>1)
+				{
+				if(export=="pdf"){pdf(exportname,height=mysize,width=mysize*myratio)}
+				}else{
+				if(export=="pdf"){pdf(exportname,height=mysize*1/myratio,width=mysize)}
+				}
+			}
+		if(marine)
+			{
+			if(multiplot)
+				{
+				if(ndemes==2){plot(myqmatrix,tesscoord, method = "map.max", cex = mycex, map.polygon=sps, interpol = FieldsKrigModel(10), main = "", resolution = myresolution, col.palette = my.palette, xlab = "", ylab = "",xaxt='n')}
+				if(ndemes==3){plot(myqmatrix,tesscoord, method = "map.max", cex = mycex, map.polygon=sps, interpol = FieldsKrigModel(10), main = "", resolution = myresolution, col.palette = my.palette, xlab = "", ylab = "",xaxt='n',yaxt='n')}
+				if(ndemes==4){plot(myqmatrix,tesscoord, method = "map.max", cex = mycex, map.polygon=sps, interpol = FieldsKrigModel(10), main = "", resolution = myresolution, col.palette = my.palette, xlab = "", ylab = "")}
+				if(ndemes==5){plot(myqmatrix,tesscoord, method = "map.max", cex = mycex, map.polygon=sps, interpol = FieldsKrigModel(10), main = "", resolution = myresolution, col.palette = my.palette, xlab = "", ylab = "",yaxt='n')}
+				}else{
+				plot(myqmatrix,tesscoord, method = "map.max", cex = .5, map.polygon=sps, interpol = FieldsKrigModel(10), main = "", resolution = myresolution, col.palette = my.palette, xlab = "", ylab = "")
+				points(tesscoord2$longitude,tesscoord2$latitude,pch=16,cex=mycex,col="black")
+				mtext(text="Latitude",cex=1.75,side=2,line=-2,outer=TRUE)
+				mtext(text="Longitude",cex=1.75,side=1,line=-2.5,outer=TRUE)
+				}
+			plot(newmap, xlim=xrange, ylim=yrange, add=TRUE,col="grey85",border="white")
+			points(tesscoord2$longitude,tesscoord2$latitude,pch=16,cex=mycex,col="black")
+			mtext(text=(paste("K = ",ndemes,sep="")),side=3,cex=1.5,line=0)
+			box(lwd=0.5)
+			}else{
+			if(ndemes==2){colpalette	<- my.palette}
+			if(ndemes==3){colpalette	<- my.palette[c(2,1,3,4,5)]}
+			if(ndemes==4){colpalette 	<- my.palette[c(3,5,1,2,4)]}
+			if(ndemes==5){colpalette 	<- my.palette[c(1,3,2,5,4)]}
+			plot(myqmatrix, tesscoord, method ="map.max", interpol=FieldsKrigModel(10), main="Ancestry coefficients", xlab="Longitude", ylab="Latitude", resolution=c(300,300), cex=mycex, col.palette = colpalette)
+			points(tesscoord2$longitude,tesscoord2$latitude,pch=16,cex=mycex,col="black")
+			box(lwd=0.5)
+			}
+		if(!(is.null(export))&!(multiplot)){dev.off()}
+		}
+	if(multiplot)
+		{
+		mtext(text="Latitude",cex=2.25,side=2,line=1,outer=TRUE)
+		mtext(text="Longitude",cex=2,side=1,line=1.5,outer=TRUE)
+		if(!is.null(export)){dev.off()}
+		}
 	}
 
 # Generate dummy longitude and latitude data, needed to run tess3r:
@@ -6340,6 +6847,21 @@ getgeneland<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE,myli
 	# library(dartR)
 	}
 
+# ADDITIONAL ANALYSIS: Geneland
+# Because Geneland takes a while to run, the user has to call these functions separately. 
+# SambaR expects to find within the inds dataframe columns named ‘longitude’ and ‘latitude’ (included during execution of the importdata() function).  
+
+# Geneland needs to be installed from either a zipfile (Windows) or tarball (Unix). You can download these files from: https://i-pri.org/special/Biostatistics/Software/Geneland/distrib/
+# To install on a Windows computer, type on R command line:
+# getgeneland(mypath="C:/path/to/Geneland_4.0.8.zip",mylib=NULL)
+# To install on a Unix computer, type on R command line:
+# getgeneland(mypath="/path/to/Geneland_4.0.8.tar.gz",mylib="/path/to/your/storage/dir/")
+# To run Geneland and subsequently plot the output, type:
+# runandplotgeneland(my_iter=10000,burnin_fraction=0.2,my_thin=100,nloci=1000)
+# The settings my_iter, burnin_fraction, and my_thin can be used the alter the MCMC chain settings. The flag nloci determines how many (randomly selected) loci will be used for the analysis. This number can, obviously, not exceed the number of retained snps in your snps dataframe. Depending on the capacities of your computer, there are limits to the combinations of my_iter, my_thin and nloci. If you set these values too high, you will encounter an error about memory allocation. Therefore you might not be able to use all your snps. 
+# The output will be stored in the folder ‘Genelandoutput’ in the structure directory. 
+
+# I don't mention Geneland anymore in the manual. Why not?
 # When running Geneland, I have to subset the data because of memory allocation limits.
 # You could argue to select loci with high minor allele frequencies (more informative), but I am afraid this is a biased representation of the dataset, which might affect the outcome
 # So instead I sample randomly.	
@@ -6644,6 +7166,7 @@ calcdistance<-function(silent=TRUE)
 	pop_neimatrix(export="pdf")
 	pop_neimatrix(export="png")
 	pop_neimatrix(export="wmf")
+	getpopneitree()
 	cat("Calculating Pearson's correlation coefficient...",sep="\n")
 	mafcorr(export="eps")
 	mafcorr(export="pdf")
@@ -6795,6 +7318,33 @@ pop_neimatrix<-function(popnames=mysambar$populations,export=NULL)
 	mtext("Nei's genetic distance", side = 3, line = 1, cex = 2.5)	
 	if(!is.null(export)){dev.off()}
 	popneivector	<<- mymatrix[upper.tri(mymatrix)]
+	popneimatrix	<<- mymatrix
+	}
+
+# tree for populations:
+# This shows genetic difference between populations, not evolutionary relationship!
+# i.e. a recently diverged founder population can be genetically more distant from the source population than a bigger population which diverged earlier. 
+getpopneitree<-function(mymatrix=popneimatrix)
+	{
+	#install.packages("phangorn")
+	#library(phangorn)
+	mymatrix[lower.tri(mymatrix)]	<- mymatrix[upper.tri(mymatrix)]
+	colnames(mymatrix)				<- mysambar$populations
+	colnames(mymatrix)				<- mysambar$populations
+	mytree_upgma					<- upgma(mymatrix)
+	mytree_nj						<- NJ(mymatrix)
+	#
+	# plot:
+	pdf("UPGMA_nei_tree.pdf")
+	# plot(mytree_upgma,cex=2)
+	plot.phylo(mytree_upgma,cex=2.5,font=1,adj=0)
+	dev.off()
+	#
+	# plot:
+	# pdf("NJ_tree.pdf")
+	# plot(mytree_upgma,cex=2)
+	# plot.phylo(mytree_nj,cex=2.5,font=2,adj=0)
+	# dev.off()
 	}
 
 # Wright_Fst
@@ -10034,8 +10584,18 @@ selectionanalyses<-function(export=NULL,do_meta=TRUE,do_pairwise=FALSE,do_pheno=
 			}
 		if(do_fsthet)
 			{
-			cat("Running fsthet...",sep="\n")
-			runfsthet(export=TRUE,dataset="metapop",reps=10,fstmethod="betahat",doanalysis=TRUE)
+			setwd(mysambar$inputdatadir)
+			genepopfile 	<- list.files(pattern = "genepop")
+			if(length(genepopfile)==0)
+				{
+				cat("WARNING: No file with extension 'genepop' found in the directory:",sep="\n")
+				cat(getwd(),sep="\n")
+				cat("The fsthet software needs a genepop file as input and will therefore be omitted.",sep="\n")
+				setwd(mysambar$selectiondir)
+				}else{
+				cat("Running fsthet...",sep="\n")
+				runfsthet(export=TRUE,dataset="metapop",reps=10,fstmethod="betahat",doanalysis=TRUE)
+				}
 			}
 		cat("Generating Fdist plot...",sep="\n")
 		Fdist_plot(my_dataset="metapop",showlegend=TRUE,showlabels=FALSE,exporttype="pdf",axislabels=TRUE,add_borders=FALSE,add_outliers=TRUE,dothin=TRUE)
@@ -10143,8 +10703,18 @@ run_pairwise<-function(dopheno=FALSE,do_analysis=TRUE,allpairwise=FALSE,pheno_la
 			}
 		if(dofsthet)
 			{
-			cat("Running fsthet...",sep="\n")
-			runfsthet(export=TRUE,dataset=my_pair,reps=10,fstmethod="betahat",doanalysis=TRUE)
+			setwd(mysambar$inputdatadir)
+			genepopfile 	<- list.files(pattern = "genepop")
+			if(length(genepopfile)==0)
+				{
+				cat("WARNING: No file with extension 'genepop' found in the directory:",sep="\n")
+				cat(getwd(),sep="\n")
+				cat("The fsthet software needs a genepop file as input and will therefore be omitted.",sep="\n")
+				setwd(mysambar$selectiondir)
+				}else{
+				cat("Running fsthet...",sep="\n")
+				runfsthet(export=TRUE,dataset=my_pair,reps=10,fstmethod="betahat",doanalysis=TRUE)
+				}
 			}
 		cat("Creating Venn diagram...",sep="\n")
 		plot_venn(my_dataset=my_pair)
@@ -10181,8 +10751,18 @@ run_pairwise<-function(dopheno=FALSE,do_analysis=TRUE,allpairwise=FALSE,pheno_la
 			}
 		if(dofsthet)
 			{
-			cat("Running fsthet...",sep="\n")
-			runfsthet(export=TRUE,dataset="pheno",reps=10,fstmethod="betahat",doanalysis=TRUE,phenonames=pheno_labels)
+			setwd(mysambar$inputdatadir)
+			genepopfile 	<- list.files(pattern = "genepop")
+			if(length(genepopfile)==0)
+				{
+				cat("WARNING: No file with extension 'genepop' found in the directory:",sep="\n")
+				cat(getwd(),sep="\n")
+				cat("The fsthet software needs a genepop file as input and will therefore be omitted.",sep="\n")
+				setwd(mysambar$selectiondir)
+				}else{
+				cat("Running fsthet...",sep="\n")
+				runfsthet(export=TRUE,dataset="pheno",reps=10,fstmethod="betahat",doanalysis=TRUE,phenonames=pheno_labels)
+				}
 			}
 		cat("Creating Venn diagram...",sep="\n")
 		plot_venn(my_dataset="pheno")
@@ -10242,9 +10822,10 @@ piemaf<-function(export=FALSE,popnames=mysambar$populations,mycol="blue",myscan=
 		for (j in c(1:npops))
 			{
 			mypop		<- popnames[j]
+			#cat(mypop,sep="\n")
 			nind		<- nrow(inds[inds$filter&inds$pop==mypop,])
 			popmiss		<- snps[snps$name==mylocus,paste("miss",mypop,sep="_")]
-			if(popmiss<1)		
+			if(popmiss<1&nind>0)		
 				{
 				popmaf		<- snps[snps$name==mylocus,paste("maf",mypop,sep="_")]
 				nallelles	<- round((2*nind)*(1-popmiss))
@@ -10905,12 +11486,18 @@ runPCadapt<-function(K=NULL,myalpha=0.05,popnames=mysambar$populations,my_datase
 		}
 	}
 	
-runOutflank<-function(indselection=inds$filter,export=TRUE,my_dataset="metapop",popcolumn=inds$pop2,myloci=snps$name,q_value=FALSE,domerge=TRUE)
+runOutflank<-function(indselection=inds$filter,export=TRUE,my_dataset="metapop",popcolumn=inds$pop2,myloci=snps$name[snps$filter2],q_value=FALSE,domerge=TRUE,silent=TRUE)
 	{
 	# Optionally fst distribution plots will be exported.
-	mymatrix					<- as.matrix(mygenlight[indselection,])
+	mymatrix					<- as.matrix(mygenlight[indselection,snps$filter2])	# 19-01-2020: snps$filter2 contains !snps$poly. Non-polymorphic loci result in errors.
 	mymatrix[is.na(mymatrix)] 	<- 9
 	outflankinput				<- MakeDiploidFSTMat(SNPmat=mymatrix,locusNames=myloci,popNames=popcolumn[indselection])
+	if(!silent)
+		{
+		cat("passed MakeDiploidFstMat",sep="\n") 
+		mymatrix		<<- mymatrix
+		outflankinput	<<- outflankinput
+		}
 	#
 	## Calibrating the null distribution of fst-values.
 	# To do so we need a pruned dataset.
@@ -10920,12 +11507,18 @@ runOutflank<-function(indselection=inds$filter,export=TRUE,my_dataset="metapop",
 	myrate				<- 1/mymean
 	myvalue				<- qexp(0.95,myrate)
 	prunevector			<- outflankinput$FSTNoCorr<myvalue&!is.na(outflankinput$FSTNoCorr)&is.finite(outflankinput$FSTNoCorr)
+	if(!silent)
+		{
+		cat("passed prunevector",sep="\n")
+		prunevector		<<- prunevector
+		} 
 	# 12-10-2019: I used the above settings for the simulations, but this might be incorrect to do it this way.
 	# Because in the function below OutFLANK trims 5 percent of top values and 5 percent of bottom values, so it is double. 
 	nrsamples			<- length(inds$pop2[indselection])
 	npops				<- length(as.vector(unique(inds$pop2[indselection])))
 	# NumberOfSamples is number of populations:
 	out_trim 			<- OutFLANK(FstDataFrame=outflankinput[prunevector,],NumberOfSamples=npops,qthreshold=0.05,Hmin = 0.1)
+	if(!silent){cat("passed OutFLANK",sep="\n")} 
 	if(export)
 		{
 		if(file.exists("OutFlankplots"))
@@ -10947,6 +11540,7 @@ runOutflank<-function(indselection=inds$filter,export=TRUE,my_dataset="metapop",
 	## So now we have estimated neutral mean FST and df using the pruned dataset (snps$filter).
 	# So now we can go back and calculate P-values and q-values for all loci.
 	P1 <- pOutlierFinderChiSqNoCorr(outflankinput,Fstbar = out_trim$FSTNoCorrbar,dfInferred = out_trim$dfInferred, qthreshold = 0.05, Hmin=0.1)
+	if(!silent){cat("pOutlierFinderChiSqNoCorr",sep="\n")} 
 	#
 	## Outliers?
 	tempname				<- paste("OutFLANK",my_dataset,sep="_")
@@ -10962,14 +11556,16 @@ runOutflank<-function(indselection=inds$filter,export=TRUE,my_dataset="metapop",
 		P1$negativelogp		<- -log(P1$pvalues_holm)
 		}
 	P1$OutlierFlag[is.na(P1$OutlierFlag)]	<- FALSE
-	noutliers				<- nrow(P1[P1$OutlierFlag&snps$filter2&!is.na(P1$OutlierFlag),])
+	#noutliers				<- nrow(P1[P1$OutlierFlag&snps$filter2&!is.na(P1$OutlierFlag),])
+	noutliers				<- nrow(P1[P1$OutlierFlag&!is.na(P1$OutlierFlag),])
 	#P1						<<- P1
 	cat(paste("OutFLANK detected",noutliers,"outlier loci.",sep=" "),sep="\n")
 	if(export)
 		{
 		setwd(file.path(mysambar$selectiondir,"OutFlankplots"))
 		pdf(paste("Outflank.outliers",my_dataset,"pdf",sep="."))
-		plot(P1$He[snps$filter2],P1$FST[snps$filter2],pch=19,cex=0.5,col="#99CCFF",xlab="He",ylab="Fst")
+		#plot(P1$He[snps$filter2],P1$FST[snps$filter2],pch=19,cex=0.5,col="#99CCFF",xlab="He",ylab="Fst")
+		plot(P1$He,P1$FST,pch=19,cex=0.5,col="#99CCFF",xlab="He",ylab="Fst")
 		points(P1$He[P1$OutlierFlag],P1$FST[P1$OutlierFlag],pch=19,col="#336633")
 		dev.off()			
 		setwd(mysambar$selectiondir)
@@ -11023,6 +11619,10 @@ runOutflank<-function(indselection=inds$filter,export=TRUE,my_dataset="metapop",
 		colnames(snps)[which(colnames(snps)=="OutFLANKlogq")]	<<- paste("OutFLANKlogp",my_dataset,sep="_")
 		colnames(snps)[which(colnames(snps)=="OutFLANKlogp")]	<<- paste("OutFLANKlogq",my_dataset,sep="_")
 		}
+	# replace NAs with FALSE:
+	mycolumn					<- snps[,paste("OutFLANK",my_dataset,sep="_")]
+	mycolumn[is.na(mycolumn)]	<- FALSE
+	snps[,paste("OutFLANK",my_dataset,sep="_")]	<<- mycolumn
 	cat(paste("Outliers, if present, are marked as TRUE in the",tempname,"column in the snps dataframe.",sep=" "),sep="\n")
 	cat("Negative log of the pvalues and qvalues are saved as well.",sep="\n")
 	snps <<- snps[, !duplicated(colnames(snps), fromLast = TRUE)]
@@ -12203,8 +12803,245 @@ assocfisher<-function(pheno="sex",export=NULL,mylabels=c("male","female"))
 	Fdist_plot(my_dataset="assoc1_assoc2",showlabels=TRUE,exporttype=export,axislabels=TRUE,add_borders=TRUE,add_outliers=TRUE,y_axis='s',x_axis='s',my_labels=mylabels,dothin=TRUE,silent=TRUE)
 	}	
 
+runRDA<-function(export="pdf",legendpos="topleft",envfile="ENVDATAr5noBSCLEAN_MJ.txt",myrepos='http://cran.us.r-project.org',doall=FALSE)
+	{
+	if("psych" %in% rownames(installed.packages()) == FALSE) {install.packages('psych',repos=myrepos)}
+	if("vegan" %in% rownames(installed.packages()) == FALSE) {install.packages('vegan',repos=myrepos)}
+	if("vegan"%in%(.packages()) == FALSE) {library(vegan)}
+	if("psych"%in%(.packages()) == FALSE) {library(psych)}
+	# Set the working directory
+	setwd(mysambar$inputdatadir)
+	#
+	# get imputed dataset:
+	if(is.null(mysambar$imputedmatrix))
+		{
+		sambarimpute()
+		}
+	if(doall)
+		{
+		gen.imp			<- mysambar$imputedmatrix[,snps$filter]
+		}else{
+		gen.imp			<- mysambar$imputedmatrix[inds$filter,snps$filter]
+		}
+	rownames(gen.imp)	<- as.character(rownames(gen.imp))
+	genimp				<<- gen.imp[order(rownames(gen.imp)),]
+	#
+	# read environmental data:
+	setwd(mysambar$inputdatadir)
+	cat("Reading envfile (file with environmental data) from:",sep="\n")
+	cat(getwd(),sep="\n")
+	env.data 				<- read.table(file = envfile, header = T, na.strings = NA)
+	env.data$individual 	<- as.character(env.data$individual)
+	envdata					<<- env.data[order(env.data$individual),]
+	if(!identical(rownames(genimp),envdata$individual))
+		{
+		return(cat("ERROR: sample names in environmental data file do not correspond with sample names in inds dataframe.",sep="\n"))
+		}
+	#
+	# variables correlated?
+	# pairs.panels(Ocean.Data[,4:5], scale=T,las=2,hist.col="blue")
+	#
+	cat("Executing RDA analysis.",sep="\n")	
+	myrda 	<<- rda(genimp ~ SST + salinity, data=envdata, scale=T)
+	cat("Stored RDA output in 'myrda'. Generating plot...",sep="\n")	
+	#
+	# Make the RDA plots
+	if(!is.null(export))
+		{
+		setwd(mysambar$selectiondir)
+		if(export=="eps"){postscript("RDA.1_2.eps",family=mysambar$myfont,width=10,height=10)}
+		if(export=="pdf"){pdf("RDA.1_2.pdf",family=mysambar$myfont,width=10,height=10)}
+		if(export=="png"){png("RDA.1_2.png",family=mysambar$myfont,width=720,height=720)}
+		if(export=="wmf"){win.metafile("RDA.1_2.wmf",family=mysambar$myfont,width=10,height=10)}
+		}
+	eco 	<- envdata$population
+	bg		<- mysambar$mycolours
+	par(cex.axis=2.5,mar=c(5,5,1,1))
+	plot(myrda, type="n", scaling=3, xlab="", ylab = "")
+	mtext(side=1,"RDA 1", line=3.5, cex = 3)
+	mtext(side=2,"RDA 2", line=2.75, cex = 3)
+	points(myrda, display="species",pch=16,cex=0.75,col="gray30",scaling=3)
+	points(myrda, display="sites",pch=21,cex=3,col="gray30",scaling=3,bg=bg[eco])
+	legend(legendpos,legend=levels(eco), bty="n", col="gray30", pch=21, cex=3, pt.bg=bg)
+	text(myrda, scaling=3, display="bp", col="darkorange", cex=2.75)
+	if(!is.null(export))
+		{
+		dev.off()
+		cat("RDA plot has been exported to the Selection directory.",sep="\n")
+		setwd(mysambar$inputdatadir)
+		}
+	cat("Because data imputing has a stochastic component, the plot will look different if you rerun the importdata function.",sep="\n")
+	}
+
 # End of association analyses 	
 ###############################################################################################################
+
+
+
+
+
+
+
+
+
+###############################################################################################################
+# Tree building from input multiple sequence alignment file (i.e. fasta file, clustal file, or interleaved or sequential files (the latter NEXUS or phylip??)
+
+seqtotree<-function(dosearch=FALSE,myinput="allcervinae.aligned.fasta",myformat="fasta",do_analysis=TRUE)
+	{
+	# This function generates phylogenetic trees from multiple alignment files using the R packages ape and phangorn.
+	# Three methods: UPGMA, NJ and ML (maximum likelihood), the latter with bootstrapping)
+	# Based on a test run on whole MT sequences of Old World deer, UPGMA and ML trees produce credible results (comparable to RAxML)  
+	#
+	if("ape" %in% rownames(installed.packages()) == FALSE) {install.packages('ape',repos=myrepos)}
+	if("phangorn" %in% rownames(installed.packages()) == FALSE) {install.packages('phangorn',repos=myrepos)}
+	if("seqinr" %in% rownames(installed.packages()) == FALSE) {install.packages('seqinr',repos=myrepos)}
+	if("ape"%in%(.packages()) == FALSE) {library(ape)}
+	if("phangorn"%in%(.packages()) == FALSE) {library(phangorn)}
+	if("seqinr"%in%(.packages()) == FALSE) {library(seqinr)}
+	#
+	if(do_analysis)
+		{
+		# use read.dna function of package ape. possible input formats: interleaved, sequential, clustal, and format.
+		cat("Reading DNA...",sep="\n")
+		myalign 		<- read.dna(myinput,format=myformat)
+		myalign			<<- myalign
+		# convert to phyDat object using function from phangorn package.
+		myalign_phyDat 	<- phyDat(myalign, type = "DNA", levels = NULL)
+		myalign_phyDat  <<- myalign_phyDat
+		#
+		# following functions are from package phangorn.
+		# infer most likely model of nucleotide/protein evolution:
+		cat("Model testing...",sep="\n")
+		mt 				<- modelTest(myalign_phyDat)
+		mymodel			<- mt$Model[1]
+		mymodel			<<- mymodel
+		#
+		# BUILDING TREES BASED ON DISTANCE-MATRICES
+		# calculate distance matrix:
+		cat("Generating distance matrix...",sep="\n")
+		mydm 			<- dist.ml(myalign, model=mymodel)
+		mydm			<<- mydm
+		}
+	nsamples		<- nrow(myalign)
+	#
+	# generate heatmap:
+	cat("Generating heatmap visualizing distance matrix...",sep="\n")
+	mydistmat	<- as.matrix(mydm) 
+	treeheatmap(export_type="pdf",mymatrix=mydistmat)
+	#
+	# based on the distance matrix we can infer the tree, again using phangorn:
+	# upgma:
+	cat("Generating UPGMA tree...",sep="\n")
+	myupgmatree 	<- upgma(mydm)
+	pdf("SambaR_UPMGAtree.pdf",height=nsamples*0.25,width=8)
+	plot(myupgmatree,main="UPGMA")
+	dev.off()
+	write.tree(myupgmatree,file="SambaR_UPMGAtree.newick")
+	# NJ
+	cat("Generating UPGMA tree...",sep="\n")
+	mynjtree 		<- NJ(mydm)
+	pdf("SambaR_NJtree.pdf",height=nsamples*0.25,width=8)
+	plot(mynjtree, main = "Neighbor Joining")
+	dev.off()
+	write.tree(mynjtree,file="SambaR_NJtree.newick")
+	#
+	# which tree scores better?
+	# how many substitutions required?
+	cat("Calculating parsimony...",sep="\n")
+	parsimony(myupgmatree,data=myalign_phyDat)
+	parsimony(mynjtree,data=myalign_phyDat)
+	if(dosearch)
+		{
+		cat("Searching tree space...",sep="\n")
+		# search tree space (don't know what this does, results seem to make less sense on my example dataset):
+		myupgma_optim 	<- optim.parsimony(myupgmatree,data=myalign)
+		plot(myupgma_optim)
+		mynj_optim 		<- optim.parsimony(mynjtree,data=myalign)
+		plot(mynj_optim)
+		mypratchet 		<- pratchet(myalign)	# search tree space using pratchet algorithm:
+		plot(mypratchet)
+		}
+	#
+	# MAXIMUM LIKELIHOOD BASED TREES
+	# begin with calculating the likelihood of any given tree:
+	cat("Finding maximum likelihood tree...",sep="\n")
+	myfit 			<- pml(mynjtree, myalign_phyDat)
+	# next optimalize the tree topology and branch length given your evolution model:
+	myfit_opt		<- optim.pml(myfit,model=mymodel,rearrangement = "stochastic")
+	mylikelihood	<- logLik(myfit_opt)
+	# multicore option is not supported on Windows:
+	cat("Bootstrapping...",sep="\n")
+	mybstree		<- bootstrap.pml(myfit_opt,bs=10,optNni=TRUE,multicore=FALSE,control=pml.control(trace=0))
+	pdf("SambaR_bootstrap.tree.pdf",height=nsamples*0.25,width=8)
+	plotBS(midpoint(myfit_opt$tree),mybstree,p=50,type="p")
+	dev.off()
+	# export tree in newick format:
+	write.tree(mybstree,file="SambaR_MLtree_100bootstraps.newick")
+	cat("Analysis finished.",sep="\n")
+	}
+
+treeheatmap<-function(export_type=NULL,nbins=8,mymatrix=mydistmat,my_col="orange",exportname="SambaR_distmatrix",mytitle="Genetic distance",addlegend=TRUE,myBreaks=NULL,addlab=TRUE,legypos=0.61,legxpos=0.05)
+	{
+	mymatrix	<- mymatrix[order(rownames(mymatrix)),order(rownames(mymatrix))]
+	mymatrix[lower.tri(mymatrix, diag = FALSE)]<-NA
+	# create colours:
+	if(is.null(myBreaks))
+		{
+		floor_dec 	<- function(x, level=1) round(x - 5*10^(-level-1), level)
+		ceiling_dec <- function(x, level=1) round(x + 5*10^(-level-1), level)
+		mymin		<- floor_dec(min(mymatrix,na.rm=TRUE),1)
+		mymax		<- ceiling_dec(max(mymatrix,na.rm=TRUE),1)
+		binsize		<- ifelse(is.null(nbins),(mymax-mymin)/10,(mymax-mymin)/nbins)
+		myBreaks	<- seq(mymin,mymax,binsize)
+		}
+	mycolfunc 	<- colorRampPalette(c("white",my_col))
+	myColours	<- c(mycolfunc(length(myBreaks)-1))
+	# plot:
+	graphics.off()
+	if(!is.null(export_type))
+		{
+		if(!exists("mysambar"))
+			{
+			if(export_type=="eps"){postscript(paste(exportname,"eps",sep="."),width=10,height=10)}
+			if(export_type=="pdf"){pdf(paste(exportname,"pdf",sep="."),width=10,height=10)}
+			if(export_type=="png"){png(paste(exportname,"png",sep="."),width=720,height=720)}
+			if(export_type=="wmf"){win.metafile(paste(exportname,"wmf",sep="."),width=10,height=10)}
+			}else{
+			if(export_type=="eps"){postscript(paste(exportname,"eps",sep="."),family=mysambar$myfont,width=10,height=10)}
+			if(export_type=="pdf"){pdf(paste(exportname,"pdf",sep="."),family=mysambar$myfont,width=10,height=10)}
+			if(export_type=="png"){png(paste(exportname,"png",sep="."),family=mysambar$myfont,width=720,height=720)}
+			if(export_type=="wmf"){win.metafile(paste(exportname,"wmf",sep="."),family=mysambar$myfont,width=10,height=10)}
+			}
+		}
+	if(addlab)
+		{
+		heatpos	<- heatmap.2(mymatrix,lwid=c(0.5,4),lhei=c(0.5,4),labRow=rownames(mymatrix),labCol=colnames(mymatrix),key=FALSE,Rowv=NA,
+		Colv=NA,scale="none",col=myColours,breaks=myBreaks,dendrogram="none",trace="none",margins=c(9.5,9.5))
+		#mtext("sample nr", side = 1, cex = 2, line = 3.5)
+		#mtext("sample nr", side = 4, cex = 2, line = 0.5)
+		}else{
+		heatpos	<- heatmap.2(mymatrix,lwid=c(0.5,4),lhei=c(0.5,4),labRow=NA,labCol=NA,key=FALSE,Rowv=NA,
+		Colv=NA,scale="none",RowSideColors=mypopcols,ColSideColors=mypopcols,col=myColours,breaks=myBreaks,dendrogram="none",trace="none")
+		}
+	if(!is.null(mytitle)){mtext(mytitle, side = 3, line = 1, cex = 3)}
+	# legend:
+	if(addlegend)
+		{
+		if(max(mymatrix,na.rm=TRUE)>10)
+			{
+			mylimits	<- paste("[",round(heatpos$colorTable$low),",",round(heatpos$colorTable$high),")",sep="")
+			}else{
+			mylimits	<- paste("[",heatpos$colorTable$low,",",heatpos$colorTable$high,")",sep="")
+			}
+		legend(x=legxpos,y=legypos,legend=mylimits,fill=myColours,bty='n',cex=2.5)
+		}
+	if(!is.null(export_type)){dev.off()}
+	}
+	
+###############################################################################################################
+
+
 
 
 
@@ -12216,7 +13053,7 @@ assocfisher<-function(pheno="sex",export=NULL,mylabels=c("male","female"))
 ###############################################################################################################
 # Data management and generally used functions
 
-do_heatmap<-function(export_type=NULL,nbins=NULL,mymatrix=nei,my_inds=inds,my_snps=snps,my_col="orange",exportname="mymatrix",mytitle=NULL,addlegend=TRUE,myBreaks=NULL,addlab=TRUE)
+do_heatmap<-function(export_type=NULL,nbins=NULL,mymatrix=nei,my_inds=inds,my_snps=snps,my_col="orange",exportname="mymatrix",mytitle=NULL,addlegend=TRUE,myBreaks=NULL,addlab=TRUE,legposx=0.1,legposy=0.35)
 		{
 		mymatrix[lower.tri(mymatrix, diag = FALSE)]<-NA
 		# create colours:
@@ -12257,7 +13094,7 @@ do_heatmap<-function(export_type=NULL,nbins=NULL,mymatrix=nei,my_inds=inds,my_sn
 		if(addlegend)
 			{
 			mylimits	<- paste("[",heatpos$colorTable$low,",",heatpos$colorTable$high,")",sep="")
-			legend(x=0.1,y=0.35,legend=mylimits,fill=myColours,bty='n',cex=2.5)
+			legend(x=legposx,y=legposy,legend=mylimits,fill=myColours,bty='n',cex=2.5)
 			}
 		if(!is.null(export_type)){dev.off()}
 		}	
@@ -13434,6 +14271,11 @@ He_histo<-function(export=FALSE,exportname="mygenlight",popnames=populations,col
 	}
 
 cat("SambaR loaded.",sep="\n")
+cat("Now you can run the commands getpackages(), importdata(), filterdata(), and afterwards findstructure(), calcdistance(), calcdiversity() and selectionanalyses().",sep="\n")
+cat("See the manual for more details and for solutions to potential errors you might encounter.",sep="\n")
+cat("Make sure that none of the SambaR plots and other output files are opened in a file viewer when (re)running a function, otherwise you will encounter errors (e.g.: 'ERROR: cannot open file ...').",sep="\n")
+cat("Also, please prepare commands in a plain text editor (e.g. Notepad) and not in Word, because Word might deform double quotes, which will lead to the error: 'Error: unexpected input in...'.",sep="\n")    
+
 
 
 
