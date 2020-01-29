@@ -1,0 +1,35 @@
+PLINK v1.90b6.14 64-bit (7 Jan 2020)
+Options in effect:
+  --allow-extra-chr
+  --chr-set 95
+  --file polarbear
+  --make-bed
+  --out polarbear
+  --recode A
+
+Hostname: DESKTOP-1GR43PB
+Working directory: C:\Users\Menno_de_Jong\Documents\SNPdatasets\exampledataset\example_data
+Start time: Wed Jan 29 15:01:27 2020
+
+Random number seed: 1580306487
+16180 MB RAM detected; reserving 8090 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (3341 variants, 414 samples).
+--file: polarbear-temporary.bed + polarbear-temporary.bim +
+polarbear-temporary.fam written.
+3341 variants loaded from .bim file.
+414 samples (209 males, 205 females) loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 320 founders and 94 nonfounders present.
+Calculating allele frequencies... done.
+Warning: 895 het. haploid genotypes present (see polarbear.hh ); many commands
+treat these as missing.
+Warning: Nonmissing nonmale Y chromosome genotype(s) present; many commands
+treat these as missing.
+Total genotyping rate is 0.999819.
+3341 variants and 414 samples pass filters and QC.
+Note: No phenotypes present.
+--make-bed to polarbear.bed + polarbear.bim + polarbear.fam ... done.
+--recode A to polarbear.raw ... done.
+
+End time: Wed Jan 29 15:01:28 2020
