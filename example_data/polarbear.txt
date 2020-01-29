@@ -1,0 +1,22 @@
+Data from:
+Viengkone et al. (2017), Assessing polar bear (Ursus maritimus) population structure in the Hudson Bay region using SNPs, 
+Dryad, Dataset, https://doi.org/10.5061/dryad.1719f
+
+DS= Davis Strait
+FB= Foxe Basin
+WH= Western Hudson Bay
+SH= Southern Hudson Bay
+
+The ped-file contains 6 columns + columns with genotype data.
+Column 1=Family ID
+Column 2=Individual ID
+Column 3=Paternal ID
+Column 4=Maternal ID
+Column 5=Sex (1=male, 2=Female; other=unknown)
+Column 6=Phenotype
+
+The map-file has 4 columns: 
+Column 1=Chromosome
+Column 2=SNP identifier
+Column 3=Genetic distance
+Column 4=Base pair position (bp units)
