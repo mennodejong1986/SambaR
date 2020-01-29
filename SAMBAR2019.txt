@@ -76,6 +76,25 @@ tits<-function()
 	backupdata("tits")
 	}
 
+# C:\Users\Menno_de_Jong\Documents\software\plink_win64_20200107\plink --file polarbear –-chr-set 80 --make-bed --recode A --out polarbear 
+doexample<-function()
+	{
+	#source("C:/Users/Menno_de_Jong/Documents/SNPdatasets/exampledataset/SAMBAR2019.txt")
+	source("D:/PhD/General/SAMBAR/SAMBAR2019.txt")
+	getpackages(myrepos='http://cran.us.r-project.org')
+	setwd("C:/Users/Menno_de_Jong/Documents/SNPdatasets/exampledataset/example_data")
+	importdata(inputprefix="polarbear",sumstatsfile=FALSE,depthfile=FALSE)
+	filterdata(indmiss=0.25,snpmiss=0.1)
+	findstructure()
+	calcdistance()
+	calcdiversity()
+	selectionanalyses(export="pdf",do_meta=TRUE,do_pheno=FALSE,do_outflank=TRUE)
+	#inds$type	<- ifelse(inds$pop=="Wytham",TRUE,FALSE)
+	inds$type	<- ifelse(inds$pop=="Buunderkamp",TRUE,FALSE)
+	selectionanalyses(export="pdf",do_meta=FALSE,do_pheno=TRUE,add_bayescan=FALSE,phenolabels=c("UK","mainland"))
+	backupdata("tits")
+	}
+
 bot<-function()
 	{
 	source("G:/PhD/General/SAMBAR/SAMBAR2019.txt")
@@ -5860,14 +5879,20 @@ plotstructure<-function(qmatrixlist=NULL,colourvector=NULL,plotname="Structurepl
 		{
 		myheight1	<- nmatrices*1.25+1.5
 		myheight2	<- nmatrices*125+150
-		mywidth1	<- nsamples*0.1+1.5
-		mywidth2	<- nsamples*80+200
+		if(addindnr)
+			{
+			mywidth1	<- nsamples*0.15+1.5
+			mywidth2	<- nsamples*20+200
+			}else{
+			mywidth1	<- 8
+			mywidth2	<- 560
+			}
 		orderlabel	<- ifelse(order_on_longitude,"geo","alphabet")
 		indlabel	<- ifelse(addindnr,"indnr","noxaxis")
-		if(export=="eps"){postscript(paste(plotname,orderlabel,indlabel,"eps",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
-		if(export=="pdf"){pdf(paste(plotname,orderlabel,indlabel,"pdf",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
-		if(export=="png"){png(paste(plotname,orderlabel,indlabel,"png",sep="."),family=mysambar$myfont,width=560,height=myheight2)}
-		if(export=="wmf"){win.metafile(paste(plotname,orderlabel,indlabel,"wmf",sep="."),family=mysambar$myfont,width=8,height=myheight1)}
+		if(export=="eps"){postscript(paste(plotname,orderlabel,indlabel,"eps",sep="."),family=mysambar$myfont,width=mywidth1,height=myheight1)}	# width=8
+		if(export=="pdf"){pdf(paste(plotname,orderlabel,indlabel,"pdf",sep="."),family=mysambar$myfont,width=mywidth1,height=myheight1)}
+		if(export=="png"){png(paste(plotname,orderlabel,indlabel,"png",sep="."),family=mysambar$myfont,width=mywidth2,height=myheight2)}
+		if(export=="wmf"){win.metafile(paste(plotname,orderlabel,indlabel,"wmf",sep="."),family=mysambar$myfont,width=mywidth1,height=myheight1)}
 		}
 	if(is.null(colourvector))
 		{	
@@ -5956,7 +5981,8 @@ plotstructure<-function(qmatrixlist=NULL,colourvector=NULL,plotname="Structurepl
 		if(k==nmatrices&&addindnr)
 			{
 			#mycex		<- ifelse(maxdemes<4,0.5,0.75)
-			mycex		<- ifelse(nsamples>100,ifelse(nsamples>200,0.25,0.35),0.5)	# 28-01-2020
+			# mycex		<- ifelse(nsamples>100,ifelse(nsamples>200,0.25,0.35),0.5)	# 28-01-2020
+			mycex		<- ifelse(nsamples>100,ifelse(nsamples>200,ifelse(nsamples>300,0.1,0.25),0.35),0.5)
 			barplot(t(qmatrix),col=mycolours,border=NA,space=0,xlab="",ylab ="",names.arg=indstemp$nr[indstemp$filter],cex.names=mycex,las=2)
 			if(length(popnames>1)){abline(v=mylocs2,lwd=2)}
 			}else{
@@ -6197,7 +6223,7 @@ LEAstructureplot<-function(maxdemes=6,colourvector=NULL,export=NULL,shortpop=NUL
 		if(ndemes==maxdemes&&addindnr)
 			{
 			#mycex		<- ifelse(maxdemes<4,0.5,0.75)
-			mycex		<- ifelse(nsamples>100,ifelse(nsamples>200,0.25,0.35),0.5)
+			mycex		<- ifelse(nsamples>100,ifelse(nsamples>200,ifelse(nsamples>300,0.1,0.25),0.35),0.5)
 			barplot(t(qmatrix),col=mycolours,border=NA,space=0,xlab="",ylab ="",names.arg=indstemp$nr[indstemp$filter],cex.names=mycex,las=2)
 			if(length(popnames>1)){abline(v=mylocs2,lwd=2)}
 			}else{
@@ -14274,7 +14300,7 @@ cat("SambaR loaded.",sep="\n")
 cat("Now you can run the commands getpackages(), importdata(), filterdata(), and afterwards findstructure(), calcdistance(), calcdiversity() and selectionanalyses().",sep="\n")
 cat("See the manual for more details and for solutions to potential errors you might encounter.",sep="\n")
 cat("Make sure that none of the SambaR plots and other output files are opened in a file viewer when (re)running a function, otherwise you will encounter errors (e.g.: 'ERROR: cannot open file ...').",sep="\n")
-cat("Also, please prepare commands in a plain text editor (e.g. Notepad) and not in Word, because Word might deform double quotes, which will lead to the error: 'Error: unexpected input in...'.",sep="\n")    
+cat("Also, please prepare your commands in a plain text editor (e.g. Notepad) and not in Word, because Word might deform double quotes, which will lead to the error: 'Error: unexpected input in...'.",sep="\n")    
 
 
 
