@@ -7,6 +7,7 @@ The selection scan 'GWDS' is implemented in SambaR.
 To start using SambaR, simply download SambaR from this website using the green 'Clone or download' button (choose 'Download ZIP'), unzip the folder, and follow the instructions in the manual. Example datasets are provided in the example datasets directory (which will be included in the download).
 
 
+
 The main commands to run SambaR are:
 
 source("SAMBAR_v1.00.txt")
