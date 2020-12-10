@@ -1281,7 +1281,14 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		mynind	<- as.vector(table(as.character(pop(mygenlight))))
 		if(min(mynind)<2)
 			{
-			return(cat("ERROR: SambaR does not accept populations consisting of 1 sample only.\nPlease edit population names and try again. \nThis means: make changes in the PED-file, convert PED/MAP to raw/bim using PLINK, and afterwards rerun the importdata() function.",sep="\n"))
+			if(allow_edit)
+				{
+				cat("WARNING: SambaR does not accept populations consisting of 1 sample only.",sep="\n")
+				cat("Because you set the flag allow_edit to TRUE, SambaR will assign all individuals to the same population (pop1).",sep="\n")
+				pop(mygenlight)	<<- as.factor(rep("pop1",length(pop(mygenlight))))
+				}else{
+				return(cat("ERROR: SambaR does not accept populations consisting of 1 sample only.\nPlease either set to flag allow_edit to TRUE or alternatively edit population names (in either PED file or samplefile) and then rerun the importdata function. \nIf you make changes in the PED-file, do not forget to convert PED/MAP to raw/bim.",sep="\n"))
+				}
 			}
 		}
 	#
@@ -9802,7 +9809,7 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 			if(ncol(mydapc)>1)
 				{
 				mytablename	<- paste("dapc.K",i,mynpca,"scatter.dapc",datatype,"axis1vs2.dc_score.txt",sep=".")
-				calc_dc(popnames=mysambar$populations,pscores=mydapc,axis_1=1,axis2=2,tablename=mytablename)
+				calc_dc(popnames=mysambar$populations,pscores=mydapc,axis_1=1,axis_2=2,tablename=mytablename)
 				}
 			}
 		}
