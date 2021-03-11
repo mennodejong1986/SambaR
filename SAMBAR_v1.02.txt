@@ -1268,7 +1268,7 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 				cat("To solve this issue, you can choose any of the following three options:",sep="\n")
 				cat("Option 1: Edit population names in the PED-file, convert PED/MAP to raw/bim using PLINK, and afterwards rerun the importdata() function.",sep="\n")
 				cat("Option 2: Create a sample file as explained in the manual (e.g. called 'popfile.txt') and afterwards run: importdata(samplefile='popfile.txt').",sep="\n")
-				return(cat("Option 3: Allow SambaR to truncate population names (if needed) by setting the flag allow_edit to TRUE (i.e. importdata(allow_edit=TRUE)).",sep="\n"))
+				return(cat("Option 3: Allow SambaR to remove underscores from population names by setting the flag allow_edit to TRUE (i.e. importdata(allow_edit=TRUE)).",sep="\n"))
 				}
 			}
 		if(any(nchar(as.character(pop(mygenlight)))>10))
@@ -2245,6 +2245,11 @@ checkpopcolours<-function(popnames=mysambar$populations2,silent=TRUE)
 		{
 		mysambar$colourerror	<<- FALSE
 		}
+	if(any(is.na(inds$popcol)))
+		{
+		mysambar$colourerror	<<- TRUE
+		return(cat("ERROR: NA-values present in inds$popcol column.",sep="\n")) 
+		}
 	for(k in c(1:length(popnames)))
 		{
 		mypop			<- popnames[k]
@@ -2271,7 +2276,7 @@ checkpopcolours<-function(popnames=mysambar$populations2,silent=TRUE)
 	}
 
 # if not importing data, but instead converting from a genlight object:
-genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NULL,major=1,minor=4,qcplot=TRUE,heplot=TRUE)
+genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NULL,popvector=NULL,major=1,minor=4,qcplot=TRUE,heplot=TRUE,silent=TRUE,allow_edit=FALSE)
 	{
 	if(is.null(genlight_object))
 		{
@@ -2305,19 +2310,58 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		{
 		mypops	<- rep("pop1",nrinds)		
 		}else{
-		mypops	<- as.vector(mygenlight@pop)
+		mypops	<- as.vector(as.character(mygenlight@pop))
 		}
 	inds		<<- data.frame("name"=as.vector(mygenlight@ind.names),"nr"=c(1:nrinds),"pop"=mypops,"pop2"=mypops)
-	popnames	<- as.vector(unique(mypops))
+	if(!is.null(popvector))
+		{
+		cat("WARNING: basing population assignment on information provided to the popvector flag. Assuming that the order of the samples in the genlight object corresponds to the order of the popvector.",sep="\n") 
+		inds$pop		<<- as.character(popvector)
+		inds$pop2		<<- as.character(popvector)
+		mygenlight@pop	<- as.factor(popvector)
+		mypops			<-  as.character(popvector)
+		}
+	if(any(grepl("_",mypops)))
+		{
+		if(allow_edit)
+			{
+			cat("WARNING: SambaR does not accept population names which contain an underscore.",sep="\n")
+			cat("Because you set the flag allow_edit to TRUE, SambaR will remove underscores from population names and continue.",sep="\n")
+			mypops			<- as.character(inds$pop2)
+			popvector		<- gsub("_","",mypops)
+			inds$pop		<<- as.character(popvector)
+			inds$pop2		<<- as.character(popvector)
+			mygenlight@pop	<- as.factor(popvector)
+			mypops			<-  as.character(popvector)
+			}else{
+			cat("WARNING: SambaR does not accept population names which contain an underscore.",sep="\n")
+			cat("To solve this issue, edit population names and try again.",sep="\n")
+			return(cat("Alternatively, allow SambaR to remove underscores from population names by setting the flag allow_edit to TRUE.",sep="\n"))
+			}
+		}
+	popnames	<- as.vector(unique(as.character(mypops)))
 	popnames	<- popnames[order(popnames)] 	
 	npops		<- length(popnames)
-	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","#654321","deepskyblue","greenyellow","indianred1","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2") 
+	if(!silent){cat(paste("Number of populations: ",npops,sep=""),sep="\n")}
+	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","#654321","deepskyblue","greenyellow","indianred1","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4") 
 	if(is.null(colourvector))
 		{
 		colourvector	<- defaultcolours
 		}
+	ncolours			<- length(colourvector)
+	if(npops>ncolours)
+		{
+		return(cat(paste("ERROR: more populations (",npops,") defined than population colours (",ncolours,"). Please provide a longer vector of colour names to the colourvector flag.",sep=""),sep="\n"))
+		}
 	colvector			<-  colourvector[1:npops]
+	# Note: this does not work correctly if inds$pop is originally a factor in which one or more levels are not present in the actual data. 
+	# (Sounds strange, but this can happen. You would not notice when running the command 'unique(inputfactorvector)', only when running the command 'table(inputfactorvector)'. 
 	inds$popcol			<<- colvector[as.factor(inds$pop)]
+	if(any(is.na(inds$popcol)))
+		{
+		colvector		<<- colvector
+		return(cat("ERROR: NA-values in inds$popcol column. Contact the developer of SambaR.",sep="\n"))
+		}
 	symbolvector		<-  c(15,16,17,18,0,1,2,6,3,4,5,8)
 	inds$symboltype		<<- symbolvector[as.factor(inds$pop)]
 	inds$symboltype2	<<- symbolvector[as.factor(inds$pop)]
@@ -2373,6 +2417,28 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 	mygenlight@ind.names<<- as.character(rownames(mymatrix))
 	mygenlight@loc.names<<- as.character(colnames(mymatrix))
 	#
+	if(!silent){cat("Assigning index based on length of chromosomes...",sep="\n")}
+	mychrs				<- aggregate(snps$pos,by=list(snps$chr),FUN=max)
+	mychrs2				<- mychrs[order(-mychrs$x),]
+	mychrs2$chr2		<- c(1:nrow(mychrs2))
+	colnames(mychrs2)	<- c("chr","chrlength","chr2")
+	mychrs2$chrcol		<- ifelse(mychrs2$chr2%%2==0,"black","grey40")
+	snps				<<- merge(snps,mychrs2,by="chr",all=TRUE)
+	snps				<<- snps[order(snps$nr),]
+	if(any(colnames(as.matrix(mygenlight))!=snps$genlightname))
+		{	
+		return(cat("ERROR: column names of genlight object do not correspond with snps$genlightname column. Contact developer of SambaR.",sep="\n"))
+		}
+	if(!silent){cat("Counting number of SNPs per scaffold...",sep="\n")}
+	myn					<- table(snps$chr)
+	myndf				<- data.frame("chr"=names(myn),"nsnps"=as.vector(myn))
+	snps				<<- merge(snps,myndf,by="chr",all=TRUE)
+	snps				<<- snps[order(snps$nr),]
+	if(any(!colnames(as.matrix(mygenlight))==snps$genlightname))
+		{	
+		return(cat("ERROR: column names of genlight object do not correspond with snps$genlightname column. Contact developer of SambaR.",sep="\n"))
+		}
+	#
 	cat("Creating output directories...",sep="\n")
 	inputdatadir		<- getwd()
 	sambardir			<- paste(inputdatadir,"SambaR_output",sep="/")
@@ -2419,6 +2485,7 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 	mysambar$datasource		<<- "converted_from_genlight"
 	#
 	# check:
+	if(!silent){cat("Checking pop colours...",sep="\n")}
 	checkpopcolours()
 	if(mysambar$colourerror){return(cat(" ",sep="\n"))}
 	#
@@ -4191,6 +4258,11 @@ barplotnsnps<-function(n_chroms=NULL,export=NULL)
 	if(is.null(n_chroms))
 		{
 		return(cat("ERROR: Provide value to n_chroms flag.",sep="\n"))
+		}
+	nuniqchrom	<- length(unique(snps$chr2))
+	if(n_chroms>nuniqchrom)
+		{
+		return(cat("ERROR: value specified to n_chroms flag higher than number of unique values at snps$chr2 column. Not creating barplot with number of SNPs per chromosome/scaffold.",sep="\n"))
 		}
 	snpstemp	<- snps[snps$chr2<=n_chroms,]
 	myn			<- table(snpstemp$chr2)
@@ -12521,7 +12593,7 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 	cat("Calculating pairwise Nei 1977 Fst...",sep="\n")
 	locusNeiFst()
 	cat("Calculating pairwise Cockerham & Weir 1987 Fst...",sep="\n")
-	run_locusWCfst(export="pdf")	# histogram, depends on locusWCfst	
+	run_locusWCfst(export="pdf",silent=silent)	# histogram, depends on locusWCfst	
 	if(mysambar$os=="Windows"){run_locusWCfst(export="wmf")}
 	if(do_distplot)
 		{
@@ -12553,6 +12625,16 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 		runstamppFst(n_boots=100,export="png")
 		if(mysambar$os=="Windows"){runstamppFst(n_boots=100,export="wmf")}
 		}
+	#
+	### GENE FLOW ANALYSES
+	# many options:
+	# - D calculation implemented in SAMBAR (according to algorithm of Simon H Martin)
+	# - Dfst calculation implemented in SAMBAR (not tested algorithm)
+	# - R package HybridCheck
+	# - R package StrataG (related to HybridCheck?)
+	# - R package Admixtools2 (f3 and f4 statistics)
+	# - R package admixr (many statistics, mostly based on admixtools)
+	#
 	if(length(mysambar$populations)>max_npop_dstats)
 		{
 		cat(paste("More than ",max_npop_dstats," populations defined. Omitting ABBA-BABA statistics.",sep=""),sep="\n")
@@ -12579,6 +12661,8 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 			plotD(export="png",plotDfst=TRUE,shortpop=TRUE)
 			#if(mysambar$os=="Windows"){plotD(export="wmf",plotDfst=TRUE,shortpop=TRUE)}	# file too big
 			}
+		# strataG package:
+		# binaryD()
 		}
 	#
 	cat("Calculating distances between populations using dist.genpop() function of the package 'adegenet'...",sep="\n")
@@ -12599,7 +12683,7 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 		}
 	if(do_binaryD)
 		{
-		# binary D:
+		# binary D (strataG package?):
 		binaryD(exampledata=FALSE,fourpops=mysambar$populations,samplesize=200)
 		plotD(mydf=myhbdf,export="pdf",methodname="HybridCheck",doboxplot=TRUE,shortpop=TRUE)
 		}
@@ -19210,7 +19294,7 @@ selectionanalyses<-function(export=NULL,do_meta=TRUE,plothisto=TRUE,dopiechart=T
 	cat("REMINDER: if you receive an error stating 'cannot open file' (without the addition 'No such file or directory') this is likely because the file is opened in another file viewer.",sep="\n")
 	cat("If so, close the relevant file in the file viewer and try again.",sep="\n")
 	if(!silent){cat("run_locusWCfst",sep="\n")}
-	run_locusWCfst(doplot=FALSE)	# in case calcdistance() hasn't been executed yet.
+	run_locusWCfst(doplot=FALSE,silent=silent)	# in case calcdistance() hasn't been executed yet.
 	if(do_meta)
 		{
 		metapopdir		<- paste(mysambar$selectiondir,"metapop",sep="/")
