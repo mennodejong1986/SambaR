@@ -7,8 +7,11 @@ The selection scan 'GWDS' is implemented in SambaR.
 To start using SambaR, simply download SambaR from this website using the green 'Code' button (choose 'Download ZIP'), unzip the folder, and follow the instructions in the SambaR manual. Example datasets are provided in the example datasets directory (which will be included in the download).
 
 
+UPDATE 17-03-2021:
+SambaR version 1.02 (and older versions) generated incorrect SFS vectors by not correcting for missing data. SambaR version 1.03 generates (presumably) more correct SFS vectors by imputing missing data points.    
 
 
+CITING SAMBAR
 If you use SambaR for scientific publications, please cite:
 
 Menno J. de Jong, Joost F. de Jong, A. Rus Hoelzel, Axel Janke, 2021, SambaR: an R package for fast, easy and reproducible population‐genetic analyses of biallelic SNP datasets, Molecular Ecology Resources, doi/10.1111/1755-0998.13339
