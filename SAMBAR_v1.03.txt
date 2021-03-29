@@ -4931,7 +4931,7 @@ snpsmissingness<-function(indthreshold=0.25,snpthreshold=0.1,popnames=mysambar$p
 		{
 		mypop			<- popnames[i]
 		popfilter		<- indmissfilter&inds$pop==mypop
-		if(!any(popfilter))
+		if(!any(popfilter,na.rm=TRUE))
 			{
 			cat(paste("WARNING: Zero retained individuals for population ",mypop,". Please try again with a less strict (i.e. higher) individual missingness filter threshold.",sep=""),sep="\n") 
 			snps$misscountpop	<<- 2*(nInd(mygenlight[indmissfilter,]))
@@ -5012,7 +5012,7 @@ snp_maf<-function(popnames=mysambar$populations,indthreshold=0.25)
 		# snps$maftemp		<<- round(popminor/popall,3)			# this leads to ERROR when correcting maf (something about NA's)	
 		mypop				<- popnames[i]
 		popfilter			<- indfilter&inds$pop==mypop
-		if(any(popfilter))
+		if(any(popfilter,na.rm=TRUE))
 			{
 			popmisscount		<- paste("misscount",popnames[i],sep="_")
 			if(!popmisscount%in%colnames(snps))
