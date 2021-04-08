@@ -4995,7 +4995,7 @@ snp_maf<-function(popnames=mysambar$populations,indthreshold=0.25)
 	#	{
 	#	cat("WARNING: After filtering, no data retained for 1 or more snps",sep="\n")
 	#	}
-	if(any(snps$maf!=snps$minorcount/snps$nonmissallelecount),na.rm=TRUE)
+	if(any(snps$maf!=snps$minorcount/snps$nonmissallelecount,na.rm=TRUE))
 		{
 		return(cat("ERROR: minor allele frequency does not equal minor allele count divided by total allele count. Please contact the developer of SambaR.",sep="\n"))
 		}
