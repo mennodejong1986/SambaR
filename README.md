@@ -4,7 +4,7 @@ SambaR is a R package which allows users to import a SNP dataset into R and to p
 
 The selection scan 'GWDS' is implemented in SambaR.
 
-To start using SambaR, simply download SambaR from this website using the green 'Code' button (choose 'Download ZIP'), unzip the folder, and follow the instructions in the SambaR manual. Note: do NOT use the git clone command, because this will not work. (We will make this option available at a later point in time.) An example dataset is provided in the example datasets directory, which will be included in the download.
+To start using SambaR, simply download SambaR from this website using the green 'Code' button (choose 'Download ZIP'), unzip the folder, and follow the instructions in the SambaR manual. Note: do NOT use the git clone command, because this will not work. (We will make this option available at a later point in time.) An example dataset is provided in the example dataset directory, which will be included in the download.
 
 
 UPDATE 17-03-2021
