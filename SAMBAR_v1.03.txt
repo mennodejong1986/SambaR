@@ -1494,32 +1494,39 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		cat("WARNING: non-defined allele (NA or 0) present in bim-file.",sep="\n")
 		myalleles	<- myalleles[!is.na(myalleles)]
 		}
-	if(is.integer(snps$minor))
+	#
+	if(is.integer(snps$minor)|is.numeric(snps$minor))
 		{
 		if(any(myalleles!=1&myalleles!=2&myalleles!=3&myalleles!=4))
 			{
 			myalleles	<<- myalleles
-			return(cat("ERROR: unexpected allele found in bim file. Alleles should be either 1,2,3,4 (integer) or A,C,T,G. You can observe the alleles by typing 'myalleles'.",sep="\n")) 
+			return(cat("ERROR: encountered unexpected allele in bim file. Alleles should be either 1,2,3,4 (integer) or A,C,T,G. You can observe the alleles by typing 'myalleles'.",sep="\n")) 
 			}
 		snps$minor2										<<- NA
 		snps$minor2[snps$minor==1&!is.na(snps$minor)]	<<- "A"
 		snps$minor2[snps$minor==2&!is.na(snps$minor)]	<<- "C"
 		snps$minor2[snps$minor==3&!is.na(snps$minor)]	<<- "G"
 		snps$minor2[snps$minor==4&!is.na(snps$minor)]	<<- "T"
-		}else{		# if in bim-file data is encoded as A,C,G,T rather than 1,2,3,4.
-		if(any(myalleles!="A"&myalleles!="C"&myalleles!="G"&myalleles!="T"))
+		}else{
+		if(is.character(snps$minor))
 			{
-			myalleles	<<- myalleles
-			return(cat("ERROR: unexpected allele found in bim file. Alleles should be either 1,2,3,4 or A,C,T,G (character). You can observe the alleles by typing 'myalleles'.",sep="\n")) 
+			if(any(myalleles!="A"&myalleles!="C"&myalleles!="G"&myalleles!="T"))
+				{
+				myalleles	<<- myalleles
+				return(cat("ERROR: encountered unexpected allele in bim file. Alleles should be either 1,2,3,4 or A,C,T,G (character). You can observe the alleles by typing 'myalleles'.",sep="\n")) 
+				}
+			snps$minor2										<<- snps$minor
+			snps$minor										<<- NA
+			snps$minor[snps$minor2=="A"&!is.na(snps$minor2)]<<- 1
+			snps$minor[snps$minor2=="C"&!is.na(snps$minor2)]<<- 2
+			snps$minor[snps$minor2=="G"&!is.na(snps$minor2)]<<- 3
+			snps$minor[snps$minor2=="T"&!is.na(snps$minor2)]<<- 4
+			}else{
+			return(cat("ERROR: class of snps$minor not numeric, integer or character. Please contact the developer of SambaR.",sep="\n")) 
 			}
-		snps$minor2										<<- snps$minor
-		snps$minor										<<- NA
-		snps$minor[snps$minor2=="A"&!is.na(snps$minor2)]<<- 1
-		snps$minor[snps$minor2=="C"&!is.na(snps$minor2)]<<- 2
-		snps$minor[snps$minor2=="G"&!is.na(snps$minor2)]<<- 3
-		snps$minor[snps$minor2=="T"&!is.na(snps$minor2)]<<- 4
 		}
-	if(is.integer(snps$major))
+	#
+	if(is.integer(snps$major)|is.numeric(snps$major))
 		{
 		snps$major2										<<- NA
 		snps$major2[snps$major==1&!is.na(snps$major)]	<<- "A"
@@ -1527,13 +1534,19 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		snps$major2[snps$major==3&!is.na(snps$major)]	<<- "G"
 		snps$major2[snps$major==4&!is.na(snps$major)]	<<- "T"
 		}else{		# if in bim-file data is encoded as A,C,G,T rather than 1,2,3,4.
-		snps$major2										<<- snps$major
-		snps$major										<<- NA
-		snps$major[snps$major2=="A"&!is.na(snps$major2)]<<- 1
-		snps$major[snps$major2=="C"&!is.na(snps$major2)]<<- 2
-		snps$major[snps$major2=="G"&!is.na(snps$major2)]<<- 3
-		snps$major[snps$major2=="T"&!is.na(snps$major2)]<<- 4
+		if(is.character(snps$major))
+			{
+			snps$major2										<<- snps$major
+			snps$major										<<- NA
+			snps$major[snps$major2=="A"&!is.na(snps$major2)]<<- 1
+			snps$major[snps$major2=="C"&!is.na(snps$major2)]<<- 2
+			snps$major[snps$major2=="G"&!is.na(snps$major2)]<<- 3
+			snps$major[snps$major2=="T"&!is.na(snps$major2)]<<- 4
+			}else{
+			return(cat("ERROR: class of snps$minor not numeric, integer or character. Please contact the developer of SambaR.",sep="\n")) 
+			}
 		}
+	#
 	snps$minor2[snps$minor2=="0"]	<<- NA
 	#
 	# check if expected alleles (A, C, T, G) only:
@@ -2497,32 +2510,38 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		cat("WARNING: non-defined allele (NA or 0) present in vectors given as input to minor flag.",sep="\n")
 		myalleles	<- myalleles[!is.na(myalleles)]
 		}
-	if(is.integer(snps$minor))
+	if(is.integer(snps$minor)|is.numeric(snps$minor))
 		{
 		if(any(myalleles!=1&myalleles!=2&myalleles!=3&myalleles!=4))
 			{
 			myalleles	<<- myalleles
-			return(cat("ERROR: unexpected allele found in bim file. Alleles should be either 1,2,3,4 (integer) or A,C,T,G. You can observe the alleles by typing 'myalleles'.",sep="\n")) 
+			return(cat("ERROR: encountered unexpected allele in bim file. Alleles should be either 1,2,3,4 (integer) or A,C,T,G. You can observe the alleles by typing 'myalleles'.",sep="\n")) 
 			}
 		snps$minor2										<<- NA
 		snps$minor2[snps$minor==1&!is.na(snps$minor)]	<<- "A"
 		snps$minor2[snps$minor==2&!is.na(snps$minor)]	<<- "C"
 		snps$minor2[snps$minor==3&!is.na(snps$minor)]	<<- "G"
 		snps$minor2[snps$minor==4&!is.na(snps$minor)]	<<- "T"
-		}else{		# if in bim-file data is encoded as A,C,G,T rather than 1,2,3,4.
-		if(any(myalleles!="A"&myalleles!="C"&myalleles!="G"&myalleles!="T"))
+		}else{
+		if(is.character(snps$minor))
 			{
-			myalleles	<<- myalleles
-			return(cat("ERROR: unexpected allele found in bim file. Alleles should be either 1,2,3,4 or A,C,T,G (character). You can observe the alleles by typing 'myalleles'.",sep="\n")) 
+			if(any(myalleles!="A"&myalleles!="C"&myalleles!="G"&myalleles!="T"))
+				{
+				myalleles	<<- myalleles
+				return(cat("ERROR: encountered unexpected allele in bim file. Alleles should be either 1,2,3,4 or A,C,T,G (character). You can observe the alleles by typing 'myalleles'.",sep="\n")) 
+				}
+			snps$minor2										<<- snps$minor
+			snps$minor										<<- NA
+			snps$minor[snps$minor2=="A"&!is.na(snps$minor2)]<<- 1
+			snps$minor[snps$minor2=="C"&!is.na(snps$minor2)]<<- 2
+			snps$minor[snps$minor2=="G"&!is.na(snps$minor2)]<<- 3
+			snps$minor[snps$minor2=="T"&!is.na(snps$minor2)]<<- 4
+			}else{
+			return(cat("ERROR: class of snps$minor not numeric, integer or character. Please contact the developer of SambaR.",sep="\n")) 
 			}
-		snps$minor2										<<- snps$minor
-		snps$minor										<<- NA
-		snps$minor[snps$minor2=="A"&!is.na(snps$minor2)]<<- 1
-		snps$minor[snps$minor2=="C"&!is.na(snps$minor2)]<<- 2
-		snps$minor[snps$minor2=="G"&!is.na(snps$minor2)]<<- 3
-		snps$minor[snps$minor2=="T"&!is.na(snps$minor2)]<<- 4
 		}
-	if(is.integer(snps$major))
+	#
+	if(is.integer(snps$major)|is.numeric(snps$major))
 		{
 		snps$major2										<<- NA
 		snps$major2[snps$major==1&!is.na(snps$major)]	<<- "A"
@@ -2530,12 +2549,17 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		snps$major2[snps$major==3&!is.na(snps$major)]	<<- "G"
 		snps$major2[snps$major==4&!is.na(snps$major)]	<<- "T"
 		}else{		# if in bim-file data is encoded as A,C,G,T rather than 1,2,3,4.
-		snps$major2										<<- snps$major
-		snps$major										<<- NA
-		snps$major[snps$major2=="A"&!is.na(snps$major2)]<<- 1
-		snps$major[snps$major2=="C"&!is.na(snps$major2)]<<- 2
-		snps$major[snps$major2=="G"&!is.na(snps$major2)]<<- 3
-		snps$major[snps$major2=="T"&!is.na(snps$major2)]<<- 4
+		if(is.character(snps$major))
+			{
+			snps$major2										<<- snps$major
+			snps$major										<<- NA
+			snps$major[snps$major2=="A"&!is.na(snps$major2)]<<- 1
+			snps$major[snps$major2=="C"&!is.na(snps$major2)]<<- 2
+			snps$major[snps$major2=="G"&!is.na(snps$major2)]<<- 3
+			snps$major[snps$major2=="T"&!is.na(snps$major2)]<<- 4
+			}else{
+			return(cat("ERROR: class of snps$minor not numeric, integer or character. Please contact the developer of SambaR.",sep="\n")) 
+			}
 		}
 	snps$minor2[snps$minor2=="0"]	<<- NA
 	#
