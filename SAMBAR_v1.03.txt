@@ -1452,6 +1452,41 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		cat(paste("WARNING: According to information in map-file, the snps are positioned at maximum",myposmax,"bp.",sep=" "),sep="\n")
 		cat("Hence, SambaR will assume that the information in the second column of your mapfile refers to read positions rather than contig/chromosome positions.",sep="\n")	
 		}
+	#
+	# addition 29-04-2021, to prevent error: 'encountered unexpected allele' which happens when snps$minor is a factor with 1,2,3,4 values 
+	if(is.factor(snps$minor))
+		{
+		minorvec		<- as.character(snps$minor)
+		if(any(c("A","C","T","G")%in%minorvec))
+			{
+			cat("Converting snps$minor factor to character vector...",sep="\n")
+			snps$minor	<<- NULL
+			snps$minor	<<- minorvec
+			}else{
+			cat("Converting snps$minor factor to integer vector...",sep="\n")
+			snps$minor	<<- NULL
+			snps$minor	<<- as.integer(minorvec)
+			}
+		}else{
+		cat("snps$minor not factor class.",sep="\n")
+		}
+	if(is.factor(snps$major))
+		{
+		majorvec		<- as.character(snps$major)
+		if(any(c("A","C","T","G")%in%majorvec))
+			{
+			cat("Converting snps$major factor to character vector...",sep="\n")
+			snps$major	<<- NULL
+			snps$major	<<- majorvec
+			}else{
+			cat("Converting snps$major factor to integer vector...",sep="\n")
+			snps$major	<<- NULL
+			snps$major	<<- as.integer(majorvec)
+			}
+		}else{
+		cat("snps$major not factor class.",sep="\n")
+		}
+	#
 	snps$minor[snps$minor==0]	<<- NA	# In case data is non-polymorphic
 	myalleles	<- as.vector(unique(snps$minor))
 	if(any(is.na(myalleles)))
@@ -2419,6 +2454,41 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		}
 	snps$minor			<<- minor
 	snps$major			<<- major
+	#
+	# addition 29-04-2021, to prevent error: 'encountered unexpected allele' which happens when snps$minor is a factor with 1,2,3,4 values 
+	if(is.factor(snps$minor))
+		{
+		minorvec		<- as.character(snps$minor)
+		if(any(c("A","C","T","G")%in%minorvec))
+			{
+			cat("Converting snps$minor factor to character vector...",sep="\n")
+			snps$minor	<<- NULL
+			snps$minor	<<- minorvec
+			}else{
+			cat("Converting snps$minor factor to integer vector...",sep="\n")
+			snps$minor	<<- NULL
+			snps$minor	<<- as.integer(minorvec)
+			}
+		}else{
+		cat("snps$minor not factor class.",sep="\n")
+		}
+	if(is.factor(snps$major))
+		{
+		majorvec		<- as.character(snps$major)
+		if(any(c("A","C","T","G")%in%majorvec))
+			{
+			cat("Converting snps$major factor to character vector...",sep="\n")
+			snps$major	<<- NULL
+			snps$major	<<- majorvec
+			}else{
+			cat("Converting snps$major factor to integer vector...",sep="\n")
+			snps$major	<<- NULL
+			snps$major	<<- as.integer(majorvec)
+			}
+		}else{
+		cat("snps$major not factor class.",sep="\n")
+		}
+	#
 	snps$minor[snps$minor==0]	<<- NA	# In case data is non-polymorphic
 	#
 	myalleles		<- as.vector(unique(snps$minor))
