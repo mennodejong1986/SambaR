@@ -15528,6 +15528,9 @@ Fdist_plot<-function(my_dataset="Busen_Norway",showlegend=FALSE,showlabels=TRUE,
 		mydf		<- unique(mydf[snps$filter2,])
 		WeirHe2		<- mydf$WeirHe
 		WeirFst2	<- mydf$WeirFst
+		}else{
+		WeirHe2		<- WeirHe
+		WeirFst2	<- WeirFst
 		}
 	if(!is.null(exporttype))
 		{
@@ -15538,7 +15541,8 @@ Fdist_plot<-function(my_dataset="Busen_Norway",showlegend=FALSE,showlabels=TRUE,
 		if(exporttype=="png"){png(paste(plotname,"png",sep="."),family=mysambar$myfont,width=700,height=700)}
 		if(exporttype=="wmf"){win.metafile(paste(plotname,"wmf",sep="."),family=mysambar$myfont,width=7,height=7)}
 		}
-	plot(WeirHe2[1:5],WeirFst2[1:5],main="",xlim=c(0,1),ylim=c(0,1),pch=16,cex=mycex,xlab="",ylab="",yaxt=y_axis,xaxt=x_axis,las=1,col="grey50")
+	#plot(WeirHe2[1:5],WeirFst2[1:5],main="",xlim=c(0,1),ylim=c(0,1),pch=16,cex=mycex,xlab="",ylab="",yaxt=y_axis,xaxt=x_axis,las=1,col="grey50")
+	plot(WeirHe2,WeirFst2,main="",xlim=c(0,1),ylim=c(0,1),pch=16,cex=mycex,xlab="",ylab="",yaxt=y_axis,xaxt=x_axis,las=1,col="grey50")
 	if(add_borders)
 		{
 		# Boundaries of He-Fst space:
