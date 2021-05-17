@@ -7677,7 +7677,7 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 				}
 			multi_adegenet_dapc(export="pdf",thresvector=c(20,50,80,95),max_clusters=Kmax,legendadd=add_legend,poslegend=legend_pos,cexlegend=legend_cex,symsize=symbol_size)
 			}
-		if(length(mysambar$populations)>1&any(mypopnind&doBAPT))
+		if(length(mysambar$populations)>1&doBAPT)
 			{
 			popnind	<- as.vector(table(inds$pop[inds$filter]))
 			if(all(popnind>1))
