@@ -1,0 +1,17 @@
+version	uploaded_to_Github	edit
+1.01	02_11_2020	NA
+1.02	09_03_2021	inclusion of data quality plots when running genlight2sambar
+1.02	09_03_2021	possibility to provide vectors with minor and major allele types (e.g. 1,2,3,4,0 or A,C,G,T,NA) when running genlight2sambar function 
+1.02	09_03_2021	inclusion of mysambar$datasource
+1.02	09_03_2021	added 'rlang' and 'vctrs' to list of packages to be installed
+1.03	17_03_2021	fixed issue with plots showing number of retained/discarded sites per filterclass 
+1.03	17_03_2021	SFS vectors based on imputed data
+1.03	17_03_2021	new SFS plot showing proportion of He sites per MAC class
+1.03	17_03_2021	new method of data imputation for CA plots
+1.03	17_03_2021	new columns in snps dataframe (i.e., allele counts per population)
+1.03	17_03_2021	included regression line in Mantel plots
+1.04	28_05_2021	mergepop() function
+1.04	28_05_2021	admixtools f3 statistics
+1.05	29_06_2021	new thinning algorithm (affecting snps$distfilter and snps$filter2 columns)
+1.05	29_06_2021	new instructions for installing Bioconductor packages
+1.05	29_06_2021	bug fix concerning GWDS thin option 
