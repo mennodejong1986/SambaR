@@ -3720,7 +3720,6 @@ meanr2<-function(mysize=500,ntimes=100)
 
 
 
-
 #################### DATA PREPARATION ################### 
 
 # This function executes all steps of the data preparation at once: 
@@ -3763,6 +3762,10 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 	if(any(!colnames(as.matrix(mygenlight))==snps$genlightname))
 		{	
 		return(cat("ERROR: column names of genlight object do not correspond with snps$genlightname column. Contact developer of SambaR.",sep="\n"))
+		}
+	if(min_spacing<0)
+		{
+		return(cat("ERROR: value to min_spacing flag should be positive.",sep="\n"))
 		}
 	my_devices	<- dev.list()
 	n_devices	<- length(my_devices)
@@ -4196,7 +4199,7 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 			indsfilter_perpop(export="eps",popnames=mysambar$populations)
 			indsfilter_perpop(export="pdf",popnames=mysambar$populations)
 			indsfilter_perpop(export="png",popnames=mysambar$populations)
-			indsfilter_perpop(export="wmf",popnames=mysambar$populations)
+			if(mysambar$os=="Windows"){indsfilter_perpop(export="wmf",popnames=mysambar$populations)}
 			if(!silent){cat("retainedsites_perpop",sep="\n")}
 			retainedsites_perpop(export="eps")
 			retainedsites_perpop(export="pdf")
@@ -4356,6 +4359,15 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 
 runthinfilter<-function(overwrite_bin=TRUE,binsize=500)
 	{
+	if(binsize<0)
+		{
+		return(cat("ERROR: binsize should be positive.",sep="\n"))
+		}
+	if(binsize==0)
+		{
+		snps$distfilter							<<- TRUE
+		return(cat("WARNING: binsize set to 0. As a consequence, no thinning will be applied. All values in distfilter column will be set to TRUE.",sep="\n"))
+		}
 	if("dist" %in% colnames(snps))
 		{
 		if("distclass"%in%colnames(snps)&!overwrite_bin)
@@ -4364,6 +4376,7 @@ runthinfilter<-function(overwrite_bin=TRUE,binsize=500)
 			cat("If you want to create new position bins, set the flag overwrite_bin to TRUE or alternatively delete existing column.",sep="\n")
 			}else{
 			cat("Dividing snps into bins based on position in genome...",sep="\n")
+			cat(paste("Using bins of ",binsize," bp width.",sep=""),sep="\n")  
 			snps$distclass	<<- NA
 			mychroms		<- as.vector(unique(snps$chr))
 			for(mychrom in mychroms)
@@ -4418,7 +4431,7 @@ runthinfilter<-function(overwrite_bin=TRUE,binsize=500)
 			cat(paste("Number of SNPs retained after thinning: ",nretained,".",sep=""),sep="\n")  
 			}
 		}else{
-		cat("WARNING: No positional information. All values in binfilter column will be set to TRUE.",sep="\n")
+		cat("WARNING: No positional information. All values in distfilter column will be set to TRUE.",sep="\n")
 		snps$distfilter							<<- TRUE
 		}
 	}
@@ -4553,29 +4566,41 @@ exporthighestsd<-function(nsnps=c(10,20,50,100,150,250),silent=TRUE)
 	setwd(mywd)
 	}
 
-exportsambarfiles<-function()
+exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE)
 	{
 	setwd(mysambar$inputfilesdir)
-	if(length(mysambar$populations)>1)
+	if(do_immanc)
 		{
-		cat("Exporting input for Bayesass ('Bayesassinput.immanc.txt')...",sep="\n")
-		genlight2immanc(quiet=TRUE)
-		}else{
-		cat("Currently only 1 population defined. Not exporting Bayesass input ('Bayesassinput.immanc.txt').",sep="\n")
+		if(length(mysambar$populations)>1)
+			{
+			cat("Exporting input for Bayesass ('Bayesassinput.immanc.txt')...",sep="\n")
+			genlight2immanc(quiet=TRUE)
+			}else{
+			cat("Currently only 1 population defined. Not exporting Bayesass input ('Bayesassinput.immanc.txt').",sep="\n")
+			}
 		}
 	#
-	cat("Exporting input for plink relatedness (pi_hat) calculations ('metapop.allinds.filter.number.ped' and 'metapop.allinds.filter.number.map)...",sep="\n")
-	genlight2ped(snpsfilter=snps$filter,indsfilter=rep(TRUE,nrow(inds)),exportname="metapop.allinds.filter.number",quiet=TRUE) 		
-	cat("Exporting input for plink relatedness (pi_hat) calculations ('metapop.filter.number.ped' and 'metapop.filter.number.map)...",sep="\n")
-	genlight2ped(snpsfilter=snps$filter,indsfilter=inds$filter,exportname="metapop.retainedinds.filter.number",quiet=TRUE)
-	# 17-06-2019: This was originally called 'Relatednessinput'
-	# 16-03-2019: I made changes to include all samples in the output file.
+	if(do_treemix)
+		{
+		exporttreemix()
+		}
+	if(do_pednumber)
+		{
+		cat("Exporting input for plink relatedness (pi_hat) calculations ('metapop.allinds.filter.number.ped' and 'metapop.allinds.filter.number.map)...",sep="\n")
+		genlight2ped(snpsfilter=snps$filter,indsfilter=rep(TRUE,nrow(inds)),exportname="metapop.allinds.filter.number",quiet=TRUE) 		
+		cat("Exporting input for plink relatedness (pi_hat) calculations ('metapop.filter.number.ped' and 'metapop.filter.number.map)...",sep="\n")
+		genlight2ped(snpsfilter=snps$filter,indsfilter=inds$filter,exportname="metapop.retainedinds.filter.number",quiet=TRUE)
+		# 17-06-2019: This was originally called 'Relatednessinput'
+		# 16-03-2019: I made changes to include all samples in the output file.
+		cat("Exporting input for plink LD calculations (files ending on 'filter2.number.ped' and 'filter2.number.map'). This make take a while...",sep="\n")	
+		exportdata(snpsfilter=snps$filter2,indsfilter=inds$filter,export_name="filter2.number",quiet2=TRUE)
+		}
 	#
-	cat("Exporting input for plink LD calculations (files ending on 'filter2.number.ped' and 'filter2.number.map'). This make take a while...",sep="\n")	
-	exportdata(snpsfilter=snps$filter2,indsfilter=inds$filter,export_name="filter2.number",quiet2=TRUE)
-	#
-	cat("Exporting input for 'plink --recode vcf' command (files ending on 'filter.number.ped' and 'filter.number.map'), in case you would like to convert filtered datasets (back) to vcf format.",sep="\n")
-	exportdata(snpsfilter=snps$filter,indsfilter=inds$filter,export_name="filter.letter",geno_nr=FALSE,quiet2=TRUE)
+	if(do_pedletter)
+		{
+		cat("Exporting input for 'plink --recode vcf' command (files ending on 'filter.number.ped' and 'filter.number.map'), in case you would like to convert filtered datasets (back) to vcf format.",sep="\n")
+		exportdata(snpsfilter=snps$filter,indsfilter=inds$filter,export_name="filter.letter",geno_nr=FALSE,quiet2=TRUE)
+		}
 	#
 	setwd(mysambar$inputdatadir)
 	cat("Filtered datasets have been written to:",sep="\n")
@@ -8014,7 +8039,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=TRUE,do_pi=TRUE,do_dapc=TRUE,do_subsets=TRUE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE)
+findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=TRUE,do_pi=TRUE,do_dapc=TRUE,do_subsets=TRUE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -8495,7 +8520,7 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 				if(mysambar$os=="Windows"){LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="wmf",addindnr=FALSE,order_on_longitude=TRUE,colourvector=colour_vector,heightfactor=LEAheightfactor,widthfactor=LEAwidthfactor,axiscex=LEAaxiscex,labelcex=LEAlabelcex,yaxiscex=LEAyaxiscex)}
 				}
 			}
-		if(any(as.vector(inds$pop)!=as.vector(inds$pop2)))
+		if(any(as.vector(inds$pop)!=as.vector(inds$pop2))&LEAperpop)
 			{
 			cat("Running LEA per population.",sep="\n")
 			for (my_pop in mysambar$populations)
@@ -8526,7 +8551,7 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 	cat("Finished structure analyses.",sep="\n")
 	}
 
-create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodapc=TRUE,domantel=TRUE)
+create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodapc=TRUE,domantel=TRUE,plot_per_pop=FALSE,marine_data=FALSE)
 	{
 	# radius_ratio is the ratio between radius of piechart and the range of either longitude or latitude (i.e. smallest of the two)
 	# e.g.: 30 means 1/30th.
@@ -8587,11 +8612,11 @@ create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodap
 				cat(paste("Warning: K_max is set to",K_max,"but currently data available for a maximum K of",mymaxK,sep=" "),sep="\n")
 				cat("If desired, rerun the findstructure() function with a higher Kmax value.",sep="\n")
 				cat(paste("Creating plots now for K = 2 to K =",mymaxK,sep=" "),sep="\n")
-				maplea(maxdemes=mymaxK,radiusratio=radius_ratio,exporttype="pdf",plotperpop=TRUE,addlabels=TRUE)
-				maplea(maxdemes=mymaxK,radiusratio=radius_ratio,exporttype="pdf",plotperpop=TRUE,addlabels=FALSE)
+				maplea(maxdemes=mymaxK,radiusratio=radius_ratio,exporttype="pdf",plotperpop=plot_per_pop,addlabels=TRUE)
+				maplea(maxdemes=mymaxK,radiusratio=radius_ratio,exporttype="pdf",plotperpop=plot_per_pop,addlabels=FALSE)
 				}else{
-				maplea(maxdemes=K_max,radiusratio=radius_ratio,exporttype="pdf",plotperpop=TRUE,addlabels=TRUE)
-				maplea(maxdemes=K_max,radiusratio=radius_ratio,exporttype="pdf",plotperpop=TRUE,addlabels=FALSE)
+				maplea(maxdemes=K_max,radiusratio=radius_ratio,exporttype="pdf",plotperpop=plot_per_pop,addlabels=TRUE)
+				maplea(maxdemes=K_max,radiusratio=radius_ratio,exporttype="pdf",plotperpop=plot_per_pop,addlabels=FALSE)
 				}
 			}else{
 			cat("Could not find object called mysambar$leaqmatrixlist. Run the findstructure() function and try again.",sep="\n")
@@ -8606,11 +8631,11 @@ create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodap
 				cat(paste("Warning: K_max is set to",K_max,"but currently data for available for a maximum K of",mymaxK,sep=" "),sep="\n")
 				cat("If desired, rerun the findstructure() function with a higher Kmax value.",sep="\n")
 				cat(paste("Creating plots now for K = 2 to K =",mymaxK,sep=" "),sep="\n")
-				mapdapc(maxdemes=mymaxK,exporttype="pdf",plotperpop=TRUE,addlabels=TRUE)
-				mapdapc(maxdemes=mymaxK,exporttype="pdf",plotperpop=TRUE,addlabels=FALSE)
+				mapdapc(maxdemes=mymaxK,exporttype="pdf",plotperpop=plot_per_pop,addlabels=TRUE)
+				mapdapc(maxdemes=mymaxK,exporttype="pdf",plotperpop=plot_per_pop,addlabels=FALSE)
 				}else{
-				mapdapc(maxdemes=K_max,exporttype="pdf",plotperpop=TRUE,addlabels=TRUE)
-				mapdapc(maxdemes=K_max,exporttype="pdf",plotperpop=TRUE,addlabels=FALSE)
+				mapdapc(maxdemes=K_max,exporttype="pdf",plotperpop=plot_per_pop,addlabels=TRUE)
+				mapdapc(maxdemes=K_max,exporttype="pdf",plotperpop=plot_per_pop,addlabels=FALSE)
 				}
 			}else{
 			cat("Object 'dapcqmatrixlist' not present in mysambar list. Run the findstructure() function and try again.",sep="\n")
@@ -8621,8 +8646,8 @@ create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodap
 			cat("If you receive an error shortly after this line, set the flag dotess to FALSE.",sep="\n")
 			# map tess qmatrix:
 			runtess3(export="pdf",myrepos='http://cran.us.r-project.org',maxK=K_max)
-			maptess(use_lea=FALSE,mydemes=c(2:K_max),export="pdf",multiplot=FALSE)
-			maptess(use_lea=FALSE,mydemes=c(2:5),export="pdf",multiplot=TRUE)
+			maptess(use_lea=FALSE,mydemes=c(2:K_max),export="pdf",multiplot=FALSE,marine=marine_data)
+			maptess(use_lea=FALSE,mydemes=c(2:5),export="pdf",multiplot=TRUE,marine=marine_data)
 			# barplot tess:
 			tesslist<-list()
 			for(ndemes in c(2:(K_max)))	
@@ -8634,8 +8659,8 @@ create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodap
 			plotstructure(qmatrixlist=tesslist,export="pdf",plotname="TESS.structureplot",addindnr=FALSE,order_on_longitude=FALSE)
 			plotstructure(qmatrixlist=tesslist,export="pdf",plotname="TESS.structureplot",addindnr=FALSE,order_on_longitude=TRUE)
 			# map LEA qmatrix
-			maptess(use_lea=TRUE,mydemes=c(2:K_max),export="pdf",multiplot=FALSE)
-			maptess(use_lea=TRUE,mydemes=c(2:5),export="pdf",multiplot=TRUE)
+			maptess(use_lea=TRUE,mydemes=c(2:K_max),export="pdf",multiplot=FALSE,marine=marine_data)
+			maptess(use_lea=TRUE,mydemes=c(2:5),export="pdf",multiplot=TRUE,marine=marine_data)
 			}
 		if(domantel)
 			{
@@ -9317,16 +9342,32 @@ apetree<-function(mymatrix=mysambar$indneimatrix,my_inds=inds)
 	plot(mytree,edge.color=my_inds$popcol[my_inds$filter],cex=0.5)
 	}		
 
-popprtree<-function(do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist")
+popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",mycolours=NULL,genofilter=FALSE,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,mytype="phylogram",labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=NULL,showpop=FALSE,tree_angle=0,mydirection="upwards",silent=TRUE)
 	{
+	# if only one node per population:
+	# mypopcolours	<- vector()
+	# for(k in c(1:length(mytree$tip.label))){mypopcolours[k]<-mysambar$mycolours2[which(mysambar$populations2==mytree$tip.label[k])]}
 	# Note: can be done only for heterozygous individuals. So if running for X chromosome or MT, males will be excluded. 
+	#
+	# type can be: "phylogram" (the default), "cladogram", "fan", "unrooted", "radial"
 	if(!"poppr" %in% rownames(installed.packages()))
 		{
 		return(cat("ERROR: package 'poppr' not installed. Functions of these package are needed to create phylogenetic trees.",sep="\n"))
 		}else{
 		if("poppr" %in% (.packages()) == FALSE)
 			{
+			cat("Loading package 'poppr'...",sep="\n")
 			library("poppr")
+			}
+		}
+	if(!"ape" %in% rownames(installed.packages()))
+		{
+		return(cat("ERROR: package 'ape' not installed. Functions of these package are needed to create phylogenetic trees.",sep="\n"))
+		}else{
+		if("ape" %in% (.packages()) == FALSE)
+			{
+			cat("Loading package 'ape'...",sep="\n")
+			library("ape")
 			}
 		}
 	#
@@ -9334,10 +9375,24 @@ popprtree<-function(do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist")
 		{
 		return(cat("ERROR: mymethod has to be either 'upgma' or 'NJ'.",sep="\n"))
 		}
-	# method can be: 'upgma' and 'nj'
-	# We use an additional filter 'inds$allgeno'.
-	# To prevent the error:
-	# Error in (function (x, percent = TRUE, mat = FALSE, missing_match = TRUE,  : min(ploidy(x)) == max(ploidy(x)) is not TRUE
+	# method can be: 'upgma' and 'NJ'
+	if(genofilter)
+		{
+		cat("Not including individuals which do not possess al three genotypes (0, 1, 2).",sep="/n") 
+		# We use an additional filter 'inds$allgeno'.
+		# To prevent the error:
+		# Error in (function (x, percent = TRUE, mat = FALSE, missing_match = TRUE,  : min(ploidy(x)) == max(ploidy(x)) is not TRUE
+		# as a reminder, inds$allgeno and inds$allgeno2 are defined as follows:
+		# inds$allgeno		<- inds$n0_pop>0&inds$n1_pop>0&inds$n2_pop>0
+		# inds$allgeno2		<- inds$n0_pop>0&inds$n2_pop>0
+		# allgeno2 is used to enable the use of haploid data or haplodiploid data (such as MT-DNA and sex chromosomal data).
+		# However, in case allgeno2 returns the ploidy error, one could also try if the allgeno filter prevents the error
+		myindsfilter		<- inds$filter&inds$allgeno2
+		}else{
+		cat("Using all individuals, also the ones which do not possess al three genotypes (0, 1, 2).",sep="\n")
+		cat("If you run into an error stating 'min(ploidy(x)) == max(ploidy(x)) is not TRUE', try rerunning the popprtree function which the flag genofilter set to TRUE.",sep="\n") 
+		myindsfilter	<- inds$filter
+		}
 	if(nrow(inds[inds$allgeno,])<3)
 		{
 		if(nrow(inds[inds$allgeno2,])<3)
@@ -9345,45 +9400,101 @@ popprtree<-function(do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist")
 			return(cat("Less than 3 individuals which have all 3 genotypes (0,1,2) or even all only both homozygous (0,2) genotypes. Skipping tree.",sep="\n"))
 			}else{
 			cat("WARNING: Less than 3 individuals which have all 3 genotypes (0,1,2), but 3 or more individuals do have both homozygous (0,2) genotypes. Why are heterozygous individuals absent? Continuing anyway.",sep="\n")
-			myindsfilter<- inds$filter&inds$allgeno2
 			my_gl		<- mygenlight[myindsfilter,snps$filter]
-			my_colours	<- inds$popcol[inds$filter&inds$allgeno2]
+			my_colours	<- inds$popcol[myindsfilter]
 			}
 		}else{
-		myindsfilter	<- inds$filter&inds$allgeno
 		my_gl			<- mygenlight[myindsfilter,snps$filter]
-		my_colours		<- inds$popcol[inds$filter&inds$allgeno]
+		my_colours		<- inds$popcol[myindsfilter]
+		}
+	if(!is.null(mycolours))
+		{
+		my_colours		<- mycolours
 		}
 	mypops		<- pop(my_gl)
+	mypops		<- mypops
 	ninds		<- length(mypops)
 	mygeno		<- my_gl
+	try			<<- mygeno
 	# Note: alternatively mygeno can be a distance matrix, such as neimatrix, and then mydistance should be set to 'nei.dist'
 	# Other options are rogers.dist, edwards.dist, reynolds.dist
 	if(do_analysis)
 		{
-		mytree 		<- aboot(mygeno,tree=mymethod,distance=mydistance,sample=100,showtree=F,cutoff=50,quiet=F)
+		if(!silent){cat("Running aboot function of poppr package...",sep="\n")}
+		mytree 			<- poppr::aboot(mygeno,tree=mymethod,distance=mydistance,sample=100,showtree=F,cutoff=50,quiet=F)
+		mysambar$mytree	<<- mytree
+		}else{
+		cat("Plotting tree stored at mysambar$mytree.",sep="\n")
+		mytree			<- mysambar$mytree
 		}
-	plot.phylo(mytree,cex=0.8,font=2,adj=0,tip.color=my_colours)
-	nodelabels(mytree$node.label, adj = c(1.3, -0.5), frame = "n", cex = 0.8,font = 3, xpd = TRUE)
-	#legend(35,10,c("CA","OR","WA"),cols, border = FALSE, bty = "n")
+	#
+	mycolors2 				<- rep("black",Nedge(mytree))
+	if(edgecolors)
+		{
+		if(!silent){cat("Defining edge colours...",sep="\n")}
+		tipindex				<- which(mytree$edge[,2]%in%c(1:ninds))
+		indorder				<- mytree$edge[tipindex,2]
+		mycolors2[tipindex]		<- my_colours[indorder]
+		}
+	#
+	if(showpop)
+		{
+		# 16-07-2021: to plot one pop name per population rather than all sample names
+		# 16-07-2021: Because plot.phylo function does not accepted duplicated sample names nor NA-values, I use this workaround:
+		# not perfect, but comes close
+		if(!silent){cat("Editing edge labels (because flag showpop is set to TRUE)...",sep="\n")}
+		coldf			<- data.frame("pop"=mypops,"popcol"=my_colours)
+		coldf$nr		<- c(1:nrow(coldf))
+		coldf$bool		<- !duplicated(coldf$pop,fromLast=TRUE)
+		coldf$pop2		<- ifelse(coldf$bool,as.character(coldf$pop),paste(coldf$pop,coldf$nr,sep="_"))
+		coldf$popcol2	<- ifelse(coldf$bool,as.character(coldf$popcol),"white")
+		mycoldf			<<- coldf
+		mytree$tip.label<- coldf$pop2
+		my_colours		<- coldf$popcol2
+		}
+	#
 	# plot:
 	mydistance	<- ifelse(mydistance=="bitwise.dist","Hammingdist",mydistance)
-	plotname	<- paste("Tree",mydistance,mymethod,"pdf",sep=".")
-	pdf(plotname,width=14,height=ninds*0.15+2)
+	labelstr	<- ifelse(tiplabels,"labels","nolabels")
+	colorstr	<- ifelse(edgecolors,"colortips","blacktips")
+	plotname	<- paste("Tree",mydistance,mymethod,mytype,labelstr,colorstr,sep=".")
+	if(!is.null(export))
+		{
+		myheight	<- ifelse(mytype=="phylogram",ninds*0.15+2,14)
+		if(export=="eps"){postscript(paste(plotname,"eps",sep="."),width=14,height=myheight)}
+		if(export=="pdf"){pdf(paste(plotname,"pdf",sep="."),width=14,height=myheight)}
+		if(export=="png"){png(paste(plotname,"png",sep="."),width=720,height=720)}
+		if(export=="wmf"){win.metafile(paste(plotname,"wmf",sep="."),width=14,height=myheight)}
+		}
 	par(cex.axis=2)
-	plot.phylo(mytree,cex=1,font=1,adj=0,tip.color=my_colours)
-	nodelabels(mytree$node.label,adj=c(1.3,-0.5),frame="n",cex=1,font=3,xpd = TRUE)
+	if(!silent){cat("Running plot.phylo function of the ape package...",sep="\n")}
+	ape::plot.phylo(mytree,cex=labelcex,font=myfont,adj=0,show.tip.label=tiplabels,tip.color=my_colours,type=mytype,lab4ut=labelangle,edge.width=mylwd,node.pos=1,edge.color=mycolors2,rotate.tree=tree_angle,direction=mydirection)
+	if(!is.null(mytree$node.label)&addnodelabels)
+		{
+		# this are node labels (e.g. support values), not tip labels (e.g. sample names, stored at mytree$label)
+		if(!silent){cat("Adding node labels...",sep="\n")}
+		if(!is.null(maxnodelabel))
+			{
+			mytree$node.label	<- ifelse(mytree$node.label>=maxnodelabel,NA,mytree$node.label)
+			}
+		nodelabels(mytree$node.label,adj=c(1.3,-0.5),frame="n",cex=nodelabelcex,font=3,xpd=TRUE,col="grey50")
+		}
+	#nodelabels(mytree$node.label,adj=c(1.3,-0.5),frame="n",cex=1,font=3,xpd=TRUE)
 	#legend('topleft',legend=mysambar$populations,fill=mysambar$mycolours,bty="n",cex = 2.5)
 	axis(side = 1,cex=2)
 	mtext("Genetic distance",side=1,line=3,cex=2.5)
-	dev.off()
+	if(!is.null(export))
+		{
+		dev.off()
+		cat("Phylogenetic plot has been exported to the directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
 	#
 	# export in Nexus format:
 	nexusname	<- paste("Tree",mydistance,mymethod,"numbers.txt",sep=".")
 	write.nexus(mytree,file=nexusname,translate=TRUE)
 	nexusname	<- paste("Tree",mydistance,mymethod,"labels.txt",sep=".")
 	write.nexus(mytree,file=nexusname,translate=FALSE)
-	mysambar$popprtree	<<- mytree
 	}
 
 # 18-02-20: The function 'calc_dc' calculates what I call the the dc-score, the 'distinct clustering'-score.
@@ -9573,7 +9684,7 @@ ape_pcoa_pop<-function(popnames=mysambar$populations,exporttype="pdf",my_method=
 
 # PCoA: Principal Coordinates Analysis (NOTE: this is different from principal component analysis or PCA). Depends on StAMPP (Nei's genetic distance) and Ape (pcoa):
 # ape_pcoa(method="hamming",symbolkey="sex",legendpos="topleft")
-ape_pcoa<-function(pscores=NULL,axis1=1,axis2=2,doplot=TRUE,dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,method="nei",export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=NULL,mylegendcol=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addbox=TRUE)
+ape_pcoa<-function(pscores=NULL,axis1=1,axis2=2,doplot=TRUE,dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,method="nei",export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=NULL,mylegendcol=NULL,mylegendtitle=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addbox=TRUE,shuffle_par=NULL)
 	{
 	# method can be "nei" (Nei's genetic distance D), "hamming" (Hamming's genetic distance), "euclidean", or "pi".
 	# Note: snpselection and indselection can not be applied when running method 'pi'. You should use calcpi() function to recalculate pi on different snp dataset.
@@ -9708,6 +9819,11 @@ ape_pcoa<-function(pscores=NULL,axis1=1,axis2=2,doplot=TRUE,dodc=TRUE,do_mirror=
 		{
 		myp1	<- p$vectors[,axis1]
 		myp2	<- p$vectors[,axis2]
+		if(!is.null(shuffle_par))
+			{
+			myp1	<- myp1+shuffle_par*runif(length(myp1))
+			myp2	<- myp2+shuffle_par*runif(length(myp2))
+			}
 		if(do_mirror[1])
 			{
 			cat("Mirror image of axis1.",sep="\n")
@@ -9785,7 +9901,7 @@ ape_pcoa<-function(pscores=NULL,axis1=1,axis2=2,doplot=TRUE,dodc=TRUE,do_mirror=
 			}
 		if(!is.null(mylegend)&!is.null(mylegendcol))
 			{
-			legend(legendpos,mylegend,fill=mylegendcol,bty="n",border=mylegendcol,cex=legendcex)
+			legend(legendpos,mylegend,fill=mylegendcol,bty="n",border=mylegendcol,cex=legendcex,title=mylegendtitle)
 			}
 		if(addlegend==TRUE&npops>1)
 			{
@@ -11153,6 +11269,9 @@ makenetworks<-function(nplots=3,do_silent=TRUE,show_mut=2,do_randomsubset=TRUE,n
 		{
 		return(cat("ERROR: can not generate network if package 'raster' is loaded, because it masks a function of the package spDep. Please load a new R session and run the getpackages() function with within mypackageslist.txt the column value of the row 'raster' set to FALSE (default).",sep="\n"))  
 		}
+	# To prevent error:
+	# Error in h(simpleError(msg, call)) : 
+	# error in evaluating the argument 'data' in selecting a method for function 'with': unable to find an inherited method for function 'raster' for signature '"integer"'
 	if(is.null(mysambar$mydnabin)|do_overwrite)
 		{
 		genlight2DNAbin(export=TRUE,input=mygenlight,in_snps=snps,in_inds=inds,snpsfilter=snps$filter,indsfilter=inds$filter,exportname="filtereddata.diploid.fa") 
@@ -15964,7 +16083,7 @@ block_jackknife <- function(block_indices, FUN, ...)
     }
 
 # Correlation between allele frequencies:
-runWrightFst<-function(popnames=mysambar$populations)
+runWrightFst<-function(popnames=mysambar$populations,popcols=mysambar$mycolours)
 	{
 	if(length(popnames)==1)
 		{
@@ -15973,6 +16092,16 @@ runWrightFst<-function(popnames=mysambar$populations)
 	npops			<- length(popnames)
 	nsnps			<- nrow(snps)
 	combitable		<- combn(popnames,m=2)
+	mysambar$pairpop1<<- combitable[1,]
+	mysambar$pairpop2<<- combitable[2,]
+	mysambar$pairpopcol1	<<- vector()
+	mysambar$pairpopcol2	<<- vector()
+	for(k in c(1:ncol(combitable)))
+		{
+		mysambar$pairpopcol1[k]	<<- popcols[which(popnames==mysambar$pairpop1[k])]
+		mysambar$pairpopcol2[k]	<<- popcols[which(popnames==mysambar$pairpop2[k])]
+		}
+	#
 	pearsonvector	<- vector()
 	varfstvector	<- vector()
 	Wrightfstvector	<- vector()
@@ -16245,6 +16374,10 @@ pop_neimatrix<-function(popnames=mysambar$populations,export=NULL)
 	mytmatrix				<- t(mymatrix)
 	mysambar$popneivector	<<- mytmatrix[lower.tri(mytmatrix,diag=FALSE)]
 	mysambar$popneimatrix	<<- mymatrix
+	#
+	combitable		<- combn(popnames,m=2)
+	mysambar$pairpop1<<- combitable[1,]
+	mysambar$pairpop2<<- combitable[2,]
 	}
 
 # tree for populations:
@@ -17587,7 +17720,8 @@ MLHboxplot<-function(export=NULL,sMLH=FALSE,plotname="MLH_boxplot",popnames=mysa
 	if(!"MLH"%in%colnames(inds))
 		{
 		# SambaR's hetero_all estimate is identical to the MLH estimate of the package inbreedR
-		inds$MLH<<- inds$hetero_all
+		cat("Column 'MLH' not present in inds dataframe. Setting it equal to inds$hetero_all.",sep="\n")
+		indstemp$MLH<- indstemp$hetero_all
 		}
 	#
 	if(sMLH)
@@ -18496,7 +18630,6 @@ popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL)
 	plotfst(popnames=mysambar$populations,export="wmf",inputvector=dxyvec,exportname="Dxy_pop",plottitle="Mean Dxy")
 	}
 
-
 dxystripchart<-function(export=NULL,addylabel=TRUE,logy=FALSE,dxydf=mysambar$dxy,mycex=1.75,mytitle=NULL,plotlabel=NULL,ymax=NULL)
 	{
 	popcols			<- mysambar$colorder
@@ -18578,8 +18711,12 @@ indscatter<-function(export=NULL,plotname="Lroh_vs_Nroh",xscore="nroh",yscore="l
 	}
 
 # cladedxy(excludepops=c("polar","Black","Himalaya","Syrian","Amur"))
-cladedxy<-function(export=NULL,excludepops=NULL,plotlabel=NULL,ymax=NULL,pairorder=NULL)
+cladedxy<-function(export=NULL,excludepops=NULL,plotlabel=NULL,ymax=NULL,pairorder=NULL,dxy=mysambar$dxy)
 	{
+	if(!"clade1"%in%colnames(dxy)|!"clade2"%in%colnames(dxy))
+		{
+		return(cat("ERROR: columns 'clade1' and/or 'clade2' are missing. Rerun the nrmismatch() function with the flag addclade set to TRUE.",sep="\n"))
+		}
 	dxy$cladepair	<- ifelse(dxy$clade1<dxy$clade2,paste(dxy$clade1,dxy$clade2,sep="_"),paste(dxy$clade2,dxy$clade1,sep="_"))
 	dxy$sameclade	<- dxy$clade1==dxy$clade2
 	if(!is.null(excludepops))
@@ -18626,9 +18763,36 @@ cladedxy<-function(export=NULL,excludepops=NULL,plotlabel=NULL,ymax=NULL,pairord
 	mtext(mypairs,at=1:npairs,side=2,line=0.5,col="black",las=1,cex=1.75)
 	}
 
-dxyfac<-function(doclades=FALSE,dobetween=TRUE,dowithin=FALSE,export=NULL,addlines=NULL,usecladecol,plottitle=NULL,mylinemat=NULL,myxlim=NULL,legendpos="topleft")
+addpairdf<-function()
 	{
-	dxy				<- mysambar$dxy
+	x			<- read.table("allvcfdist.noheaders.txt",header=TRUE)
+	x			<- x[order(x$ind1,x$ind2),]
+	x$dxy		<- (x$n1*0.5+x$n2he*0.5+x$n2ho)/(x$n0+x$n1+x$n2he+x$n2ho)*100
+	x$dxy3		<- x$dxy
+	x$he		<- x$n2he/(x$n2he+x$n0)
+	y			<- inds[,c("name","pop","clade","popcol","cladecol","filter","longitude3","latitude")]
+	colnames(y)	<- c("name1","pop1","clade1","popcol1","cladecol1","bool1","long1","lat1")
+	x			<- merge(x,y,by="name1")
+	colnames(y)	<- c("name2","pop2","clade2","popcol2","cladecol2","bool2","long2","lat2")
+	x			<- merge(x,y,by="name2")
+	x			<- x[order(x$ind1,x$ind2),]
+	x$poppair	<- ifelse(x$pop1<x$pop2,paste(x$pop1,x$pop2,sep="_"),paste(x$pop1,x$pop2,sep="_"))
+	x$long		<- abs(x$long2-x$long1)
+	x$lat		<- abs(x$lat2-x$lat1)
+	x$geodist	<- sqrt(x$long^2+x$lat^2)
+	mydistdf	<<- x
+	}
+
+dxyfac<-function(dxy=mysambar$dxy,doclades=FALSE,dobetween=TRUE,dowithin=FALSE,export=NULL,plotname="Dxy_vs_dist",addlines=NULL,usecladecol=FALSE,plottitle=NULL,mylinemat=NULL,mycex=3,myxlim=NULL,axiscex=2,labcex=2.5,maincex=3,xline=4,yline=3.5,addlegend=TRUE,legendpos="topleft",legend2pos="bottomright",legendcex=2,vline=NULL,xlabel="Distance (degrees)",ylabel="Dxy (%)")
+	{
+	if(usecladecol&(!"clade1"%in%colnames(dxy)|!"clade2"%in%colnames(dxy)))
+		{
+		return(cat("ERROR: columns 'clade1' and/or 'clade2' are missing. Rerun the nrmismatch() function with the flag addclade set to TRUE, or alternatively rerun the dxyfac function with the flag usecladecol set to FALSE.",sep="\n"))
+		}
+	if(!"bool1"%in%colnames(dxy)|!"bool2"%in%colnames(dxy))
+		{
+		return(cat("ERROR: columns 'bool1' and/or 'bool2' are missing.",sep="\n"))
+		}
 	dxy				<- dxy[dxy$bool1&dxy$bool2,]
 	dxy$cladepair	<- paste(dxy$clade1,dxy$clade2,sep="_")
 	dxy$poppair		<- paste(dxy$pop1,dxy$pop2,sep="_")
@@ -18637,7 +18801,7 @@ dxyfac<-function(doclades=FALSE,dobetween=TRUE,dowithin=FALSE,export=NULL,addlin
 	mybool			<- (!dxy$pop1%in%c("polar","Black"))&(!dxy$pop2%in%c("polar","Black"))
 	#mybool			<- (!dxy$pop1%in%c("polar","Black","Syrian","Himalaya","Amur"))&(!dxy$pop2%in%c("polar","Black","Syrian","Himalaya","Amur"))
 	#
-	if(dowithin)
+	if(dowithin&!dobetween)
 		{
 		# within:
 		dxy1			<- dxy[mybool&dxy$samepop,c("geodist","dxy3","pop1","pop2","popcol1","popcol2")]
@@ -18653,7 +18817,12 @@ dxyfac<-function(doclades=FALSE,dobetween=TRUE,dowithin=FALSE,export=NULL,addlin
 		}
 	if(dobetween)
 		{
-		dxy1			<- dxy[mybool&(!dxy$samepop),c("geodist","dxy3","poppair","pop1","pop2","popcol1","popcol2","clade1","clade2","cladecol1","cladecol2")]
+		if(dowithin)
+			{
+			dxy1		<- dxy[mybool,c("geodist","dxy3","poppair","pop1","pop2","popcol1","popcol2","clade1","clade2","cladecol1","cladecol2")]
+			}else{
+			dxy1		<- dxy[mybool&(!dxy$samepop),c("geodist","dxy3","poppair","pop1","pop2","popcol1","popcol2","clade1","clade2","cladecol1","cladecol2")]
+			}
 		agg1 			<- aggregate(dxy1$dxy3,by=list(dxy1$poppair),FUN=mean,na.rm=TRUE)
 		colnames(agg1)	<- c("poppair","dxy")
 		agg2 			<- aggregate(dxy1$geodist,by=list(dxy1$poppair),FUN=mean,na.rm=TRUE)
@@ -18668,43 +18837,45 @@ dxyfac<-function(doclades=FALSE,dobetween=TRUE,dowithin=FALSE,export=NULL,addlin
 		tempdxy				<- tempdxy[order(tempdxy$poppair),]
 		between$cladecol1	<- tempdxy$cladecol1
 		between$cladecol2	<- tempdxy$cladecol2
+		dxybetween			<<- between
 		#
 		if(!is.null(export))
 			{
-			plotname	<- ifelse(usecladecol,"Dxy_vs_dist_cladecol","Dxy_vs_dist_popcol")
+			plotname	<- ifelse(usecladecol,paste(plotname,"cladecol",sep="_"),paste(plotname,"popcol",sep="_"))
 			if(export=="eps"){postscript(paste(plotname,"eps",sep="."),width=8,height=8)}
 			if(export=="pdf"){pdf(paste(plotname,"pdf",sep="."),width=8,height=8)}
 			if(export=="png"){png(paste(plotname,"png",sep="."),width=720,height=720)}
 			if(export=="wmf"){win.metafile(paste(plotname,"wmf",sep="."),width=8,height=8)} 
 			}
-		par(mar=c(5.5,5.5,3,0.25),cex.axis=2,cex.lab=2.5,cex.main=3)	
-		xlabel	<- "Distance (degrees)"
-		ylabel	<- "Dxy (%)"
+		par(mar=c(5.5,5.5,3,0.25),cex.axis=axiscex,cex.lab=labcex,cex.main=maincex)	
 		if(!usecladecol)
 			{
 			if(is.null(myxlim))
 				{
-				plot(between$dist,between$dxy,pch=21,bg=as.character(between$popcol1),col=as.character(between$popcol2),cex=3,lwd=4,log="x",xlab="",ylab="",las=2)
+				plot(between$dist,between$dxy,pch=21,bg=as.character(between$popcol1),col=as.character(between$popcol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=2,main=plottitle)
 				}else{
-				plot(between$dist,between$dxy,pch=21,bg=as.character(between$popcol1),col=as.character(between$popcol2),cex=3,lwd=4,log="x",xlab="",ylab="",las=2,xlim=myxlim)
+				plot(between$dist,between$dxy,pch=21,bg=as.character(between$popcol1),col=as.character(between$popcol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=2,xlim=myxlim,main=plottitle)
 				}
 			if(!is.null(addlines)){abline(h=addlines,lty=2,col="grey50")}
-			if(length(mysambar$populations)==19)
-				{
-				legend("top",legend=mysambar$populations[c(14:17,19,18)],bty='n',fill=mysambar$mycolours[c(14:17,19,18)],cex=1.5)
-				legend("topleft",legend=mysambar$populations[1:13],bty='n',fill=mysambar$mycolours[1:13],cex=1.5)
-				}else{
-				legend(legendpos,legend=mysambar$populations,bty='n',fill=mysambar$mycolours,cex=1.5)
-				}
+			#if(length(mysambar$populations)==19)
+			#	{
+			#	legend("top",legend=mysambar$populations[c(14:17,19,18)],bty='n',fill=mysambar$mycolours[c(14:17,19,18)],cex=1.5)
+			#	legend("topleft",legend=mysambar$populations[1:13],bty='n',fill=mysambar$mycolours[1:13],cex=1.5)
+			#	}else{
+				if(addlegend){legend(legendpos,legend=mysambar$poporder,bty='n',fill=mysambar$colorder,cex=legendcex)}
+				#legend(legendpos,legend=mysambar$populations,bty='n',fill=mysambar$mycolours,cex=1.5)
+				#legend(legendpos,legend=unique(c(as.character(mydf$pop1),as.character(mydf$pop2))),bty='n',fill=unique(c(as.character(mydf$popcol1),as.character(mydf$popcol2))),cex=2)
+			#	}
 			}else{
 			if(is.null(myxlim))
 				{
-				plot(between$dist,between$dxy,pch=21,bg=as.character(between$cladecol1),col=as.character(between$cladecol2),cex=3,lwd=4,log="x",xlab="",ylab="",las=2)
+				plot(between$dist,between$dxy,pch=21,bg=as.character(between$cladecol1),col=as.character(between$cladecol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=2,main=plottitle)
 				}else{
-				plot(between$dist,between$dxy,pch=21,bg=as.character(between$cladecol1),col=as.character(between$cladecol2),cex=3,lwd=4,log="x",xlab="",ylab="",las=2,xlim=myxlim)
+				plot(between$dist,between$dxy,pch=21,bg=as.character(between$cladecol1),col=as.character(between$cladecol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=2,xlim=myxlim,main=plottitle)
 				}
 			if(!is.null(addlines)){abline(h=addlines,lty=2,col="grey50")}
-			legend(legendpos,legend=c("Syrian","Himalaya","Eurasia-west","Eurasia-east","Amur","Alaska","Westcoast"),bty='n',fill=c("indianred1","orangered1","darkred","midnightblue","mediumpurple1","darkgreen","greenyellow"),cex=2)
+			#legend(legendpos,legend=c("Syrian","Himalaya","Eurasia-west","Eurasia-east","Amur","Alaska","Westcoast"),bty='n',fill=c("indianred1","orangered1","darkred","midnightblue","mediumpurple1","darkgreen","greenyellow"),cex=2)
+			if(addlegend){legend(legendpos,legend=unique(as.character(dxy$clade1)),bty='n',fill=unique(as.character(dxy$cladecol1)),cex=legendcex)}
 			}
 		if(!is.null(mylinemat))
 			{
@@ -18714,12 +18885,35 @@ dxyfac<-function(doclades=FALSE,dobetween=TRUE,dowithin=FALSE,export=NULL,addlin
 				lines(c(mylinemat[k,1],mylinemat[k,2]),c(mylinemat[k,3],mylinemat[k,4]),lwd=3)
 				}
 			}
-		mtext(side=1,line=4,xlabel,cex=2.75)
-		mtext(side=2,line=3.5,ylabel,cex=2.75)
-		if(!is.null(plottitle))
+		mtext(side=1,line=xline,xlabel,cex=labcex)
+		mtext(side=2,line=yline,ylabel,cex=labcex)
+		#if(!is.null(plottitle))
+		#	{
+		#	mtext(side=3,line=0.5,plottitle,cex=3.5)
+		#	}
+		#
+		# regression:
+		mydata		<- between[,c("dist","dxy")] 
+		myfit		<<- lm(dxy ~ log10(dist),data=mydata)
+		abline(myfit,lty=2,lwd=3)
+		myfit2		<<- summary(myfit)
+		myr			<<- round(myfit2$r.squared,3)
+		myp			<<- round(myfit2$coefficients[2,4],4)
+		legend(legend2pos,legend=c(paste("r = ",myr,sep=""),paste("p = ",myp,sep="")),cex=legendcex,bty='n',col=NA,lty=2)
+		#
+		#wdata		<- between[between$cladecol1==between$cladecol2&between$dist>5,c("dist","dxy")] 
+		#wfit		<<- lm(dxy ~ log10(dist),data=wdata)
+		#abline(wfit,lty=2,lwd=3)
+		#
+		#bdata		<- between[between$cladecol1!=between$cladecol2&between$dist>5,c("dist","dxy")] 
+		#bfit		<<- lm(dxy ~ log10(dist),data=bdata)
+		#abline(bfit,lty=2,lwd=3)
+		#
+		if(!is.null(vline))
 			{
-			mtext(side=3,line=0.5,plottitle,cex=3)
+			abline(v=vline,lty=2,col="grey80")	
 			}
+		#
 		if(!is.null(export))
 			{
 			dev.off()
@@ -18742,8 +18936,121 @@ dxyfac<-function(doclades=FALSE,dobetween=TRUE,dowithin=FALSE,export=NULL,addlin
 		agg4 			<- aggregate(dxy1$cladecol2,by=list(dxy1$cladepair),FUN=unique)
 		colnames(agg4)	<- c("cladepair","cladecol2")
 		clade			<- data.frame("cladepair"=agg1$cladepair,"dxy"=agg1$dxy,"dist"=agg2$dist,"cladecol1"=agg3$cladecol1,"cladecol2"=agg4$cladecol2)
-		plot(clade$dist,clade$dxy,pch=21,bg=as.character(clade$cladecol1),col=as.character(clade$cladecol2),cex=3,lwd=3,log="x")
+		plot(clade$dist,clade$dxy,pch=21,bg=as.character(clade$cladecol1),col=as.character(clade$cladecol2),cex=mycex,lwd=3,log="x")
 		legend("topleft",mysambar$populations,fill=mysambar$mycolours,bty='n',cex=2.5)
+		}
+	}
+
+makemanteldf<-function(addclade=TRUE,docalc=TRUE,onlybetween=FALSE,onlywithin=FALSE,dofst=TRUE)
+	{
+	if(docalc&dofst){runWrightFst()}
+	if(docalc&!dofst){pop_neimatrix()}
+	if(dofst)
+		{
+		myscore		<- mysambar$Wrightfstvector
+		}else{
+		myscore		<- mysambar$popneivector
+		}
+	mydf				<- data.frame("pop1"=mysambar$pairpop1,"pop2"=mysambar$pairpop2,"popdist"=myscore,"long"=NA,"lat"=NA,"cladecol1"=NA,"cladecol2"=NA,"popcol1"=NA,"popcol2"=NA)
+	npairs				<- nrow(mydf)
+	for(i in c(1:npairs))
+		{
+		pop1			<- as.character(mydf$pop1[i])
+		pop2			<- as.character(mydf$pop2[i])
+		#
+		# geographical distance:
+		long1			<- mean(inds$longitude3[as.character(inds$pop)==pop1],na.rm=TRUE)
+		long2			<- mean(inds$longitude3[as.character(inds$pop)==pop2],na.rm=TRUE)
+		lat1			<- mean(inds$latitude[as.character(inds$pop)==pop1],na.rm=TRUE)
+		lat2			<- mean(inds$latitude[as.character(inds$pop)==pop2],na.rm=TRUE)
+		mydf$long[i]	<- abs(long2-long1)
+		mydf$lat[i]	<- abs(lat2-lat1)
+		if(addclade)
+			{
+			mydf$clade1[i]		<- unique(inds$clade[as.character(inds$pop)==pop1])[1]
+			if(length(unique(inds$clade[as.character(inds$pop)==pop1]))>1){cat(paste("WARNING: more than 1 clade defined for population ",pop1,".",sep=""),sep="\n")}
+			mydf$clade2[i]		<- unique(inds$clade[as.character(inds$pop)==pop2])[1]
+			if(length(unique(inds$clade[as.character(inds$pop)==pop2]))>1){cat(paste("WARNING: more than 1 clade defined for population ",pop2,".",sep=""),sep="\n")}
+			mydf$cladecol1[i]	<- unique(inds$cladecol[as.character(inds$pop)==pop1])[1]
+			if(length(unique(inds$cladecol[as.character(inds$pop)==pop1]))>1){cat(paste("WARNING: more than 1 cladecol defined for population ",pop1,".",sep=""),sep="\n")}
+			mydf$cladecol2[i]	<- unique(inds$cladecol[as.character(inds$pop)==pop2])[1]
+			if(length(unique(inds$cladecol[as.character(inds$pop)==pop2]))>1){cat(paste("WARNING: more than 1 clade defined for population ",pop2,".",sep=""),sep="\n")}
+			mydf$popcol1[i]		<- unique(inds$popcol[as.character(inds$pop)==pop1])[1]
+			if(length(unique(inds$popcol[as.character(inds$pop)==pop1]))>1){cat(paste("WARNING: more than 1 popcol defined for population ",pop1,".",sep=""),sep="\n")}
+			mydf$popcol2[i]		<- unique(inds$popcol[as.character(inds$pop)==pop2])[1]
+			if(length(unique(inds$popcol[as.character(inds$pop)==pop2]))>1){cat(paste("WARNING: more than 1 popcol defined for population ",pop2,".",sep=""),sep="\n")}
+			}
+		}
+	mydf$geodist		<- sqrt(mydf$long^2+mydf$lat^2) 
+	if(dofst)
+		{
+		mydf$popdist	<- mydf$popdist/(1-mydf$popdist)
+		}
+	mydf$cladepair		<- ifelse(mydf$clade1<mydf$clade2,paste(mydf$clade1,mydf$clade2,sep="_"),paste(mydf$clade2,mydf$clade1,sep="_"))
+	if(onlybetween)
+		{
+		mydf			<- mydf[mydf$clade1!=mydf$clade2,]
+		}
+	if(onlywithin)
+		{
+		mydf			<- mydf[mydf$clade1==mydf$clade2,]
+		}
+	#mydf				<- mydf[mydf$cladepair=="Eastern_NewWorld",]
+	#mydf				<- mydf[mydf$cladepair=="Eastern_Western"|mydf$cladepair=="Eastern_Eastern"|mydf$cladepair=="Western_Western"|mydf$cladepair=="Central_Western"|mydf$cladepair=="Central_Eastern",]
+	mydf				<- mydf[mydf$cladepair=="NewWorld_NewWorld"|mydf$cladepair=="Eastern_Western"|mydf$cladepair=="Alaska_Eastern"|mydf$cladepair=="Alaska_Western"|mydf$cladepair=="Eastern_Eastern"|mydf$cladepair=="Western_Western",]
+	popdistdf			<<- mydf
+	}
+
+plotmantel<-function(mydf=popdistdf,export=NULL,usecladecol=FALSE,myxlim=NULL,legendpos="bottomright",plotname="Fst_vs_dist",xlabel="Distance (degrees)",ylabel="Fst/(1-Fst)",legendcex=2)
+	{
+	if(!is.null(export))
+		{
+		plotname	<- ifelse(usecladecol,paste(plotname,"cladecol",sep="_"),paste(plotname,"popcol",sep=""))
+		if(export=="eps"){postscript(paste(plotname,"eps",sep="."),width=8,height=8)}
+		if(export=="pdf"){pdf(paste(plotname,"pdf",sep="."),width=8,height=8)}
+		if(export=="png"){png(paste(plotname,"png",sep="."),width=720,height=720)}
+		if(export=="wmf"){win.metafile(paste(plotname,"wmf",sep="."),width=8,height=8)} 
+		}
+	par(mar=c(7,6.5,2.5,0.25),cex.axis=2,cex.lab=2.5,cex.main=3)	
+	if(!usecladecol)
+		{
+		if(is.null(myxlim))
+			{
+			plot(mydf$geodist,mydf$popdist,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=3,lwd=4,xlab="",ylab="",las=2)
+			}else{
+			plot(mydf$geodist,mydf$popdist,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=3,lwd=4,xlab="",ylab="",las=2,xlim=myxlim)
+			}
+		#legend(legendpos,legend=mysambar$populations,bty='n',fill=mysambar$mycolours,cex=1.5)
+		legend(legendpos,legend=unique(c(as.character(mydf$pop1),as.character(mydf$pop2))),bty='n',fill=unique(c(as.character(mydf$popcol1),as.character(mydf$popcol2))),cex=2)
+		}else{
+		mybg		<- ifelse(mydf$clade1<mydf$clade2,mydf$cladecol1,mydf$cladecol2)
+		mycol		<- ifelse(mydf$clade1<mydf$clade2,mydf$cladecol2,mydf$cladecol1)
+		if(is.null(myxlim))
+			{
+			plot(mydf$geodist,mydf$popdist,pch=21,bg=mybg,col=mycol,cex=3,lwd=4,xlab="",ylab="",las=2)
+			}else{
+			plot(mydf$geodist,mydf$popdist,pch=21,bg=mybg,col=mycol,cex=3,lwd=4,xlab="",ylab="",las=2,xlim=myxlim)
+			}
+		#legend(legendpos,legend=c("Syrian","Himalaya","Eurasia-west","Eurasia-east","Amur","Alaska","Westcoast"),bty='n',fill=c("indianred1","orangered1","darkred","midnightblue","mediumpurple1","darkgreen","greenyellow"),cex=2)
+		legend(legendpos,legend=unique(as.character(mydf$clade1)),bty='n',fill=unique(as.character(mydf$cladecol1)),cex=2)
+		}
+	mtext(side=1,line=4.5,xlabel,cex=2.75)
+	mtext(side=2,line=4.5,ylabel,cex=2.75)
+	#
+	# regression:
+	mydata		<- mydf[,c("geodist","popdist")] 
+	myfit		<<- lm(popdist ~ geodist,data=mydata)
+	abline(myfit,lty=2,lwd=2)
+	myfit2		<<- summary(myfit)
+	myr			<<- round(myfit2$r.squared,2)
+	myp			<<- round(myfit2$coefficients[2,4],4)
+	legend("topleft",legend=c(paste("r = ",myr,sep=""),paste("p = ",myp,sep="")),cex=legendcex,bty='n',col=NA,lty=2)
+	#
+	if(!is.null(export))
+		{
+		dev.off()
+		cat("Scatterplot has been exported to the directory:",sep="\n")
+		cat(getwd(),sep="\n")
 		}
 	}
 
@@ -22970,7 +23277,7 @@ run_pairwise<-function(dopheno=FALSE,do_analysis=TRUE,only_pooled=FALSE,allpairw
 						snps$distbin[snps$chr==mychrom]	<<- paste(as.character(mychrom),as.character(mysnpspos),sep="_")
 						}
 					}
-				cat("Selecting one snp per position bin.",sep="\n")
+				cat("Selecting one snp per bin...",sep="\n")
 				snps$binfilter						<<- NA
 				snpstemp							<- snps[snps$filter2,]
 				snps$binfilter[snps$filter2]		<<- !duplicated(snpstemp$distbin)
@@ -27991,6 +28298,36 @@ exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysa
 		}
 	}
 
+# Export to Treemix input:
+exporttreemix<-function(snpsfilter=snps$filter,exportname="Treemixinput.snpsfilter.txt")
+	{
+	cat("Creating input for Treemix...",sep="\n")
+	mydf				<- snps[snpsfilter, grep("ac_", colnames(snps))]
+	alldf				<- mydf[,c(TRUE,FALSE)]
+	minordf				<- mydf[,c(FALSE,TRUE)]
+	majordf				<- alldf-minordf
+	#
+	alldf				<- alldf[,order(colnames(alldf))]
+	minordf				<- minordf[,order(colnames(minordf))]
+	majordf				<- majordf[,order(colnames(majordf))]	
+	#
+	popnames			<- mysambar$populations2
+	npops				<- length(popnames)
+	colnames(alldf)		<- popnames
+	colnames(minordf)	<- popnames 
+	colnames(majordf)	<- popnames
+	alldf2				<- alldf
+	#
+	for(k in c(1:npops))
+		{
+		alldf2[,k]		<- paste(majordf[,k],minordf[,k],sep=",")	
+		}
+	alldf2				<- alldf2[,colnames(alldf2)%in%mysambar$populations]
+	write.table(alldf2,exportname,sep=" ",quote=FALSE,row.names=FALSE)
+	cat("Treemix input file (unzipped) has been exported to the directory:...",sep="\n")
+	cat(getwd(),sep="\n")
+	}
+
 # Export to Immanc format:
 genlight2immanc<-function(input=mygenlight,in_snps=snps,in_inds=inds,snpsfilter=snps$filter,indsfilter=inds$filter,exportname="Bayesassinput.immanc.txt",quiet=FALSE) 
 	{
@@ -28594,7 +28931,17 @@ dummydata<-function(nind=2,nsnp=4,q=0.15,popname="pop1",popcol="blue",mygeno=NUL
 	#
 	cat("New inds, snps and genlight objects have been created.",sep="\n")
 	}	
-	
+
+# cbind two genlight objects (assuming same individuals)
+glmerge<-function(mygl)
+	{
+	simgl				<- glSim(nrow(mygl),n.snp.nonstruc=10000,ploidy=2)
+	indNames(simgl)		<- indNames(mygl)
+	pop(simgl)			<- pop(mygl)
+	locNames(simgl)		<- locNames(mygl)
+	combigl				<- cbind(mygl,simgl)
+	}
+
 # Find overlap between two datasets (stored as sambar list objects)	
 findoverlap<-function(mylist1=NULL,mylist2=NULL,mycolours=NULL,silent=TRUE,combine_divstats=FALSE)
 	{
@@ -32560,6 +32907,650 @@ outliersim_old<-function(nloc=1000,ngen=20,nesourcepop=1000,nefounderpop1=20,nef
 	}
 
 ############################### END OF SIMULATION SECTION ###############################
+
+
+
+
+
+
+
+
+
+############################### TREEMIX FUNCTIONS #############################
+
+# functions for plotting Treemix output.
+# Functions copy pasted from 'Treemix_plotting_funcs.R' on Treemix page (expect for plottreemix function).
+# I added the option of specifying population colours.
+
+plottreemix<-function(export=NULL,prefix=NULL,plotname="Treemixout",myxmin=0)
+	{
+	if(is.null(prefix))
+		{
+		return(cat("ERROR: provide base name of input files (i.e., without extension) to the prefix flag.",sep="\n")) 
+		}
+	myfile1		<- paste(prefix,"edges.gz",sep=".")
+	myfile2		<- paste(prefix,"vertices.gz",sep=".")
+	if(!file.exists(myfile1)|!file.exists(myfile2))
+		{
+		cat("ERROR: Could not find input files in the directory:",sep="\n")
+		return(cat(getwd(),sep="\n"))
+		}
+	if(!is.null(export))
+		{
+		mywidth		<- 8
+		mywidth2	<- 720
+		if(export=="eps"){postscript(paste(plotname,"eps",sep="."),family=mysambar$myfont,width=mywidth,height=8)}
+		if(export=="pdf"){pdf(paste(plotname,"pdf",sep="."),family=mysambar$myfont,width=mywidth,height=8)}
+		if(export=="png"){png(paste(plotname,"png",sep="."),family=mysambar$myfont,width=mywidth2,height=720)}
+		if(export=="wmf"){win.metafile(paste(plotname,"wmf",sep="."),family=mysambar$myfont,width=mywidth,height=8)}
+		}
+	plot_tree(stem=prefix,labelcolours=mypopcolours,cex=2,disp=0.001,plus=0.05,arrow=0.2,scale=T,ybar=0.1,mbar=T,plotmig=T,plotnames=T,xmin=myxmin,lwd=2,font=1)
+	mtext(side=1,"Drift parameter",line=3,cex=2.25)
+	if(!is.null(export))
+		{
+		dev.off()
+		cat("Treemix plot exported to directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
+	}
+
+
+# library(RColorBrewer)
+set_y_coords = function(d)
+	{
+	i = which(d[,3]=="ROOT")
+	y = d[i,8]/ (d[i,8]+d[i,10])
+	d[i,]$y = 1-y
+	d[i,]$ymin = 0
+	d[i,]$ymax = 1
+	c1 = d[i,7]
+	c2 = d[i,9]
+	ni = which(d[,1]==c1)
+	ny = d[ni,8]/ (d[ni,8]+d[ni,10])
+	d[ni,]$ymin = 1-y
+	d[ni,]$ymax = 1
+	d[ni,]$y = 1- ny*(y)
+	ni = which(d[,1]==c2)
+    ny = d[ni,8]/ (d[ni,8]+d[ni,10])
+    d[ni,]$ymin = 0
+    d[ni,]$ymax = 1-y
+    d[ni,]$y = (1-y)-ny*(1-y)
+	for (j in 1:nrow(d))
+		{
+		d = set_y_coord(d, j)
+		}	
+	return(d)
+	}
+
+set_y_coord = function(d, i)
+	{
+	index = d[i,1]
+	parent = d[i,6]
+	if (!is.na(d[i,]$y))
+		{
+		return(d)
+		}
+	tmp = d[d[,1] == parent,]
+	if ( is.na(tmp[1,]$y))
+		{
+		d = set_y_coord(d, which(d[,1]==parent))
+		tmp = d[d[,1]== parent,]
+		}
+	py = tmp[1,]$y
+	pymin = tmp[1,]$ymin
+	pymax = tmp[1,]$ymax
+	f = d[i,8]/( d[i,8]+d[i,10])
+	#print (paste(i, index, py, pymin, pymax, f))
+	if (tmp[1,7] == index)
+		{
+		d[i,]$ymin = py
+		d[i,]$ymax = pymax
+		d[i,]$y = pymax-f*(pymax-py)
+		if (d[i,5]== "TIP")
+			{
+			d[i,]$y = (py+pymax)/2
+			}
+		}else{
+		d[i,]$ymin = pymin
+		d[i,]$ymax = py
+		d[i,]$y = py-f*(py-pymin)
+		if (d[i,5]== "TIP")
+			{
+            d[i,]$y = (pymin+py)/2
+            }	
+		}
+	return(d)
+	}
+
+
+set_x_coords = function(d, e)
+	{
+	i = which(d[,3]=="ROOT")
+	index = d[i,1]
+        d[i,]$x = 0
+        c1 = d[i,7]
+        c2 = d[i,9]
+        ni = which(d[,1]==c1)
+	tmpx =  e[e[,1]==index & e[,2] == c1,3]
+	if (length(tmpx) == 0){
+		tmp = e[e[,1] == index,]
+		tmpc1 = tmp[1,2]
+		if ( d[d[,1]==tmpc1,4] != "MIG"){
+			tmpc1 = tmp[2,2]
+		}
+		tmpx = get_dist_to_nmig(d, e, index, tmpc1)
+	}
+	if(tmpx < 0){
+		tmpx = 0
+	}
+        d[ni,]$x = tmpx
+
+        ni = which(d[,1]==c2)
+        tmpx =  e[e[,1]==index & e[,2] == c2,3]
+	if (length(tmpx) == 0){
+    		tmp = e[e[,1] == index,]
+                tmpc2 = tmp[2,2]
+                if ( d[d[,1]==tmpc2,4] != "MIG"){
+                        tmpc2 = tmp[1,2]
+                }
+                tmpx = get_dist_to_nmig(d, e, index, tmpc2)
+	}
+        if(tmpx < 0){
+                tmpx = 0
+        }
+        d[ni,]$x = tmpx
+        
+        for (j in 1:nrow(d)){
+                d = set_x_coord(d, e, j)
+        }
+	return(d)
+	print(d)
+	}
+
+set_x_coord = function(d, e, i)
+	{
+	index = d[i,1]
+        parent = d[i,6]
+        if (!is.na(d[i,]$x)){
+                return(d)
+        }
+        tmp = d[d[,1] == parent,]
+        if ( is.na(tmp[1,]$x)){
+                d = set_x_coord(d, e, which(d[,1]==parent))
+                tmp = d[d[,1]== parent,]
+        }
+	#print (paste(parent, index))
+	tmpx =  e[e[,1]==parent & e[,2] == index,3]
+	if (length(tmpx) == 0){
+                tmp2 = e[e[,1] == parent,]
+                tmpc2 = tmp2[2,2]
+		#print
+                if ( d[d[,1]==tmpc2,4] != "MIG"){
+                        tmpc2 = tmp2[1,2]
+                }
+		tmpx = get_dist_to_nmig(d, e, parent, tmpc2)
+	}
+        if(tmpx < 0){
+                tmpx = 0
+        }
+	d[i,]$x = tmp[1,]$x+ tmpx
+	return(d)
+	}
+
+plot_tree_internal = function(d, e, o = NA, cex = 1, disp = 0.001, plus = 0.003, arrow = 0.05, ybar = 0.01, scale = T, mbar = T, mse = 0.01, plotmig = T, plotnames = T, xmin = 0, lwd = 1, font = 1, my_colours = NULL){
+	# 18-07-2021: change of cex.axis added for use in SambaR:
+	par(cex.axis=1.5)
+	#plot(d$x, d$y, axes = F, ylab = "", xlab = "Drift parameter", xlim = c(xmin, max(d$x)+plus), pch = "")
+	plot(d$x, d$y, axes = F, ylab = "", xlab = "", xlim = c(xmin, max(d$x)+plus), pch = "")
+	axis(1)
+	mw = max(e[e[,5]=="MIG",4])
+	mcols = rev(heat.colors(150))
+	for(i in 1:nrow(e)){
+		col = "black"
+		if (e[i,5] == "MIG"){
+			w = floor(e[i,4]*200)+50
+			if (mw > 0.5){
+				w = floor(e[i,4]*100)+50
+			}
+			col = mcols[w]
+			if (is.na(col)){
+				col = "blue"
+			}
+		}
+		v1 = d[d[,1] == e[i,1],]
+		v2 = d[d[,1] == e[i,2],]
+		if (e[i,5] == "MIG"){
+			if (plotmig){
+			# 18-07-2021: addition of lwd=lwd for use in SambaR
+			arrows( v1[1,]$x, v1[1,]$y, v2[1,]$x, v2[1,]$y, col = col, length = arrow,lwd = lwd)
+			}
+		}
+		else{
+			lines( c(v1[1,]$x, v2[1,]$x), c(v1[1,]$y, v2[1,]$y), col = col, lwd = lwd)
+		}
+	}
+	tmp = d[d[,5] == "TIP",]
+	print(tmp$x)
+	print(disp)
+	if ( !is.na(o)){
+		for(i in 1:nrow(tmp)){
+			tcol = o[o[,1] == tmp[i,2],2]
+			if(plotnames){
+				#print(tmp[i,2])
+				text(tmp[i,]$x+disp, tmp[i,]$y, labels = tmp[i,2], adj = 0, cex = cex, col  = tcol, font = font)
+			}
+		}
+	}
+	else{
+		if (plotnames)
+			{
+			# 18-07-2021: following lines added for use in SambaR:
+			treemixlabels	<- tmp[,2]
+			mypopcolours	<<- vector()
+			if(length(mysambar$populations)!=length(treemixlabels))
+				{
+				cat("ERROR: number of populations in input Treemix files does not correspond to number of populations at mysambar$populations.",sep="\n")
+				dev.off()
+				return(cat("Aborting Treemix plot.",sep="\n"))
+				}
+			for(k in c(1:length(treemixlabels)))
+				{
+				mypopcolours[k]	<<- mysambar$mycolours[which(mysambar$populations==treemixlabels[k])]
+				}
+			# 18-07-2021: until here, as well as else statement in the the next conditional:
+			if(is.null(my_colours))
+				{
+				text(tmp$x+disp, tmp$y, labels = tmp[,2], adj = 0, cex = cex, font = font)
+				}else{
+				text(tmp$x+disp, tmp$y, labels = tmp[,2], adj = 0, cex = cex, font = font, col = my_colours)
+				}
+			}
+	}
+	if (scale){
+	print (paste("mse", mse))
+        lines(c(0, mse*10), c(ybar, ybar))
+	text( 0, ybar - 0.04, lab = "10 s.e.", adj = 0, cex  = 0.8)
+	lines( c(0, 0), c( ybar - 0.01, ybar+0.01))
+	lines( c(mse*10, mse*10), c(ybar- 0.01, ybar+ 0.01))
+	}
+    if(mbar)
+		{
+        mcols = rev( heat.colors(150) )
+        mcols = mcols[50:length(mcols)]
+        ymi = ybar+0.15
+        yma = ybar+0.35
+        l = 0.2
+        w = l/100
+        xma = max(d$x/20)
+        mbarcex	= 1.0		# 18-07-2021: addition of mbarcex for use in SambaR. Default is 0.7.
+		rect( rep(0, 100), ymi+(0:99)*w, rep(xma, 100), ymi+(1:100)*w, col = mcols, border = mcols)
+        text(xma+disp, ymi, lab = "0", adj = 0, cex = mbarcex)
+		if(mw>0.5)
+			{ 
+			text(xma+disp, yma, lab = "1", adj = 0, cex = mbarcex)
+			}else{
+			text(xma+disp, yma, lab = "0.5", adj = 0, cex = mbarcex)
+			}
+		text(0, yma+0.06, lab = "Migration", adj = 0 , cex = mbarcex)
+		text(0, yma+0.03, lab = "weight", adj = 0 , cex = mbarcex)
+		}		
+	}
+
+set_mig_coords = function(d, e){
+	for (j in 1:nrow(d)){
+		if (d[j,4] == "MIG"){
+			p = d[d[,1] == d[j,6],]
+			c = d[d[,1] == d[j,7],]
+			tmpe = e[e[,1] == d[j,1],]
+			y1 = p[1,]$y
+			y2 = c[1,]$y
+			x1 = p[1,]$x
+			x2 = c[1,]$x
+
+			mf = tmpe[1,6]	
+			if (is.nan(mf)){
+				mf = 0
+			}
+			#d[j,]$y = (y1+y2)* mf
+                        #d[j,]$x = (x1+x2) *mf
+                        d[j,]$y = y1+(y2-y1)* mf
+			print(paste(mf, x1, x2))
+                        d[j,]$x = x1+(x2-x1) *mf
+		}	
+
+	}
+	return(d)
+
+}
+
+get_f = function(stem){
+	d = paste(stem, ".cov.gz", sep = "")
+	d2 = paste(stem, ".modelcov.gz", sep = "")
+	d = read.table(gzfile(d), as.is = T, comment.char = "", quote = "")
+	d2 = read.table(gzfile(d2), as.is = T, comment.char = "", quote = "")
+	d = d[order(names(d)), order(names(d))]
+	d2 = d2[order(names(d2)), order(names(d2))]
+	tmpcf = vector()
+        tmpmcf = vector()
+        for (j in 1:nrow(d)){
+                for (k in (j+1):nrow(d)){
+                        tmpcf = append(tmpcf, d[j,k])
+                        tmpmcf = append(tmpmcf, d[j,k] - d2[j,k])
+                }
+        }
+        tmpv = var(tmpmcf)/var(tmpcf)
+	return(1-tmpv)
+
+}
+
+plot_tree = function(stem, o = NA, cex = 1, disp = 0.004, plus = 0.02, flip = vector(), arrow = 0.05, scale = T, ybar = 0.1, mbar = T, plotmig = T, plotnames = T, xmin = 0, lwd = 1, font = 1, labelcolours = NULL)
+	{
+	d = paste(stem, ".vertices.gz", sep = "")
+	e = paste(stem, ".edges.gz", sep = "")
+	se = paste(stem, ".covse.gz", sep = "")
+	d = read.table(gzfile(d), as.is = T, comment.char = "", quote = "")
+	e = read.table(gzfile(e), as.is  = T, comment.char = "", quote = "")
+	if (!is.na(o))
+		{
+		o = read.table(o, as.is = T, comment.char = "", quote = "")
+		}
+	e[,3] = e[,3]*e[,4]
+	e[,3] = e[,3]*e[,4]
+	se = read.table(gzfile(se), as.is = T, comment.char = "", quote = "")
+	m1 = apply(se, 1, mean)
+	m = mean(m1)
+	#m = 0
+	for(i in 1:length(flip))
+		{
+		d = flip_node(d, flip[i])
+		}
+	d$x = "NA"
+	d$y = "NA"
+	d$ymin = "NA"
+	d$ymax = "NA"
+	d$x = as.numeric(d$x)
+	d$y = as.numeric(d$y)
+	d$ymin = as.numeric(d$ymin)
+	d$ymax = as.numeric(d$ymax)
+	d = set_y_coords(d)
+	d = set_x_coords(d, e)
+	print(d)
+	d = set_mig_coords(d, e)
+	# 18-07-2021: my_colours argument added for use in SambaR:
+	plot_tree_internal(d, e, o = o, cex = cex, xmin = xmin, disp = disp, plus = plus, arrow = arrow, ybar = ybar, mbar = mbar, mse = m, scale = scale, plotmig = plotmig, plotnames = plotnames, lwd = lwd, font = font, my_colours = labelcolours)
+	return(list( d= d, e = e))
+	}
+
+get_dist_to_nmig = function(d, e, n1, n2)
+	{
+	toreturn = e[e[,1] == n1 & e[,2] == n2,3]
+	#print(toreturn)
+	while ( d[d[,1] ==n2,4] == "MIG")
+		{
+		tmp = e[e[,1] == n2 & e[,5] == "NOT_MIG",]
+		toreturn = toreturn+tmp[1,3]
+		n2 = tmp[1,2]
+		}
+	return(toreturn)
+	}
+
+flip_node = function(d, n)
+	{
+	i = which(d[,1] == n)
+	t1 = d[i,7]
+	t2 = d[i,8]
+	d[i,7] = d[i,9]
+	d[i,8] = d[i,10]
+	d[i,9] = t1
+	d[i,10] = t2
+	return(d)
+	}
+
+plot_modelcov = function(stem, pop_order, min = -0.009, max = 0.009, cex = 1, usemax = T){
+        c = read.table(gzfile(paste(stem, ".modelcov.gz", sep = "")), as.is = T, head = T)
+        o = read.table(pop_order, as.is = T, comment.char = "", quote = "")
+
+
+        toplot = data.frame(matrix(nrow = nrow(c), ncol = ncol(c)))
+        for(i in 1:nrow(o)){
+                for( j in 1:nrow(o)){
+
+                        toplot[i, j] = c[which(names(c)==o[i,1]), which(names(c)==o[j,1])]
+                }
+        }
+        if (usemax){
+                m1 = max(abs(toplot))
+                max = m1*1.1
+                min = -(m1*1.1)
+        }
+        names(toplot) = o[,1]
+        plot_resid_internal(toplot, max = max, min = min)
+}
+
+
+
+plot_cov = function(stem, pop_order, min = -0.009, max = 0.009, cex = 1, usemax = T, wcols = ""){
+        c = read.table(gzfile(paste(stem, ".cov.gz", sep = "")), as.is = T, head = T)
+        o = read.table(pop_order, as.is = T)
+
+
+        toplot = data.frame(matrix(nrow = nrow(c), ncol = ncol(c)))
+        for(i in 1:nrow(o)){
+                for( j in 1:nrow(o)){
+
+                        toplot[i, j] = c[which(names(c)==o[i,1]), which(names(c)==o[j,1])]
+                }
+        }
+        if (usemax){
+                m1 = max(abs(toplot))
+                max = m1*1.1
+                min = 0
+        }
+        names(toplot) = o[,1]
+        plot_cov_internal(toplot, max = max, min = min, wcols = wcols, o = o, cex = cex)
+}
+
+
+plot_resid = function(stem, pop_order, min = -0.009, max = 0.009, cex = 1, usemax = T, wcols = "r"){
+	c = read.table(gzfile(paste(stem, ".cov.gz", sep = "")), as.is = T, head = T, quote = "", comment.char = "")
+	m = read.table(gzfile(paste(stem, ".modelcov.gz", sep = "")), as.is = T, head = T, quote = "", comment.char = "")
+	names(c) = rownames(c)
+	names(m) = rownames(m)
+	o = read.table(pop_order, as.is = T, comment.char = "", quote = "")
+	se = read.table(gzfile(paste(stem, ".covse.gz", sep = "")), as.is = T, head = T, quote = "", comment.char = "")
+	mse = apply(se, 1, mean)
+	mse = mean(mse)
+	print(mse)	
+	c = c[order(names(c)), order(names(c))]
+	m = m[order(names(m)), order(names(m))]
+	tmp = c -m 
+	#tmp = m - c
+	#tmp = (m-c)/m
+	#print(tmp)
+	toplot = data.frame(matrix(nrow = nrow(tmp), ncol = ncol(tmp)))
+	for(i in 1:nrow(o)){
+	        for( j in 1:nrow(o)){
+			#print(paste(o[i,1], o[j,1]))
+			if (o[i,1] %in% names(tmp) ==F){
+				print(paste("not found", o[i,1]))
+			}
+			if (o[j,1] %in% names(tmp) ==F){
+				print(paste("not found", o[j,1]))
+			}
+        	        toplot[i, j] = tmp[which(names(tmp)==o[i,1]), which(names(tmp)==o[j,1])]
+        	}
+	}
+	#print(toplot)
+	if (usemax){
+		m1 = max(abs(toplot), na.rm = T)
+		max = m1*1.02
+		min = -(m1*1.02)	
+	}
+	print("here")
+	names(toplot) = o[,1]
+	toreturn = plot_resid_internal(toplot, max = max, min = min, wcols = wcols, mse = mse, o = o, cex = cex)
+	return(toreturn)
+}
+
+plot_cov_internal = function(d, o = NA, max = 0.009, min = -0.009, cex =0.5, wcols = "", mse = 5){
+        npop = nrow(d)
+        width = 1/npop
+        height = 1/npop
+        colors = brewer.pal(9, "Spectral")
+        colors = c("red", "orange","yellow", "white", "green", "blue", "black")
+        pal = colorRampPalette(colors)
+        ncol = 80
+        cols = pal(ncol)
+        plot("NA", xlim = c(0, 1), ylim = c(0, 1), axes = F, xlab = "", ylab = "")
+        for (i in 1:npop){
+                for( j in 1:i){
+                        v = d[i,j]
+                        col= "white"
+                        if (v < 0){
+                                if (wcols == "rb"){
+                                col = rgb(0, 0, 1, v/min)
+                                }
+                                else{
+                                #col = rgb(0, 0, 1, 0.1+0.9*(v/min))
+                                col = cols[ncol/2-floor( (v/min)*(ncol/2))]
+                                }
+                        }
+                        else{
+                                if (wcols == "rb"){
+                                col = rgb(1, 0, 0, v/max)
+                                }
+                                else{
+                                #col = rgb(1, 0, 0, 0.1+0.9*(v/max))
+                                col = cols[ceiling((v/max)*(ncol))]
+                                }
+                        }
+                        xmin = j/npop - 1/npop
+                        xmax = j/npop
+                        ymin = 1-(i/npop)
+                        ymax = 1-(i/npop)+1/npop
+			if (v == 0){ col = "white"}
+                        rect(xmin, ymin, xmax, ymax, col = col, border = col)
+                }
+                tcol = "black"
+                tmp = o[o[,1] == names(d)[i],]
+                if (length(tmp) != 1){
+                        tcol = tmp[1,2]
+                }
+                mtext(names(d)[i], side = 2, at = 1-i/npop+0.5/npop, las = 1, cex = cex, col = tcol)
+                mtext(names(d)[i], side = 1, at =  i/npop-0.5/npop, las = 3, cex = cex, col = tcol)
+        }
+        if ( !is.na(mse)){
+                ymi = 0.5
+                yma = 0.9
+                w = (yma-ymi)/ncol
+                xma = 0.80
+                lmi = round(min, digits = 1)
+                lma = round(max, digits = 1)
+                print(cols)
+                print(ymi+(0:ncol)*w)
+                rect( rep(0.75, ncol), ymi+(0:(ncol-1))*w, rep(xma, ncol), ymi+(1:ncol)*w, col = cols, border = cols)
+                text(xma+0.01, ymi, lab = paste(lmi),  adj = 0, cex = 0.8)
+                text(xma+0.01, yma, lab = paste(lma, "(Variance)"), adj = 0, cex = 0.8)
+
+        }
+        return(d)
+        #image(as.matrix(d), col = cols)
+}
+
+plot_resid_internal = function(d, o = NA, max = 0.009, min = -0.009, cex =0.5, wcols = "rb", mse = NA){
+        npop = nrow(d)
+        width = 1/npop
+        height = 1/npop
+	colors = brewer.pal(9, "Spectral")
+	colors = c("red", "orange","yellow", "white", "green", "blue", "black")
+	pal = colorRampPalette(colors)
+	ncol = 80
+	cols = pal(ncol)
+        plot("NA", xlim = c(0, 1), ylim = c(0, 1), axes = F, xlab = "", ylab = "")
+        for (i in 1:npop){
+                for( j in 1:i){
+                        v = d[i,j]
+			print(paste(i, j, v))
+                        col= "white"
+                        if (v < 0){
+				if (wcols == "rb"){
+				col = rgb(0, 0, 1, v/min)
+				}
+				else{
+                                #col = rgb(0, 0, 1, 0.1+0.9*(v/min))
+				col = cols[ncol/2-floor( (v/min)*(ncol/2))]
+				#col = "white"
+				}
+                        }
+                        else{
+				if (wcols == "rb"){
+				col = rgb(1, 0, 0, v/max)
+				}
+				else{
+                                #col = rgb(1, 0, 0, 0.1+0.9*(v/max))
+				col = cols[ncol/2+ceiling((v/max)*(ncol/2))]
+				}
+                        }
+                        xmin = j/npop - 1/npop
+                        xmax = j/npop
+                        ymin = 1-(i/npop)
+                        ymax = 1-(i/npop)+1/npop
+                        rect(xmin, ymin, xmax, ymax, col = col, border = col)
+                }
+		tcol = "black"
+		tmp = o[o[,1] == names(d)[i],]
+		if (length(tmp) != 1){
+			tcol = tmp[1,2]
+		}
+                mtext(names(d)[i], side = 2, at = 1-i/npop+0.5/npop, las = 1, cex = cex, col = tcol)
+                mtext(names(d)[i], side = 1, at =  i/npop-0.5/npop, las = 3, cex = cex, col = tcol)
+        }
+	if ( !is.na(mse)){
+                ymi = 0.5
+                yma = 0.9
+                w = (yma-ymi)/ncol
+                xma = 0.80
+		lmi = round(min/mse, digits = 1)
+		lma = round(max/mse, digits = 1)
+		print(cols)
+		print(ymi+(0:ncol)*w)
+                rect( rep(0.75, ncol), ymi+(0:(ncol-1))*w, rep(xma, ncol), ymi+(1:ncol)*w, col = cols, border = cols)
+                text(xma+0.01, ymi, lab = paste(lmi, "SE"),  adj = 0, cex = 0.8)
+                text(xma+0.01, yma, lab = paste(lma, "SE"), adj = 0, cex = 0.8)
+
+	}
+	return(d)
+	#image(as.matrix(d), col = cols)
+	}
+
+########## END OF TREEMIX FUNCTIONS ##########
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
