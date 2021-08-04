@@ -1911,6 +1911,14 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 			{
 			inds$plotname	<<- vcfinput$plotname
 			}
+		if("mtDNA"%in%colnames(vcfinput))
+			{
+			inds$mtDNA	<<- vcfinput$mtDNA
+			}
+		if("mtsymbol"%in%colnames(vcfinput))
+			{
+			inds$mtsymbol	<<- vcfinput$mtsymbol
+			}
 		# assign population labels to genlight object:
 		mygenlight@pop	<<- as.factor(inds$pop)
 		}
@@ -3245,7 +3253,7 @@ addinfo2inds<-function(namevec=sampleinfo$name,infovec=sampleinfo$regionhe,infov
 			}
 		}
 	}
-		
+
 # function to add a second population structure (columns 'inds$subpop' and 'inds$subpopcol'):
 # 24-04-2020: depreciated since inds$pop2 is now used to defined subpopulations	
 addpop<-function(samplefile=NULL,mycolours=c("blue","darkgreen","darkred","orange","darkorchid4","#654321","yellow","gray20","deepskyblue","greenyellow","indianred1"))
@@ -3271,6 +3279,26 @@ addpop<-function(samplefile=NULL,mycolours=c("blue","darkgreen","darkred","orang
 	mysambar$subpopcol	<<- mycolours
 	cat("Columns 'subpop' and 'subpopcol' added to inds dataframe.",sep="\n")
 	cat("Vectors 'subpop' and 'subpopcol' added to mysambar list.",sep="\n")
+	}
+
+# 27-07-2021: function to change population assignment of a single sample.
+addpop<-function(myind="TorontoZoo",mypop="zoohybrid",mycol="red")
+	{
+	# edit mysambar list:
+	mysambar$populations2						<<- c(mysambar$populations2,mypop)
+	mysambar$mycolours2							<<- c(mysambar$mycolours2,mycol)
+	myorder										<- order(mysambar$populations2)
+	mysambar$populations2						<<- mysambar$populations2[myorder]
+	mysambar$mycolours2							<<- mysambar$populations2[myorder]
+	#
+	# edit inds dataframe:
+	inds$pop3									<<- as.character(inds$pop)
+	inds$pop3[as.character(inds$name)==myind]	<<- "zoohybrid"
+	inds$pop									<<- as.factor(inds$pop3)
+	#
+	excludepop()
+	snpsmissingness()
+	snp_maf()
 	}
 
 # function to redefine population assignment:	
@@ -5581,7 +5609,7 @@ snp_maf<-function(popnames=mysambar$populations,indthreshold=mysambar$indmissfil
 			popmisscount		<- paste("misscount",popnames[i],sep="_")
 			if(!popmisscount%in%colnames(snps))
 				{
-				return(cat("ERROR: popmisscount is missing from snps data frame.",sep="\n"))
+				return(cat("ERROR: popmisscount is missing from snps data frame. Did you run the snpsmissingness function?",sep="\n"))
 				}
 			npopind					<- nrow(inds[popfilter,])
 			snps$actemp				<<- 2*npopind-as.vector(snps[,popmisscount])
@@ -8331,9 +8359,19 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 			cat("If you receive an error after this line (for example about 'ploidy' issues), rerun the findstructure function with the 'do_tree' flag set to false (i.e. findstructure(do_tree=FALSE)).",sep="\n")
 			#cat("A second option is to rerun the filterdata() function with different filter options (include more SNPs) and then try the findstructure function again.",sep="\n")
 			#08-03-2020: above lines are redundant after including inds$allgeno filter.
-			popprtree(mymethod="NJ")
+			popprtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
 			cat("Creating UPGMA tree based on Hamming's genetic distance (i.e. using bitwise.dis function of poppr package)...",sep="\n")
-			popprtree(mymethod="upgma")
+			popprtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
 			}
 		if(do_popca)
 			{
@@ -9455,9 +9493,11 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	#
 	# plot:
 	mydistance	<- ifelse(mydistance=="bitwise.dist","Hammingdist",mydistance)
-	labelstr	<- ifelse(tiplabels,"labels","nolabels")
+	labelstr	<- ifelse(tiplabels,"tiplabels","notiplabels")
+	labelstr2	<- ifelse(addnodelabels,"nodelabels","nonodelabels")
 	colorstr	<- ifelse(edgecolors,"colortips","blacktips")
-	plotname	<- paste("Tree",mydistance,mymethod,mytype,labelstr,colorstr,sep=".")
+	plotname	<- paste("Tree",mydistance,mymethod,mytype,labelstr,labelstr2,colorstr,sep=".")
+	#cat(plotname,sep="\n")
 	if(!is.null(export))
 		{
 		myheight	<- ifelse(mytype=="phylogram",ninds*0.15+2,14)
@@ -15109,8 +15149,30 @@ runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedind
 	if(!silent){cat("Results stored in dataframe 'mysambar$f3df'.",sep="\n")}
 	}
 
+calcf3<-function(mafdf=NULL)
+	{
+	# e.g.:
+	# mydf 				<- snps[,c("maf_Westcoast","maf_Alaska","maf_zoohybrid")]
+	# colnames(mydf)	<- c("pop1","pop2","admixpop")
+	# calcf3(mafdf=mydf)
+	if(is.null(mafdf))
+		{
+		return(cat("ERROR: provide dataframe with minor allele frequencies of three populations, with column names 'pop1','pop2','admixpop'.",sep="\n"))
+		}
+	mafpop1			<- mafdf$pop1
+	mafpop2			<- mafdf$pop2
+	mafadmix		<- mafdf$admixpop
+	#
+	# b and c are the introgressors, a is the putatively admixed population:
+	f2ab			<<- mean((mafadmix-mafpop1)^2,na.rm=TRUE)
+	f2ac			<<- mean((mafadmix-mafpop2)^2,na.rm=TRUE)
+	f2bc			<<- mean((mafpop1-mafpop2)^2,na.rm=TRUE)			
+	# f3 statistic:
+	f3_admix		<<- 0.5*(f2ab+f2ac-f2bc)
+	}
+
 # simulations:
-runcalcf3<-function(mean_maf=0.15,t_1=30,t_2=60,n_inds=100000,n_snps=1000)
+runcalcf3sim<-function(mean_maf=0.15,t_1=30,t_2=60,n_inds=100000,n_snps=1000)
 	{
 	myratios	<<- vector()
 	myadmixs	<<- seq(0,1,0.05)
@@ -15125,7 +15187,7 @@ runcalcf3<-function(mean_maf=0.15,t_1=30,t_2=60,n_inds=100000,n_snps=1000)
 	}
 
 # simulations:
-calcf3<-function(meanmaf=0.15,t1=20,t2=40,ninds=100,nruns=1000,nsnps=100,admix=0.5,plot_ac=FALSE,do_analysis=TRUE)
+calcf3sim<-function(meanmaf=0.15,t1=20,t2=40,ninds=100,nruns=1000,nsnps=100,admix=0.5,plot_ac=FALSE,do_analysis=TRUE)
 	{
 	if(do_analysis)
 		{
@@ -19133,7 +19195,7 @@ nrmismatch<-function(nrsites=NULL,haploid=FALSE,addclade=FALSE)
 	}
 
 # 15-03-19: new version to calculate pi: 
-calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,snpselection=snps$filter,popnames=mysambar$populations,samplesize=NULL,mychrom=NULL,myrange=NULL,corrected=TRUE,silent=TRUE)
+calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,snpselection=snps$filter,popnames=mysambar$populations,samplesize=NULL,mychrom=NULL,myrange=NULL,corrected=FALSE,silent=TRUE)
 	{
 	# This function calculates pi: the average number of variant sites when randomly drawing 2 sequences from a population.
 	## pi is calculated as follows:
@@ -19187,6 +19249,7 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 	# SNP2: N N N N 0 0 1 1 N N N N
 	# This is 12/21 = 0.5714
 	# The reason that the calculation leads to 0.5622 is because it is not correct to give a single 'within-comparison' the same weight as 4 'between-comparisons' 
+	## 04-08-2021: NOTE THAT WHEN FLAG CORRECTED IS SET TO TRUE, THE CALCULATION AND THE OUTPUT VALUES ARE SLIGHTLY DIFFERENT; IT ATTEMPTS TO CORRECT FOR MISSING DATA
 	#
 	## Watterson's estimate of theta is calculated as follows (corrected for missing data):
 	# The per snp average number of inds with data:	(3 + 2)/2 = 2.5
@@ -19196,7 +19259,7 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 	# Corrected Watterson's estimate of theta:		S/(sum(1/(1/1+...+1/(n-1))) = 2/(1/1+1/2+1/3+1/4) = 2/2.083 = 0.96
 	# This number is telling us that for each pairwise comparison of haplotypes (of 2 bp length) we expect 0.96 sites to differ between both haplotypes.  
 	# Uncorrected Watterson's estimate of theta:	2/(1/1+1/2+1/3+1/4+1/5) = 2/2.28 = 0.87  
-	# 
+	#
 	## Tajima's D is calculated as follows:
 	# Observed uncorrected pi minus corrected Watterson's estimate:
 	# Tajima's D: 0.75 - 0.96 = -0.21 
@@ -19230,8 +19293,8 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 		}
 	npops			<- length(popnames)
 	ninds			<- nrow(inds[inds$filter,])
-	outmat			<- as.data.frame(matrix(NA,ncol=13,nrow=npops))
-	colnames(outmat)<- c("pop","chrom","start","end","mid","mean_nsites","mean_pi","mean_maf","expected_pi","S","harmonic_number","Watterson","TajimaD")
+	outmat			<- as.data.frame(matrix(NA,ncol=14,nrow=npops))
+	colnames(outmat)<- c("pop","chrom","start","end","mid","mean_nsites","mean_pi","mean_maf","expected_pi","S","harmonic_number","Watterson","TajimaD","sd_pi")
 	outmat$pop		<- popnames
 	tajdlist		<- list()
 	if(!is.null(mychrom)&!is.null(myrange))
@@ -19347,17 +19410,20 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 			nsitesall		<- length(mymaf)
 			# Now we calculate observed pi, watterson's theta, and based on those two numbers Tajima's D:
 			outmat[p,6]		<- round(mean(mycomp$nsites,na.rm=TRUE),1)				# nsites with data
-			#outmat[p,7]	<- round(mean(mycomp$ndiffperhaplo,na.rm=TRUE),2)		# pi (mean number of differences between 2 sequences)
+			#outmat[p,7]	<- round(mean(mycomp$ndiffperhaplo,na.rm=TRUE),4)		# pi (mean number of differences between 2 sequences)
 			uncorrected_pi	<- round(mean(mycomp$ndiffperhaplo,na.rm=TRUE),2)
-			#corrected_pi	<- round(uncorrected_pi/nsitesall*outmat[p,6],2)		# edited on 16-5-2020
-			corrected_pi	<- round(sum(mycomp$ndiff,na.rm=TRUE)/sum(mycomp$ncomp,na.rm=TRUE),2)	# edited on 16-5-2020. ncomp=nsites*4 (or nsites*1 for within). nsites is totalsites - nnasites  
+			#corrected_pi	<- round(uncorrected_pi/nsitesall*outmat[p,6],4)		# edited on 16-5-2020
+			corrected_pi	<- round(sum(mycomp$ndiff,na.rm=TRUE)/sum(mycomp$ncomp,na.rm=TRUE),4)	# edited on 16-5-2020. ncomp=nsites*4 (or nsites*1 for within). nsites is totalsites - nnasites  
 			outmat[p,7]		<- ifelse(corrected,corrected_pi,uncorrected_pi)
 			outmat[p,10]	<- nseg											# segregating sites						
 			outmat[p,8]		<- round(mean(mymaf[mymaf>0],na.rm=TRUE),2)		# mean maf of segregating sites
 			outmat[p,9]		<- round((2*outmat[p,8]*(1-outmat[p,8])*outmat[p,10]),1)	# expected nucleotide diversity (pi) based on minor allele frequency
-			outmat[p,11]	<- round(sum(1/(1:(nhaplotypes-1))),2)			# harmonic number
-			outmat[p,12]	<- round(outmat[p,10]/outmat[p,11],2)			# watterson's theta
-			outmat[p,13]	<- round(outmat[p,7]-outmat[p,12],2)			# tajima's d
+			outmat[p,11]	<- round(sum(1/(1:(nhaplotypes-1))),2)								# harmonic number
+			outmat[p,12]	<- round(outmat[p,10]/outmat[p,11],2)								# watterson's theta
+			outmat[p,13]	<- ifelse(corrected,NA,round(outmat[p,7]-outmat[p,12],2))			# tajima's d
+			# added 04-08-2021:
+			uncorrected_pisd<- round(sd(mycomp$ndiffperhaplo,na.rm=TRUE),4)
+			outmat[p,14]	<- uncorrected_pisd			# not possible to calculate corrected (scaled) value?
 			}
 		}else{
 		outmat$mean_nsites	<- 0
@@ -19404,22 +19470,33 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 		{
 		# edited on 16-5-2020: with new method the estimate is already scaled
 		outmat$pi_scaled		<- outmat$mean_pi
+		outmat$pi_scaled_sd		<- round(outmat$sd_pi/outmat$mean_nsites,4)
+		outmat$mean_pi			<- round(outmat$pi_scaled*outmat$mean_nsites,2)
 		}else{
-		outmat$pi_scaled		<- outmat$mean_pi/outmat$mean_nsites
+		outmat$pi_scaled		<- round(outmat$mean_pi/outmat$mean_nsites,4)
+		outmat$pi_scaled_sd		<- round(outmat$sd_pi/outmat$mean_nsites,4)
 		}
-	outmat$Watterson_scaled	<- outmat$Watterson/outmat$mean_nsites
-	outmat$TajimaD_scaled	<- outmat$TajimaD/outmat$mean_nsites
+	outmat$Watterson_scaled	<- round(outmat$Watterson/outmat$mean_nsites,4)
+	if(corrected)
+		{
+		outmat$TajimaD_scaled	<- round(outmat$pi_scaled-outmat$Watterson_scaled,4)
+		outmat$TajimaD			<- round(outmat$TajimaD_scaled*outmat$mean_nsites,2)
+		}else{
+		outmat$TajimaD_scaled	<- round(outmat$TajimaD/outmat$mean_nsites,4)
+		}
 	outmat$rare_alleles		<- ifelse(outmat$TajimaD< -2,"many_rare",ifelse(outmat$TajimaD>2,"lack_of_rare","neutral"))
 	outmat$demography		<- ifelse(outmat$TajimaD< -2,"expansion_after_bottleneck",ifelse(outmat$TajimaD>2,"contraction","neutral"))
 	outmat$selection		<- ifelse(outmat$TajimaD< -2,"selective_sweep",ifelse(outmat$TajimaD>2,"balancing","neutral"))	
 	if(!is.null(mychrom)&!is.null(myrange))	{tajd			<- outmat}
-	if(!is.null(mychrom)&is.null(myrange))	{tajd			<- outmat[,c(1,2,6:19)]}	
-	if(is.null(mychrom)&is.null(myrange))	{tajd			<- outmat[,c(1,6:19)]}	
+	if(!is.null(mychrom)&is.null(myrange))	{tajd			<- outmat[,c(1,2,6:21)]}	
+	if(is.null(mychrom)&is.null(myrange))	{tajd			<- outmat[,c(1,6:21)]}	
 	if(pi_per_pop)
 		{
 		write.table(tajd,paste(mysambar$diversitydir,"TajimaD.statistics.perpop.txt",sep="/"),col.names=TRUE,quote=FALSE,row.names=FALSE,sep="\t")
+		cat("Table with summary statistics ('TajimaD.statistics.perpop.txt') has been exported to the Diversity subdirectory.",sep="\n") 
 		}else{
 		write.table(tajd,paste(mysambar$diversitydir,"TajimaD.statistics.metapop.txt",sep="/"),col.names=TRUE,quote=FALSE,row.names=FALSE,sep="\t")
+		cat("Table with summary statistics ('TajimaD.statistics.metapop.txt') has been exported to the Diversity subdirectory.",sep="\n")
 		}
 	if(!silent)
 		{
@@ -19454,10 +19531,12 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 		inds$autozygosity				<<- 1-inds$hetero_all/inds$pi 
 		# add TajimaD scores:
 		inds$pi2					<- NA
+		inds$pi2sd					<- NA
 		inds$harmonic_number		<- NA
 		inds$Watterson				<- NA
 		inds$TajimaD				<- NA
 		inds$pi2_scaled				<- NA
+		inds$pi2_scaled_sd			<- NA
 		inds$Watterson_scaled		<- NA
 		inds$TajimaD				<- NA
 		inds$rare_alleles			<- NA
@@ -19465,10 +19544,12 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 			{
 			myselection							<- inds$filter&inds$pop==mypop
 			inds$pi2[myselection]				<- tajd$mean_pi[tajd$pop==mypop]
+			inds$pi2sd[myselection]				<- tajd$sd_pi[tajd$pop==mypop]
 			inds$harmonic_number[myselection]	<- tajd$harmonic_number[tajd$pop==mypop]
 			inds$Watterson[myselection]			<- tajd$Watterson[tajd$pop==mypop]
 			inds$TajimaD[myselection]			<- tajd$TajimaD[tajd$pop==mypop]
 			inds$pi2_scaled[myselection]		<- tajd$pi_scaled[tajd$pop==mypop]
+			inds$pi2_scaled_sd[myselection]		<- tajd$pi_scaled_sd[tajd$pop==mypop]
 			inds$Watterson_scaled[myselection]	<- tajd$Watterson_scaled[tajd$pop==mypop]
 			inds$TajimaD_scaled[myselection]	<- tajd$TajimaD_scaled[tajd$pop==mypop]
 			inds$rare_alleles[myselection]		<- tajd$rare_alleles[tajd$pop==mypop]
@@ -19648,6 +19729,10 @@ plotpi_vs_he<-function(export=NULL,mycolours=mysambar$mycolours,popnames=mysamba
 
 plotcompareF<-function(export=NULL,mycolours=mysambar$mycolours,popnames=mysambar$populations,adddiscarded=FALSE,genomewide=TRUE)
 	{	
+	if(!"F"%in%colnames(inds))
+		{
+		return(cat("Column 'F' not present in inds dataframe (which is generated by calckinship function). Omitting 'Inbreeding_Fpi_vs_Fh' plot.",sep="\n"))	
+		}
 	if(genomewide)
 		{
 		if(!"autozygosity2"%in%colnames(inds))
