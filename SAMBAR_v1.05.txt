@@ -9453,7 +9453,6 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	mypops		<- mypops
 	ninds		<- length(mypops)
 	mygeno		<- my_gl
-	try			<<- mygeno
 	# Note: alternatively mygeno can be a distance matrix, such as neimatrix, and then mydistance should be set to 'nei.dist'
 	# Other options are rogers.dist, edwards.dist, reynolds.dist
 	if(do_analysis)
@@ -12393,7 +12392,7 @@ runLEA<-function(mindemes=2,maxdemes=6,popnames=mysambar$populations,order_on_lo
 	}
 
 # Note: input to poporder should be the same as for runLEA, otherwise output does not make sense.
-LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=NULL,heightfactor=0.75,widthfactor=0.1,focuspop=NULL,colourvector=NULL,export=NULL,exportname=NULL,shortpop=NULL,popnames=mysambar$populations,poporder=NULL,addindnr=TRUE,order_on_longitude=FALSE,dolong3=FALSE,silent=TRUE,axiscex=1.5,labelcex=1.75,yaxiscex=1.25)
+LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=NULL,heightfactor=0.75,widthfactor=0.1,focuspop=NULL,colourvector=NULL,export=NULL,exportname=NULL,shortpop=NULL,popnames=mysambar$populations,poporder=NULL,addindnr=TRUE,order_on_longitude=FALSE,dolong3=FALSE,silent=TRUE,axiscex=1.5,labelcex=1.75,yaxiscex=1.25,shortpop_nrchars=3)
 	{
 	if(is.null(shortpop))
 		{
@@ -12537,7 +12536,7 @@ LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=N
 		shortpop		<- substr(popnames,1,2)
 		if(length(as.vector(unique(shortpop)))<length(shortpop))	# if two more populations with same first two letters
 			{
-			shortpop	<- substr(popnames,1,3)
+			shortpop	<- substr(popnames,1,shortpop_nrchars)
 			}
 		}
 	nsamples		<- nrow(indstemp[indstemp$filter,])
