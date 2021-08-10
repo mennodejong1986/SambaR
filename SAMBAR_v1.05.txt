@@ -7936,6 +7936,7 @@ plotgenocounts<-function(popnames=mysambar$populations,export=FALSE,myout=NULL,a
 			pdf("Genocounts.pdf")
 			}
 		}
+	testx		<<- x
 	par(mar=c(4,10,2.5,2.5))
 	xx<-barplot(x,col=mycols,border=NA,space=0.1,horiz=TRUE,names.arg=popnames,las=1,cex.names=1.5)
 	if(addlabels)
@@ -9380,7 +9381,7 @@ apetree<-function(mymatrix=mysambar$indneimatrix,my_inds=inds)
 	plot(mytree,edge.color=my_inds$popcol[my_inds$filter],cex=0.5)
 	}		
 
-popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",mycolours=NULL,genofilter=FALSE,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,mytype="phylogram",labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=NULL,showpop=FALSE,tree_angle=0,mydirection="upwards",silent=TRUE)
+popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",mycolours=NULL,genofilter=FALSE,plotname="Tree",labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,mytype="phylogram",labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=NULL,showpop=FALSE,tree_angle=0,mydirection="upwards",silent=TRUE)
 	{
 	# if only one node per population:
 	# mypopcolours	<- vector()
@@ -9495,7 +9496,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	labelstr	<- ifelse(tiplabels,"tiplabels","notiplabels")
 	labelstr2	<- ifelse(addnodelabels,"nodelabels","nonodelabels")
 	colorstr	<- ifelse(edgecolors,"colortips","blacktips")
-	plotname	<- paste("Tree",mydistance,mymethod,mytype,labelstr,labelstr2,colorstr,sep=".")
+	plotname	<- paste(plotname,mydistance,mymethod,mytype,labelstr,labelstr2,colorstr,sep=".")
 	#cat(plotname,sep="\n")
 	if(!is.null(export))
 		{
@@ -12542,12 +12543,14 @@ LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=N
 	nsamples		<- nrow(indstemp[indstemp$filter,])
 	# get info needed for plot:
 	mylocs			<- vector()
+	mypopcols		<- vector()
 	for (i in c(1:length(popnames)))
 		{
 		mypop		<- popnames[i]
 		#mypops		<- indstemp$pop[indstemp$filter]
 		mypops		<- myindpops[indstemp$filter]
 		mylocs[i]	<- as.vector(which(mypops==mypop)[1]-1)
+		mypopcols[i]<- mysambar$mycolours2[which(mysambar$populations2==mypop)]
 		}
 	mylocs2		<- mylocs		# I should come up here with a way to omit black line of first population (because not necessary)
 	#mylocs2	<<- mylocs
@@ -12583,9 +12586,9 @@ LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=N
 					mylas	<- ifelse(any(table(myindpops[indstemp$filter])<6),3,1)
 					if(mylas==1)
 						{
-						mtext(text=shortpop,side=3,line=0.5,at=mylocs,adj=0,cex=axiscex,las=mylas)
+						mtext(text=shortpop,side=3,line=0.5,at=mylocs,adj=0,cex=axiscex,las=mylas,col=mypopcols)
 						}else{
-						mtext(text=shortpop,side=3,line=0.5,at=mylocs,adj=0,cex=axiscex,las=mylas)	# 14-07-2019: can't work out adjustment to the right
+						mtext(text=shortpop,side=3,line=0.5,at=mylocs,adj=0,cex=axiscex,las=mylas,col=mypopcols)	# 14-07-2019: can't work out adjustment to the right
 						}
 					}else{
 					if(length(popnames>1)){mtext(text=popnames,side=3,line=0.5,at=mylocs,adj=0,cex=axiscex)}
@@ -15061,8 +15064,9 @@ calcwindowDfst<-function(popnames=mysambar$populations,mytriplets=NULL)
 		}
 	}
 
-runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number")
+runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE)
 	{
+	# To avoid error: File admixtools2/Baltic/Black_f2.rds not found!', you might have to delete the output of previous runs.
 	# BiocManager::install("snpStats",suppressUpdates=TRUE)
 	# library(snpStats)
 	if("admixtools" %in% rownames(installed.packages()) == FALSE)
@@ -15099,6 +15103,15 @@ runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedind
 		{
 		# if(!silent){cat("Exporting ped file...",sep="\n")}
 		genlight2ped(snpsfilter=snps$filter,indsfilter=inds$filter,exportname=myprefix,quiet=TRUE)
+		}else{
+		if(overwriteped)
+			{
+			cat("Overwriting existing ped file because the flag 'overwriteped' is set to TRUE.",sep="\n")
+			genlight2ped(snpsfilter=snps$filter,indsfilter=inds$filter,exportname=myprefix,quiet=TRUE)
+			return(cat("Now first recreate the bed-file. Use 'plink --make-bed --recode A' to convert the newly created ped-file to bed and afterwards rerun the function. Also delete existing admixtools subdirectories.",sep="\n"))
+			}else{
+			cat("WARNING: using existing ped file. If you want to generate a new ped file, set the flag 'overwriteped' to TRUE.",sep="\n")
+			}
 		}
 	if(!file.exists(paste(myprefix,"bed",sep=".")))
 		{	
@@ -15128,13 +15141,13 @@ runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedind
 		f3df			<- qp3pop(f2_blocks)
 		}
 	myf3df				<- as.data.frame(f3df)
+	myf3df				<<- myf3df
 	if(!is.null(tripletdf))
 		{
 		if(!silent){cat("Reorder and combining ...",sep="\n")}
 		myf3df$p			<- round(myf3df$p,8)
 		myf3df$label		<- paste(myf3df$pop1,myf3df$pop2,myf3df$pop3,sep="_")
-		try					<<- tripletdf
-		tripletdf$label	<- paste(tripletdf$target,tripletdf$source1,tripletdf$source2,sep="_")
+		tripletdf$label		<- paste(tripletdf$target,tripletdf$source1,tripletdf$source2,sep="_")
 		tripletdf$nr		<- c(1:nrow(tripletdf))
 		myf3df				<- merge(tripletdf,myf3df,by="label")
 		myf3df				<- myf3df[order(myf3df$nr),]
@@ -15144,6 +15157,7 @@ runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedind
 		myf3df				<- myf3df
 		myf3df$mylabels		<- paste("(",myf3df$pop1,"; ",myf3df$pop2,",",myf3df$pop3,")",sep="")
 		mysambar$f3df_all	<<- myf3df
+		mysambar$f3df		<<- myf3df
 		}
 	if(!silent){cat("Results stored in dataframe 'mysambar$f3df'.",sep="\n")}
 	}
@@ -15922,11 +15936,13 @@ plotD<-function(mydf=mysambar$dscores,plotname="Dstats",mycol="grey50",export=NU
 		}else{
 		if("sign"%in%colnames(mydf))
 			{
+			mysign	<- mydf$sign
 			if(all(!is.na(mydf$sign)))
 				{
-				mypch	<- ifelse(mydf$sign!="NS",16,21)
+				mypch	<- ifelse(mysign!="NS",16,21)
 				}else{
-				mypch	<- rep(16,nrow(mydf))
+				cat("WARNING: NA-values present in 'sign'-column of D-scores dataframe. Using the x-symbol to represent D-scores with unknown significance scores.",sep="\n")
+				mypch	<- ifelse(is.na(mysign),4,ifelse(mysign!="NS",16,21))
 				}
 			}else{
 			cat("WARNING: Input dataframe does not contain a column named 'sign' for significance. Assigning all data points same pch symbol.",sep="\n")
@@ -17088,7 +17104,7 @@ multiLocusWeirFst<-function(popnames=mysambar$populations,export=NULL)
 		## now we can calculate a, b and c:
 		a			<- (nmean/nc)*(mafvar-(1/(nmean-1))*(mafavg*(1-mafavg)-mafvar*((r-1)/r)-1/4*he))
 		b			<- (nmean/(nmean-1))*((mafavg*(1-mafavg))-(((r-1)/r)*mafvar)-((2*he*nmean-1)/(4*nmean)))  
-		weirc			<- 1/2*he
+		weirc		<- 1/2*he
 		# now we can calculate the multilocus-Fst:
 		multilocusweirfstvector[i]	<- round(sum(a)/(sum(a)+sum(b)+sum(weirc)),3)
 		}
@@ -19414,9 +19430,9 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 			#corrected_pi	<- round(uncorrected_pi/nsitesall*outmat[p,6],4)		# edited on 16-5-2020
 			corrected_pi	<- round(sum(mycomp$ndiff,na.rm=TRUE)/sum(mycomp$ncomp,na.rm=TRUE),4)	# edited on 16-5-2020. ncomp=nsites*4 (or nsites*1 for within). nsites is totalsites - nnasites  
 			outmat[p,7]		<- ifelse(corrected,corrected_pi,uncorrected_pi)
-			outmat[p,10]	<- nseg											# segregating sites						
-			outmat[p,8]		<- round(mean(mymaf[mymaf>0],na.rm=TRUE),2)		# mean maf of segregating sites
-			outmat[p,9]		<- round((2*outmat[p,8]*(1-outmat[p,8])*outmat[p,10]),1)	# expected nucleotide diversity (pi) based on minor allele frequency
+			outmat[p,10]	<- nseg																# segregating sites						
+			outmat[p,8]		<- round(mean(mymaf[mymaf>0],na.rm=TRUE),2)							# mean maf of segregating sites
+			outmat[p,9]		<- round((2*outmat[p,8]*(1-outmat[p,8])*outmat[p,10]),1)			# expected nucleotide diversity (pi) based on minor allele frequency
 			outmat[p,11]	<- round(sum(1/(1:(nhaplotypes-1))),2)								# harmonic number
 			outmat[p,12]	<- round(outmat[p,10]/outmat[p,11],2)								# watterson's theta
 			outmat[p,13]	<- ifelse(corrected,NA,round(outmat[p,7]-outmat[p,12],2))			# tajima's d
@@ -29235,6 +29251,7 @@ findoverlap<-function(mylist1=NULL,mylist2=NULL,mycolours=NULL,silent=TRUE,combi
 	n_inverse<- nrow(snpscombi[snpscombi$inversed,])
 	cat(paste(n_equal," out of ",n_overlap," SNPs have corresponding minor and major alleles among the two input datasets.",sep=""),sep="\n")
 	cat(paste(n_inverse," out of ",n_overlap," SNPs have inversed minor and major alleles.",sep=""),sep="\n")
+	cat("Correcting for inversed minor allele frequencies...",sep="\n")
 	# make a correction for inversed mafs in genlight object:
 	# inversion is done for individuals of mypops2 (rather than for individuals of mypops1)
 	# 03072019: to improve: inversion should be done based on which dataset is bigger. i.e. n_ind1 > nind2
@@ -29252,6 +29269,7 @@ findoverlap<-function(mylist1=NULL,mylist2=NULL,mycolours=NULL,silent=TRUE,combi
 			mypopmatrix[,i]		<- temp
 			}
 		}
+	if(!silent){cat("Recombining...",sep="\n")}
 	combinedmatrix			<- rbind(mypopmatrix,otherpopsmatrix)
 	genlightcombi			<- as.genlight(combinedmatrix)
 	genlightcombi@pop		<- as.factor(indscombi$pop)
@@ -29259,7 +29277,7 @@ findoverlap<-function(mylist1=NULL,mylist2=NULL,mycolours=NULL,silent=TRUE,combi
 	snpscombi$major			<- snpscombi$major_data1
 	snpscombi$minor2		<- NA
 	snpscombi$major2		<- NA
-	snpscombi$nr_neworder	<- c(1:nrow(snps))	
+	snpscombi$nr_neworder	<- c(1:nrow(snpscombi))	
 	for(i in c(1:nrow(snpscombi)))
 		{
 		snpscombi$minor2[i]		<- c("A","C","G","T")[snpscombi$minor[i]]
@@ -29267,6 +29285,7 @@ findoverlap<-function(mylist1=NULL,mylist2=NULL,mycolours=NULL,silent=TRUE,combi
 		}
 	#
 	# reorder data based on individual names:
+	if(!silent){cat("Reorder based on names of individuals...",sep="\n")}
 	indscombi$name	<- as.character(indscombi$name)
 	indscombi		<- indscombi[order(indscombi$name),]
 	indscombi$nr	<- c(1:nrow(indscombi))
@@ -29277,6 +29296,7 @@ findoverlap<-function(mylist1=NULL,mylist2=NULL,mycolours=NULL,silent=TRUE,combi
 	genlightcombi	<- as.genlight(matrixtemp2)
 	# 
 	# change colnames of genlight matrix:
+	if(!silent){cat("Edit snpnames in new genlight object...",sep="\n")}
 	matrixtemp			<- as.matrix(genlightcombi)
 	colnames(matrixtemp)<- snpscombi$name
 	genlightcombi		<- as.genlight(matrixtemp)
