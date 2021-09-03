@@ -1819,7 +1819,7 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 				cat("Sample names in inds dataset can be observed by typing: indsdatanames.",sep="\n")
 				return(cat("The similarity between both vectors can be observed by typing: booldatanames.",sep="\n"))
 				}
-			vcfinput	<- vcfinput[boolvec,]
+			vcfinput	<- droplevels(vcfinput[boolvec,])
 			}
 		if(any(as.vector(as.character(vcfinput$name))!=as.vector(as.character(inds$name))))
 			{
@@ -2667,6 +2667,7 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		cat("If you agree, set the flag 'do_confirm' (i.e. genlight2sambar(do_confirm=TRUE)) to TRUE.",sep="\n")
 		return(cat("If not, first navigate to another directory.",sep="\n"))
 		}
+	cat("REMINDER: use quotes when specifying the input genlight_object, otherwise you will run into the error: 'Error in get(genlight_object, envir = myglobal) : invalid first argument'.",sep="\n")
 	myglobal	<- globalenv()
 	mygenlight	<- get(genlight_object,envir=myglobal)
 	if(is.null(mygenlight@ind.names))
@@ -4086,6 +4087,7 @@ genindassign<-function(mygenind=NULL,mindemes=2,maxdemes=6,mycolours=mysambar$my
 	mysambar$genindqlist	<<- qmatrixlist
 	}
 
+# export genind to structure file
 # function from github page of Lindsay Clark:
 genind2structure<-function(obj=mysambar$genind,file="LEAinput.stru",pops=FALSE)
 	{
@@ -11307,7 +11309,7 @@ doMDS<-function(export=NULL,ndim=2,nonmetric=FALSE,labels=FALSE,addlegend=TRUE,l
 	}
 	
 # DAPC (and PCA) with Adegenet
-genlight2genind<-function(input=mygenlight)
+genlight2genind<-function(input=mygenlight,add2sambar=TRUE)
 	{
 	# When trying to run dapc analysis with genlight, I got an ERROR stating that on a Windows computer mc.cores is not possible.
 	# I decided to work around this problem by converting genlight object to genind object. 
@@ -11315,21 +11317,29 @@ genlight2genind<-function(input=mygenlight)
 	# 27-01-2020: the error I got before I don't get now, so it seems that conversion is not necessary anyway.
 	#
 	# The conversion does take time, so first check whether it is needed or whether you already did it:
-	if(!is.null(mysambar$genind))
+	if(add2sambar)
 		{
-		n_inds	<- dim(mysambar$genind$tab)[1]
-		n_snps	<- (dim(mysambar$genind$tab)[2])/2
-		if((n_inds==nrow(inds[inds$filter,]))&(n_snps==nrow(snps[snps$filter,])))
+		if(!is.null(mysambar$genind))
 			{
-			return(cat("Genind object already stored in mysambar$genind. No conversion needed.",sep="\n"))	
+			n_inds	<- dim(mysambar$genind$tab)[1]
+			n_snps	<- (dim(mysambar$genind$tab)[2])/2
+			if((n_inds==nrow(inds[inds$filter,]))&(n_snps==nrow(snps[snps$filter,])))
+				{
+				return(cat("Genind object already stored in mysambar$genind. No conversion needed.",sep="\n"))	
+				}
 			}
 		}
 	cat("Converting genlight object to genind object...",sep="\n")
 	cat("This might take a while.",sep="\n")
 	#
 	# First line is in case the user (you) changed inds$popcol column and populations vector but forgot to change genlight$pop correspondingly:
-	mygenlight@pop		<- as.factor(inds$pop)
-	x.mat 				<- as.matrix(input[inds$filter,snps$filter]) # input is a genlight object
+	if(add2sambar)
+		{
+		mygenlight@pop	<- as.factor(inds$pop)
+		x.mat 			<- as.matrix(input[inds$filter,snps$filter]) # input is a genlight object
+		}else{
+		x.mat			<- as.matrix(input)
+		}
 	x.mat[x.mat == 0] 	<- "1/1" # homozygote reference
 	x.mat[x.mat == 1] 	<- "1/2" # heterozygote
 	x.mat[x.mat == 2] 	<- "2/2" # homozygote alternate
@@ -11337,11 +11347,17 @@ genlight2genind<-function(input=mygenlight)
 	mycolnames			<- gsub(":","_",mycolnames)			# 09-07-19: to avoid ERROR: ERROR in .local(.Object, ...) : more than one '.' in column names; please name column as [LOCUS].[ALLELE]
 	mycolnames			<- gsub("\\.","_",mycolnames)		# 09-07-19: to avoid ERROR: ERROR in .local(.Object, ...) : more than one '.' in column names; please name column as [LOCUS].[ALLELE]
 	colnames(x.mat)		<- mycolnames
-	x.mat				<<- x.mat
-	mygenind 	  		<- df2genind(x.mat, sep = "/", ploidy = 2)
-	pop(mygenind)	  	<- as.vector(mygenlight@pop[inds$filter])
-	mysambar$genind		<<- mygenind
-	cat("Conversion finished. Genind object is stored at mysambar$genind.",sep="\n")
+	#x.mat				<<- x.mat
+	mygenind 	  		<- df2genind(x.mat,sep="/",ploidy = 2)
+	if(add2sambar)
+		{
+		pop(mygenind)	  	<- as.vector(mygenlight@pop[inds$filter])
+		mysambar$genind		<<- mygenind
+		cat("Conversion finished. Genind object is stored at mysambar$genind.",sep="\n")
+		}else{
+		mygenind		<<- mygenind
+		cat("Conversion finished. Genind object is stored at mygenind.",sep="\n")
+		}
 	}
 
 # dudi.pca does not accept missing data (ERROR: na entries in table) so impute data first
@@ -18204,7 +18220,7 @@ plotmigration<-function(myinputmatrix="bayesassmatrix.txt",mycolours=NULL,export
 # I decided not to include calcLD, because it only calculates LD for adjacent snps (otherwise it takes too long).
 # What's more, SambaR provides excellent plotting function for PLINK output. 
 
-calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,silent=TRUE,u_g=1.0*10^-8,dohwe=TRUE,do_sfs=TRUE)
+calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,silent=TRUE,u_g=1.0*10^-8,dohwe=TRUE,do_sfs=TRUE,redo_tajd=TRUE)
 	{
 	# nrsites must be a vector of length of either 1 or length of vector mysambar$populations
 	# nrsegsites must be vector of length of either 1 or length of vector mysambar$populations
@@ -18361,6 +18377,17 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 	popbool	<- popnind>1
 	if(all(popbool))
 		{
+		if(!is.null(mysambar$tajd))
+			{
+			if(!redo_tajd)
+				{
+				cat("WARNING: using existing Tajima's statistics table stored at mysambar$tajd.",sep="\n")
+				cat("If you want to redo the calculations, set the flag redo_tajd to TRUE.",sep="\n")
+				}else{
+				cat("Rerunning 'calcpi' function. To save time, set the flag redo_tajd to FALSE.",sep="\n")
+				calcpi(pi_per_pop=TRUE)
+				}
+			}
 		if(length(mysambar$populations)>1)
 			{
 			seqdivplot(export=TRUE)
@@ -20395,12 +20422,15 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 		}else{
 		outmat$TajimaD_scaled	<- round(outmat$TajimaD/outmat$mean_nsites,4)
 		}
+	outmat$X2				<- round(((outmat$mean_pi-outmat$Watterson)^2)/outmat$Watterson,2)
+	outmat$pvalue			<- round(pchisq(outmat$X2,df=1,lower.tail=FALSE),6)
+	outmat$sign				<- ifelse(outmat$pvalue>0.05,"NS",ifelse(outmat$pvalue<0.01,"**","*"))
 	outmat$rare_alleles		<- ifelse(outmat$TajimaD< -2,"many_rare",ifelse(outmat$TajimaD>2,"lack_of_rare","neutral"))
 	outmat$demography		<- ifelse(outmat$TajimaD< -2,"expansion_after_bottleneck",ifelse(outmat$TajimaD>2,"contraction","neutral"))
 	outmat$selection		<- ifelse(outmat$TajimaD< -2,"selective_sweep",ifelse(outmat$TajimaD>2,"balancing","neutral"))	
 	if(!is.null(mychrom)&!is.null(myrange))	{tajd			<- outmat}
-	if(!is.null(mychrom)&is.null(myrange))	{tajd			<- outmat[,c(1,2,6:21)]}	
-	if(is.null(mychrom)&is.null(myrange))	{tajd			<- outmat[,c(1,6:21)]}	
+	if(!is.null(mychrom)&is.null(myrange))	{tajd			<- outmat[,c(1,2,6:24)]}	
+	if(is.null(mychrom)&is.null(myrange))	{tajd			<- outmat[,c(1,6:24)]}	
 	if(pi_per_pop)
 		{
 		write.table(tajd,paste(mysambar$diversitydir,"TajimaD.statistics.perpop.txt",sep="/"),col.names=TRUE,quote=FALSE,row.names=FALSE,sep="\t")
