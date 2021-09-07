@@ -2466,7 +2466,7 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		indhetero_allsnps()
 		#myminsites	<- ifelse(0.01*nrow(snps)<200,200,0.01*nrow(snps))
 		He_vs_miss(export="pdf",allsites=TRUE,minsites=200,legendcex=legend_cex)
-		cat("Not included in the plot are samples with less than 200 non-missing data points.",sep="\n")
+		#cat("Not included in the plot are samples with less than 250 non-missing data points.",sep="\n")
 		}
 	cat("DATA SUCCESSFULLY IMPORTED.",sep="\n")
 	cat("The data is stored in 'mygenlight'. For an overview, type on the command line: 'mygenlight'.",sep="\n") 
@@ -3024,7 +3024,7 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		indhetero_allsnps()
 		#myminsites	<- ifelse(0.01*nrow(snps)<200,200,0.01*nrow(snps))
 		He_vs_miss(export="pdf",allsites=TRUE,minsites=200)
-		cat("Not included in the plot are samples with less than 200 non-missing data points.",sep="\n")
+		#cat("Not included in the plot are samples with less than 250 non-missing data points.",sep="\n")
 		}
 	#
 	cat(" ",sep="\n")
@@ -7785,6 +7785,10 @@ He_vs_miss<-function(export=NULL,popnames=mysambar$populations,allsites=TRUE,max
 		nNA 		<- apply(mat,1,function(x) length(x[is.na(x)])) # number of NA per individual
 		inds$miss 	<<- nNA / ncol(mat) # fraction of SNPs with missing data per individual
 		}
+	if(length(inds$miss[inds$nsites2>=minsites])==0)
+		{
+		return(cat("Zero individuals with more retained datapoints than defined by minsites flag. Omitting He_vs_miss plot.",sep="\n"))
+		}
 	if(max(inds$miss[inds$nsites2>=minsites],na.rm=TRUE)==0)
 		{
 		return(cat("No missing datapoints. Omitting He_vs_miss plot.",sep="\n"))
@@ -9066,19 +9070,19 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 			cat("If you receive an error after this line (for example about 'ploidy' issues), rerun the findstructure function with the 'do_tree' flag set to false (i.e. findstructure(do_tree=FALSE)).",sep="\n")
 			#cat("A second option is to rerun the filterdata() function with different filter options (include more SNPs) and then try the findstructure function again.",sep="\n")
 			#08-03-2020: above lines are redundant after including inds$allgeno filter.
-			popprtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="rightwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="rightwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="rightwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 			cat("Creating UPGMA tree based on Hamming's genetic distance (i.e. using bitwise.dis function of poppr package)...",sep="\n")
-			popprtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
-			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE)
+			popprtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="rightwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="rightwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="phylogram",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="rightwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 			}
 		if(do_popca)
 			{
@@ -10087,7 +10091,7 @@ apetree<-function(mymatrix=mysambar$indneimatrix,my_inds=inds)
 	plot(mytree,edge.color=my_inds$popcol[my_inds$filter],cex=0.5)
 	}		
 
-popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",mycolours=NULL,genofilter=FALSE,plotname="Tree",plottitle=NULL,titlecex=3,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,mytype="phylogram",labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=NULL,showpop=FALSE,tree_angle=0,mydirection="upwards",silent=TRUE)
+popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",mycolours=NULL,genofilter=FALSE,plotname="Tree",plottitle=NULL,titlecex=3,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,mytype="phylogram",labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=NULL,showpop=FALSE,tree_angle=0,mydirection="rightwards",silent=TRUE)
 	{
 	# if only one node per population:
 	# mypopcolours	<- vector()
@@ -21178,7 +21182,7 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 	#
 	# BACKGROUND INFO: CALCULATION OF MINOR ALLELE COUNTS PER SNP
 	# how many (non-)missing data points per SNP?
-	# misscount			<- glNA(inputgenlight[inds$filter,],alleleAsUnit=FALSE)
+	# misscount				<- glNA(inputgenlight[inds$filter,],alleleAsUnit=FALSE)
 	# nonmissallelecount 	<- 2*(nInd(inputgenlight[inds$filter,])-misscount)
 	#
 	# glSum: computes the mean number of second allele in each SNP.
@@ -21218,8 +21222,8 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 	if(dofilter)
 		{
 		# If flag dofilter is set to TRUE, we consider only snps which passed filter settings:
-		mymac		<- mymac[snps$filter]
-		myhecount	<- myhecount[snps$filter]
+		mymac				<- mymac[snps$filter]
+		myhecount			<- myhecount[snps$filter]
 		nonmissallelecount	<- nonmissallelecount[snps$filter]
 		}
 	mymac				<- ifelse(mymac>0.5*nonmissallelecount,nonmissallelecount-mymac,mymac)
@@ -21292,7 +21296,7 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 			#hist(snps$mactemp[snps$mactemp!=0],ylim=yrange,main = popnames[i],xlab=NULL,breaks=seq(0,nrow(inds[inds$filter&as.character(inds$pop)==popnames[i],]),1))
 			hist(mymac[mymac!=0],ylim=yrange,main = popnames[i],xlab=NULL,breaks=seq(0,nrow(inds[inds$filter&as.character(inds$pop)==popnames[i],]),1))
 			}
-		minorclasses				<- c(1:nind)
+		minorclasses			<- c(1:nind)
 		if(dofilter)
 			{
 			mymac				<- mymac[snps$filter]
