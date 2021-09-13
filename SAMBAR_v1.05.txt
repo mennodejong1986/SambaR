@@ -21356,7 +21356,6 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 			mymac				<- mymac[snps$filter]
 			myhecount			<- myhecount[snps$filter]
 			}
-		mytestcount				<<- nonmissallelecount
 		mymac					<- ifelse(mymac>0.5*nonmissallelecount,nonmissallelecount-mymac,mymac)
 		if(any(mymac<0,na.rm=TRUE))
 			{
