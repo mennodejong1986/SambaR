@@ -2640,6 +2640,59 @@ editchr2<-function(silent=FALSE,countsnps=FALSE,nchroms=NULL)
 	snps$autosomal	<<- ifelse(snps$chr=="X",FALSE,TRUE)
 	}
 
+indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plotname="Indscatter",xscore="snp_he",yscore="hetero_all",xlabel="Genome-wide He (%)",ylabel="TE He",legendpos="topleft",yline=5.5,labels=FALSE,symbolsize=3.5,logx=FALSE,logy=FALSE)
+	{
+	ind				<- droplevels(inds[inds$filter,])
+	mypops			<- as.character(mysambar$populations)
+	mycolours		<- as.character(mysambar$mycolours)
+	#
+	if(!xscore%in%colnames(inds))
+		{
+		return(cat("ERROR: xscore not present in ind dataframe.",sep="\n"))
+		}
+	if(!yscore%in%colnames(inds))
+		{
+		return(cat("ERROR: yscore not present in ind dataframe.",sep="\n"))
+		}
+	inputdf			<- inds[,c(xscore,yscore)]
+	mydf			<<- inputdf
+	colnames(inputdf)<- c("xscore","yscore")
+	#
+	xmax			<- max(inputdf$xscore)
+	xmin			<- min(inputdf$xscore)
+	ymax			<- max(inputdf$yscore)
+	ymin			<- min(inputdf$yscore)
+	if(!is.null(export))
+		{
+		plotname	<- ifelse(labels,paste(plotname,"indnames",sep="_"),plotname)
+		legendlabel	<- ifelse(addlegend,"withlegend","NOlegend")
+		if(export=="eps"){postscript(paste(plotname,legendlabel,"eps",sep="."),width=8,height=8)}
+		if(export=="pdf"){pdf(paste(plotname,legendlabel,"pdf",sep="."),width=8,height=8)}
+		if(export=="png"){png(paste(plotname,legendlabel,"png",sep="."),width=720,height=720)}
+		if(export=="wmf"){win.metafile(paste(plotname,legendlabel,"wmf",sep="."),width=8,height=8)} 
+		}
+	par(mar=c(5.5,8.5,2.5,0.5),cex.axis=2.5,cex.lab=3,cex.main=3)
+	mylog	<- ifelse(logx,ifelse(logy,"xy","x"),ifelse(logy,"y",""))
+	if(!labels)
+		{
+		plot(inputdf$xscore,inputdf$yscore,pch=16,log=mylog,col=as.character(ind$popcol),xlim=c(xmin,xmax),ylim=c(ymin,ymax),cex=symbolsize,xlab=xlabel,ylab="",las=1)
+		}else{
+		plot(inputdf$xscore,inputdf$yscore,pch=16,log=mylog,col="white",xlim=c(xmin,xmax),ylim=c(ymin,ymax),cex=3,xlab=xlabel,ylab="",las=1)
+		text(inputdf$xscore,inputdf$yscore,ind$name,col=as.character(ind$popcol),cex=1)
+		}
+	mtext(side=2,line=yline,ylabel,cex=3)
+	if(addlegend)
+		{
+		legend(legendpos,legend=mysambar$poporder,bty='n',fill=mysambar$colorder,border=mysambar$colorder,cex=legendcex)
+		}
+	if(!is.null(export))
+		{
+		dev.off()
+		cat("Scatterplot has been exported to the directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
+	}
+
 # if not importing data, but instead converting from a genlight object:
 genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NULL,popvector=NULL,major=1,minor=4,qcplot=TRUE,heplot=TRUE,silent=TRUE,allow_edit=FALSE,pop_order=NULL)
 	{
@@ -8778,7 +8831,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=TRUE,do_pi=TRUE,do_dapc=TRUE,do_subsets=TRUE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE)
+findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=TRUE,do_pi=TRUE,do_dapc=TRUE,do_subsets=TRUE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -9292,7 +9345,7 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 			{
 			# optionally create geographical maps:
 			if(!silent){cat("create_sambarmaps",sep="\n")}
-			create_sambarmaps(K_max=Kmax,radius_ratio=30,dotess=do_tess)
+			create_sambarmaps(K_max=Kmax,radius_ratio=30,dotess=do_tess,marine_data=marine_dataset)
 			}
 		}
 	# reset working directory to default:
@@ -21224,7 +21277,7 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 		# If flag dofilter is set to TRUE, we consider only snps which passed filter settings:
 		mymac				<- mymac[snps$filter]
 		myhecount			<- myhecount[snps$filter]
-		nonmissallelecount	<- nonmissallelecount[snps$filter]
+		nonmissallelecount	<- nonmissallelecount
 		}
 	mymac				<- ifelse(mymac>0.5*nonmissallelecount,nonmissallelecount-mymac,mymac)
 	if(any(mymac<0,na.rm=TRUE))
@@ -21275,7 +21328,7 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 	for (i in (1:length(popnames)))
 		{
 		if(!silent){cat(popnames[i],sep="\n")}
-		mypop				<- popnames[i]
+		mypop				<- as.character(popnames[i])
 		nind				<- nrow(inds[inds$filter&as.character(inds$pop)==mypop,])
 		#misscount			<- glNA(inputgenlight[inds$filter&inds$pop==popnames[i],],alleleAsUnit=FALSE)
 		#nonmissallelecount <- 2*(nInd(inputgenlight[inds$filter&inds$pop==popnames[i],])-misscount)
@@ -21288,6 +21341,7 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 			myhecount			<- as.vector(snps[,paste("Aa",popnames[i],sep="_")])
 			}else{
 			nonmissallelecount	<- 2*nind						# no missing data in imputed dataset
+			if(!silent){cat(nonmissallelecount,sep="\n")}
 			mymac				<- as.vector(snps[,paste("imputed_mac",popnames[i],sep="_")])
 			myhecount			<- as.vector(snps[,paste("imputed_Aa",popnames[i],sep="_")])
 			}
@@ -21301,9 +21355,9 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 			{
 			mymac				<- mymac[snps$filter]
 			myhecount			<- myhecount[snps$filter]
-			nonmissallelecount	<- nonmissallelecount[snps$filter]
 			}
-		mymac				<- ifelse(mymac>0.5*nonmissallelecount,nonmissallelecount-mymac,mymac)
+		mytestcount				<<- nonmissallelecount
+		mymac					<- ifelse(mymac>0.5*nonmissallelecount,nonmissallelecount-mymac,mymac)
 		if(any(mymac<0,na.rm=TRUE))
 			{
 			return(cat("Negative minor allele counts. Please contact the developer of SambaR.",sep="\n"))
@@ -29169,7 +29223,7 @@ genlight2ped<-function(input=mygenlight,in_snps=snps,in_inds=inds,popvec=NULL,sn
 		}
 	}
 
-exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include_pcadapt=TRUE,include_outflank=TRUE,include_bayescan=FALSE,include_fsthet=FALSE,current_dir=FALSE)
+exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include_pcadapt=TRUE,include_outflank=TRUE,include_bayescan=FALSE,include_fsthet=FALSE,current_dir=FALSE,export_outlier=TRUE,export_neutral=TRUE)
 	{
 	currentdir	<- getwd()
 	if(!current_dir)
@@ -29183,108 +29237,133 @@ exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include
 	if(mycolumn%in%snpcolnames&include_gwds)		
 		{
 		gwdsout		<- snps[,mycolumn]
+		gwdsout2	<- gwdsout
 		if(any(is.na(gwdsout))){cat(paste("WARNING: NA in column ",mycolumn," of SNPs dataset.",sep=""),sep="\n")}
 		}else{
 		if(include_gwds){cat("WARNING: column with GWDS outlier info not present in snps dataframe.",sep="\n")}
 		gwdsout		<- rep(FALSE,nrow(snps))
+		gwdsout2	<- rep(TRUE,nrow(snps))
 		}
 	# PCadapt:
 	mycolumn		<- paste("PCadaptout",my_dataset,sep="_")
 	if(mycolumn%in%snpcolnames&include_pcadapt)		
 		{
 		pcadaptout	<- snps[,mycolumn]
+		pcadaptout2	<- pcadaptout
 		if(any(is.na(pcadaptout))){cat(paste("WARNING: NA in column ",mycolumn," of SNPs dataset.",sep=""),sep="\n")}
 		}else{
 		if(include_pcadapt){cat("WARNING: column with PCadapt outlier info not present in snps dataframe.",sep="\n")}
 		pcadaptout	<- rep(FALSE,nrow(snps))
+		pcadaptout	<- rep(TRUE,nrow(snps))
 		}
 	# OutFLANK:
 	mycolumn		<- paste("OutFLANK",my_dataset,sep="_")
 	if(mycolumn%in%snpcolnames&include_outflank)		
 		{
 		outflankout	<- snps[,mycolumn]
+		outflankout2<- outflankout	
 		if(any(is.na(outflankout))){cat(paste("WARNING: NA in column ",mycolumn," of SNPs dataset.",sep=""),sep="\n")}
 		}else{
 		if(include_outflank){cat("WARNING: column with OutFLANK outlier info not present in snps dataframe.",sep="\n")}
 		outflankout	<- rep(FALSE,nrow(snps))
+		outflankout2<- rep(TRUE,nrow(snps))
 		}
 	# bayescan:
 	mycolumn		<- paste("bayescanout",my_dataset,sep="_")
 	if(mycolumn%in%snpcolnames&include_bayescan)		
 		{
 		bayescanout	<- snps[,mycolumn]
+		bayescanout2<- bayescanout
 		if(any(is.na(bayescanout))){cat(paste("WARNING: NA in column ",mycolumn," of SNPs dataset.",sep=""),sep="\n")}
 		}else{
 		if(include_bayescan){cat("WARNING: column with Bayescan outlier info not present in snps dataframe.",sep="\n")}
 		bayescanout	<- rep(FALSE,nrow(snps))
+		bayescanout2<- rep(TRUE,nrow(snps))
 		}
 	# Fsthet:
 	mycolumn		<- paste("fsthetout",my_dataset,sep="_")
 	if(mycolumn%in%snpcolnames&include_fsthet)		
 		{
 		fsthetout	<- snps[,mycolumn]
+		fsthetout2	<- fsthetout
 		if(any(is.na(fsthetout))){cat(paste("WARNING: NA in column ",mycolumn," of SNPs dataset.",sep=""),sep="\n")}
 		}else{
 		if(include_fsthet){cat("WARNING: column with FstHet outlier info not present in snps dataframe.",sep="\n")}
 		fsthetout	<- rep(FALSE,nrow(snps))
+		fsthetout2	<- rep(TRUE,nrow(snps))
 		}
 	outdf	<<- cbind(gwdsout,pcadaptout,outflankout,bayescanout,fsthetout)
+	outdf2	<<- cbind(gwdsout2,pcadaptout2,outflankout2,bayescanout2,fsthetout2)
 	if(!any(outdf))
 		{
 		return(cat("No outliers present. Not possible to split dataset in neutral and outlier SNPs. Not exporting files.",sep="\n"))
 		}
 	outfilter		<- apply(outdf,1,any)
-	outlierfilter	<- snps$filter&outfilter
+	outfilter2		<- apply(outdf2,1,all)
+	outlierfilter	<- snps$filter&outfilter		# union
+	outlierfilter2	<- snps$filter&outfilter2		# intersect (overlap)
 	#
 	# outliers of all selection scans:
-	cat("Exporting dataset with outlier SNPs in PED and MAP format...",sep="\n")
-	exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+	if(export_outlier)
+		{
+		cat("Exporting dataset with all outlier SNPs marked by at least one selection scan, in PED and MAP format...",sep="\n")
+		exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+		if(any(outlierfilter2))
+			{
+			cat("Exporting dataset with outlier SNPs marked by all (used) selection scans, in PED and MAP format...",sep="\n")
+			exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter2,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.overlap",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}else{
+			cat("No SNP has been marked by all outlier scans.",sep="\n")
+			}
+		# outliers of individual selection scans:
+		if(any(gwdsout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&gwdsout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		if(any(pcadaptout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&pcadaptout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		if(any(outflankout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&outflankout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		if(any(bayescanout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&bayescanout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		if(any(fsthetout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&fsthetout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		}
 	#
-	# outliers of individual selection scans:
-	if(any(gwdsout))
+	if(export_neutral)
 		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&gwdsout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	if(any(pcadaptout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&pcadaptout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	if(any(outflankout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&outflankout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	if(any(bayescanout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&bayescanout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	if(any(fsthetout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&fsthetout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	#
-	neutralfilter	<- snps$filter&(!outfilter)
-	cat("Exporting dataset with neutral SNPs in PED and MAP format...",sep="\n")
-	exportdata(indsfilter=inds$filter,snpsfilter=neutralfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-	#
-	if(any(gwdsout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!gwdsout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	if(any(pcadaptout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!pcadaptout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	if(any(outflankout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!outflankout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	if(any(bayescanout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!bayescanout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
-		}
-	if(any(fsthetout))
-		{
-		exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!fsthetout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+		neutralfilter	<- snps$filter&(!outfilter)
+		cat("Exporting dataset with neutral SNPs in PED and MAP format...",sep="\n")
+		exportdata(indsfilter=inds$filter,snpsfilter=neutralfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+		#
+		if(any(gwdsout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!gwdsout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		if(any(pcadaptout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!pcadaptout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		if(any(outflankout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!outflankout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		if(any(bayescanout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!bayescanout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
+		if(any(fsthetout))
+			{
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!fsthetout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			}
 		}
 	setwd(currentdir)
 	}
