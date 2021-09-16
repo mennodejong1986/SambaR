@@ -2640,7 +2640,7 @@ editchr2<-function(silent=FALSE,countsnps=FALSE,nchroms=NULL)
 	snps$autosomal	<<- ifelse(snps$chr=="X",FALSE,TRUE)
 	}
 
-indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plotname="Indscatter",xscore="snp_he",yscore="hetero_all",xlabel="Genome-wide He (%)",ylabel="TE He",legendpos="topleft",yline=5.5,labels=FALSE,symbolsize=3.5,logx=FALSE,logy=FALSE)
+indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,plotname="Indscatter",xscore="snp_he",yscore="hetero_all",labelscore=NULL,xlabel="Genome-wide He (%)",ylabel="TE He",legendpos="topleft",yline=5.5,symbolsize=3.5,logx=FALSE,logy=FALSE,labelcex=1)
 	{
 	ind				<- droplevels(inds[inds$filter,])
 	mypops			<- as.character(mysambar$populations)
@@ -2654,6 +2654,14 @@ indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plotname="Indscat
 		{
 		return(cat("ERROR: yscore not present in ind dataframe.",sep="\n"))
 		}
+	if(!is.null(labelscore))
+		{
+		if(!labelscore%in%colnames(inds))
+			{
+			return(cat("ERROR: labelscore not present in ind dataframe.",sep="\n"))
+			}
+		inputlabels	<- inds[,labelscore]
+		}
 	inputdf			<- inds[,c(xscore,yscore)]
 	mydf			<<- inputdf
 	colnames(inputdf)<- c("xscore","yscore")
@@ -2664,7 +2672,7 @@ indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plotname="Indscat
 	ymin			<- min(inputdf$yscore)
 	if(!is.null(export))
 		{
-		plotname	<- ifelse(labels,paste(plotname,"indnames",sep="_"),plotname)
+		plotname	<- ifelse(!is.null(labelscore),paste(plotname,"indnames",sep="_"),plotname)
 		legendlabel	<- ifelse(addlegend,"withlegend","NOlegend")
 		if(export=="eps"){postscript(paste(plotname,legendlabel,"eps",sep="."),width=8,height=8)}
 		if(export=="pdf"){pdf(paste(plotname,legendlabel,"pdf",sep="."),width=8,height=8)}
@@ -2673,17 +2681,21 @@ indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plotname="Indscat
 		}
 	par(mar=c(5.5,8.5,2.5,0.5),cex.axis=2.5,cex.lab=3,cex.main=3)
 	mylog	<- ifelse(logx,ifelse(logy,"xy","x"),ifelse(logy,"y",""))
-	if(!labels)
+	if(is.null(labelscore))
 		{
 		plot(inputdf$xscore,inputdf$yscore,pch=16,log=mylog,col=as.character(ind$popcol),xlim=c(xmin,xmax),ylim=c(ymin,ymax),cex=symbolsize,xlab=xlabel,ylab="",las=1)
 		}else{
 		plot(inputdf$xscore,inputdf$yscore,pch=16,log=mylog,col="white",xlim=c(xmin,xmax),ylim=c(ymin,ymax),cex=3,xlab=xlabel,ylab="",las=1)
-		text(inputdf$xscore,inputdf$yscore,ind$name,col=as.character(ind$popcol),cex=1)
+		text(inputdf$xscore,inputdf$yscore,inputlabels,col=as.character(ind$popcol),cex=labelcex)
 		}
 	mtext(side=2,line=yline,ylabel,cex=3)
 	if(addlegend)
 		{
 		legend(legendpos,legend=mysambar$poporder,bty='n',fill=mysambar$colorder,border=mysambar$colorder,cex=legendcex)
+		}
+	if(!is.null(plottitle))
+		{
+		mtext(side=3,plottitle,cex=2.5,line=0.5)
 		}
 	if(!is.null(export))
 		{
@@ -18413,6 +18425,12 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 		private_hist(snpsfilter=snps$filter,export="pdf")
 		private_hist(snpsfilter=snps$filter,export="png")
 		if(mysambar$os=="Windows"){private_hist(snpsfilter=snps$filter,export="wmf")}
+		if(length(mysambar$populations)<6)
+			{
+			# Venn diagram showing overlap of polymorphic sites between loci
+			# Works for maximum 5 populations
+			markervenn(export=TRUE)
+			}
 		}else{
 		cat("Only 1 population defined. Skipping count of private alleles.")
 		}
@@ -18895,7 +18913,59 @@ private_hist<-function(popnames=mysambar$populations,snpsfilter=NULL,export=NULL
 	mtext(paste("# SNPs:",snpstotal/1000,"k",sep=" "),side=3,line=0.75,cex=3)
 	if(!is.null(export)){dev.off()}
 	}
-	
+
+# 14-09-2021:
+# Shows number of private allele as well as shared alleles
+# Works for maximum 5 populations
+markervenn<-function(export=FALSE,plotname="Segregatingsites_venn",minmaf=0,myfilter=snps$filter,popnames=mysambar$populations,popcolours=mysambar$mycolours,silent=TRUE,numbercex=2.5,labelcex=2.5,addtotal=FALSE,include_overall=FALSE)
+	{
+	seglist		<<- list()
+	npops		<- length(popnames)
+	for(k in c(1:npops))
+		{
+		mypop		<- as.character(popnames[k])
+		mafvec		<- snps[,paste("maf",mypop,sep="_")]
+		seglist[[k]]<<- snps$name[myfilter&mafvec>minmaf]
+		}
+	if(addtotal)
+		{
+		names(seglist)	<<- paste(as.vector(summary(seglist)[,1]),popnames,sep="\n")
+		}else{
+		names(seglist)	<<- popnames
+		}
+	#
+	if(is.null(popcolours))
+		{
+		popcolours	<- vector()
+		for(k in c(1:npops))
+			{
+			mypop			<- as.character(popnames[k])
+			popcolours[k]	<- mysambar$mycolours[which(mysambar$populations==mypop)]
+			}
+		}
+	if(include_overall)
+		{
+		# useless:
+		seglist$overall	<<- snps$name[myfilter&snps$maf>minmaf]
+		popcolours		<- c(popcolours,"grey50") 
+		}
+	if(!silent){cat("Plotting...",sep="\n")}
+	# depends on package VennDiagram
+	if(export){pdf(paste(plotname,minmaf,"pdf",sep="."),height=6,width=8)}
+	#v1 <- venn.diagram(seglist,filename=NULL,alpha=0.6,cex=3,cat.cex=3,fill=c("blue","darkorchid4"),col=c("blue","darkgreen","darkorchid4"),margin=0.1)
+	v1 <- venn.diagram(seglist,filename=NULL,alpha=0.6,cex=numbercex,cat.cex=labelcex,fill=popcolours,col=popcolours,margin=0.1)
+	grid.newpage()
+	grid.draw(v1)
+	if(export)
+		{
+		dev.off()
+		cat("Venn diagram has been exported to the directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
+	vennlogfiles <- list.files(pattern = "\\.log$")
+	unlink(vennlogfiles)
+	}
+
 snp_sim<-function(snp1=NULL,snp2=NULL)
 	{
 	# how similar are genotype scores of two snps?
@@ -21257,11 +21327,15 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 		mymac				<- snps$minorcount
 		myhecount			<- snps$Aa
 		}else{
-		nonmissallelecount	<- 2*nind			# no missing data in imputed dataset
+		nonmissallelecount	<- rep(2*nind,nrow(snps))			# no missing data in imputed dataset
 		mymac				<- snps$imputed_minorcount
 		myhecount			<- snps$imputed_Aa
 		}
-	mymac					<- ifelse(mymac>0.5*nonmissallelecount,nonmissallelecount-mymac,mymac)
+	if(length(mymac)!=length(nonmissallelecount))
+		{
+		return(cat("ERROR: length of mymac vector does not correspond with length of nonmissallelecount vector.",sep="\n"))
+		}
+	mymac					<- ifelse(any(mymac>(0.5*nonmissallelecount)),nonmissallelecount-mymac,mymac)
 	#
 	if(histo)
 		{
@@ -21275,14 +21349,18 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 	if(dofilter)
 		{
 		# If flag dofilter is set to TRUE, we consider only snps which passed filter settings:
+		nonmissallelecount	<- nonmissallelecount[snps$filter]
 		mymac				<- mymac[snps$filter]
 		myhecount			<- myhecount[snps$filter]
-		nonmissallelecount	<- nonmissallelecount
 		}
-	mymac				<- ifelse(mymac>0.5*nonmissallelecount,nonmissallelecount-mymac,mymac)
+	if(length(mymac)!=length(nonmissallelecount))
+		{
+		return(cat("ERROR: length of mymac vector does not correspond with length of nonmissallelecount vector.",sep="\n"))
+		}
+	mymac				<- ifelse(any(mymac>(0.5*nonmissallelecount)),nonmissallelecount-mymac,mymac)
 	if(any(mymac<0,na.rm=TRUE))
 		{
-		return(cat("Negative minor allele counts. Please contact the developer of SambaR.",sep="\n"))
+		return(cat("ERROR: negative minor allele counts. Please contact the developer of SambaR.",sep="\n"))
 		}
 	#
 	# SFS VECTOR METAPOPULATION:
@@ -21340,7 +21418,7 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 			mymac				<- as.vector(snps[,paste("mac",popnames[i],sep="_")])
 			myhecount			<- as.vector(snps[,paste("Aa",popnames[i],sep="_")])
 			}else{
-			nonmissallelecount	<- 2*nind						# no missing data in imputed dataset
+			nonmissallelecount	<- rep(2*nind,nrow(snps))						# no missing data in imputed dataset
 			if(!silent){cat(nonmissallelecount,sep="\n")}
 			mymac				<- as.vector(snps[,paste("imputed_mac",popnames[i],sep="_")])
 			myhecount			<- as.vector(snps[,paste("imputed_Aa",popnames[i],sep="_")])
@@ -21353,8 +21431,13 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 		minorclasses			<- c(1:nind)
 		if(dofilter)
 			{
+			nonmissallelecount	<- nonmissallelecount[snps$filter]
 			mymac				<- mymac[snps$filter]
 			myhecount			<- myhecount[snps$filter]
+			}
+		if(length(mymac)!=length(nonmissallelecount))
+			{
+			return(cat("ERROR: length of mymac vector does not correspond with length of nonmissallelecount vector.",sep="\n"))
 			}
 		mymac					<- ifelse(mymac>0.5*nonmissallelecount,nonmissallelecount-mymac,mymac)
 		if(any(mymac<0,na.rm=TRUE))
@@ -23406,7 +23489,6 @@ plot_indmatrix<-function(export=NULL,indsfilter=TRUE,inputvalues=NULL,popnames=m
 		}
 	myindmatrix 			<- matrix(NA,nrow=nind,ncol=nind)
 	tempmatrix				<- myindmatrix
-	#myindmatrix[upper.tri(myindmatrix)] 	<- round(inputvalues,3)	# 09-03-2020: Big, big mistake. This fills columnwise, rather than row wise. This affected many results, including Biagio's.
 	tempmatrix[lower.tri(tempmatrix)]		<- round(inputvalues,3)
 	myindmatrix								<- t(tempmatrix) 
 	mynames2				<- as.character(inds$nr)							
@@ -28535,7 +28617,7 @@ plot_venn<-function(my_dataset="pheno1_pheno2",export=TRUE,mysmall=1,silent=TRUE
 					{
 					if(my_dataset!="metapop")
 						{
-						v1 <- venn.diagram(list(GWDS=gwdsout,fsthet=fsthetout),filename=NULL,alpha=0.6,cex=3,cat.cex=3,fill=c("blue","darkorchid4"),col=c("blue","darkgreen","darkorchid4"),margin=0.1)
+						v1 <- venn.diagram(list(GWDS=gwdsout,fsthet=fsthetout),filename=NULL,alpha=0.6,cex=3,cat.cex=3,fill=c("blue","darkorchid4"),col=c("blue","darkorchid4"),margin=0.1)
 						}else{
 						# This will lead to errors:
 						v1 <- venn.diagram(list(fsthet=fsthetout),filename=NULL,alpha=0.6,cex=3,cat.cex=3,fill=c("darkorchid4"),col=c("darkorchid4"),margin=0.1)
