@@ -1232,7 +1232,7 @@ getpackages_old<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE,
 
 
 # import biallelic data from PLINK raw format:
-importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,samplefile=NULL,vcfsamplefile=NULL,allow_edit=FALSE,geofile=NULL,depthfile=FALSE,poolsfile=NULL,nchroms=NULL,namechars=10,colourvector=NULL,popcol_by_alphabetical_order_popname=TRUE,silent=TRUE,heplot=TRUE,qcplot=TRUE,do_citations=TRUE,dosoftwarecheck=FALSE,acceptalleles=FALSE,legend_cex=3,pop_order=NULL)
+importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,samplefile=NULL,vcfsamplefile=NULL,allow_edit=FALSE,geofile=NULL,depthfile=FALSE,poolsfile=NULL,nchroms=NULL,namechars=10,colourvector=NULL,popcol_by_alphabetical_order_popname=TRUE,popnchars=10,silent=TRUE,heplot=TRUE,qcplot=TRUE,do_citations=TRUE,dosoftwarecheck=FALSE,acceptalleles=FALSE,legend_cex=3,pop_order=NULL)
 	{
 	# poolsfile: Name of optional input file (default is NULL) with the names of the sequencing library pool names of the samples. 
 	# Input file should contain two tab-separated columns called ‘sample’ and ‘pool’. Sample names in the poolsfile should be identical to sample names in PED-file. 
@@ -1422,21 +1422,22 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 				return(cat("Option 3: Allow SambaR to remove underscores from population names by setting the flag allow_edit to TRUE (i.e. importdata(allow_edit=TRUE)).",sep="\n"))
 				}
 			}
-		if(any(nchar(as.character(pop(mygenlight)))>10))
+		if(any(nchar(as.character(pop(mygenlight)))>popnchars))
 			{
 			if(allow_edit)
 				{
-				cat("WARNING: Because of plot margins, SambaR does not accept population names which contain more than 10 characters.",sep="\n")
+				cat("WARNING: Because of plot margins, by default SambaR does not accept population names which contain more than 10 characters.",sep="\n")
 				cat("Because you set the flag allow_edit to TRUE, SambaR will truncate population names (if longer than 10 characters) and continue.",sep="\n")
 				mypops		<- as.character(pop(mygenlight))
-				mypops		<- ifelse(nchar(mypops)>10,substr(mypops,1,10),mypops)
+				mypops		<- ifelse(nchar(mypops)>popnchars,substr(mypops,1,popnchars),mypops)
 				pop(mygenlight)	<<- mypops
 				}else{
-				cat("ERROR: Because of plot margins, SambaR does not accept population names which contain more than 10 characters.",sep="\n")
-				cat("To solve this issue, you can choose any of the following three options:",sep="\n")
-				cat("Option 1: Edit population names in the PED-file, convert PED/MAP to raw/bim using PLINK, and afterwards rerun the importdata() function.",sep="\n")
-				cat("Option 2: Create a sample file as explained in the manual (e.g. called 'popfile.txt') and afterwards run: importdata(samplefile='popfile.txt').",sep="\n")
-				return(cat("Option 3: Allow SambaR to truncate population names (if needed) by setting the flag allow_edit to TRUE (i.e. importdata(allow_edit=TRUE)).",sep="\n"))
+				cat("ERROR: Because of plot margins, by default SambaR does not accept population names which contain more than 10 characters.",sep="\n")
+				cat("To solve this issue, you can choose any of the following four options:",sep="\n")
+				cat("Option 1: Rerun the importdata function with another value for popnchars (which by default is set to 10). Some output plots might, as a result, not fully display the population name.",sep="\n")
+				cat("Option 2: Edit population names in the PED-file, convert PED/MAP to raw/bim using PLINK, and afterwards rerun the importdata() function.",sep="\n")
+				cat("Option 3: Create a sample file as explained in the manual (e.g. called 'popfile.txt') and afterwards run: importdata(samplefile='popfile.txt').",sep="\n")
+				return(cat("Option 4: Allow SambaR to truncate population names (if needed) by setting the flag allow_edit to TRUE (i.e. importdata(allow_edit=TRUE)).",sep="\n"))
 				}
 			}
 		mynind	<- as.vector(table(as.character(pop(mygenlight))))
@@ -1848,21 +1849,22 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 				return(cat("Option 2: Allow SambaR to truncate population names (if needed) by setting the flag allow_edit to TRUE (i.e. importdata(allow_edit=TRUE)).",sep="\n"))
 				}
 			}
-		if(any(nchar(as.character(vcfinput$pop))>10))
+		if(any(nchar(as.character(vcfinput$pop))>popnchars))
 			{
 			if(allow_edit)
 				{
 				cat("WARNING: Because of plot margins, SambaR does not accept population names which contain more than 10 characters.",sep="\n")
 				cat("Because you set the flag allow_edit to TRUE, SambaR will truncate population names (if longer than 10 characters) and continue.",sep="\n")
 				mypops		<- as.character(vcfinput$pop)
-				vcfinput$pop<- ifelse(nchar(mypops)>10,substr(mypops,1,10),mypops)
+				vcfinput$pop<- ifelse(nchar(mypops)>popnchars,substr(mypops,1,popnchars),mypops)
 				mypops2		<- as.character(vcfinput$pop2)
-				vcfinput$pop2<- ifelse(nchar(mypops2)>10,substr(mypops2,1,10),mypops2)
+				vcfinput$pop2<- ifelse(nchar(mypops2)>popnchars,substr(mypops2,1,popnchars),mypops2)
 				}else{
 				cat("ERROR: Because of plot margins, SambaR does not accept population names which contain more than 10 characters.",sep="\n")
-				cat("To solve this issue, you can choose any of the following two options:",sep="\n")
-				cat("Option 1: Edit population names in the sample file and rerun the importdata function.",sep="\n")
-				return(cat("Option 2: Allow SambaR to truncate population names (if needed) by setting the flag allow_edit to TRUE (i.e. importdata(allow_edit=TRUE)).",sep="\n"))
+				cat("To solve this issue, you can choose any of the following three options:",sep="\n")
+				cat("Option 1: Rerun the importdata function with another value for popnchars (which by default is set to 10). Some output plots might, as a result, not fully display the population name.",sep="\n")
+				cat("Option 2: Edit population names in the sample file and rerun the importdata function.",sep="\n")
+				return(cat("Option 3: Allow SambaR to truncate population names (if needed) by setting the flag allow_edit to TRUE (i.e. importdata(allow_edit=TRUE)).",sep="\n"))
 				}
 			}
 		mynind	<- as.vector(table(vcfinput$pop))
@@ -2418,6 +2420,17 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		return(cat("ERROR: column names of genlight object do not correspond with snps$genlightname column. Contact developer of SambaR.",sep="\n"))
 		}
 	#
+	if(!is.null(pop_order))
+		{
+		if(any(!as.character(inds$pop)%in%as.character(pop_order)))
+			{
+			return(cat("ERROR: not all populations specified at inds$pop present in pop_order vector.",sep="\n"))
+			}
+		if(any(!as.character(pop_order)%in%as.character(inds$pop)))
+			{
+			return(cat("ERROR: not all populations specified in pop_order vector present in inds$pop column.",sep="\n"))
+			}
+		}
 	reorderpop(poporder=pop_order)
 	#
 	# cat("Removing snps which are on the same position...")
@@ -2704,6 +2717,80 @@ indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,pl
 		cat(getwd(),sep="\n")
 		}
 	}
+
+poppairscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,plotname="Poppair_scatter",xscore=mysambar$popneivector,yscore=mysambar$WC1983fstvector,xlabel="Nei's genetic distance (D)",ylabel="Weir & Cockerham 1983 Fst",legendpos="bottomright",yline=5.5,symbolsize=3.5,logx=FALSE,logy=FALSE,labelcex=1,corrpos=NULL)
+	{
+	pop1		<- mysambar$poppair1
+	pop2		<- mysambar$poppair2
+	if(is.null(mysambar$pairpopcol1))
+		{
+		cat("Generating mysambar$pairpop1 and mysambar$pairpop2.",sep="\n")
+		popnames				<- mysambar$populations
+		popcols					<- mysambar$mycolours
+		npops					<- length(popnames)
+		nsnps					<- nrow(snps)
+		combitable				<- combn(popnames,m=2)
+		mysambar$pairpop1		<<- combitable[1,]
+		mysambar$pairpop2		<<- combitable[2,]
+		mysambar$pairpopcol1	<<- vector()
+		mysambar$pairpopcol2	<<- vector()
+		for(k in c(1:ncol(combitable)))
+			{
+			mysambar$pairpopcol1[k]	<<- popcols[which(popnames==mysambar$pairpop1[k])]
+			mysambar$pairpopcol2[k]	<<- popcols[which(popnames==mysambar$pairpop2[k])]
+			}
+		}
+	popcol1		<- mysambar$pairpopcol1
+	popcol2		<- mysambar$pairpopcol2
+	if(is.null(xscore))
+		{
+		return(cat("ERROR: xscore not present.",sep="\n"))
+		}
+	if(is.null(yscore))
+		{
+		return(cat("ERROR: yscore not present.",sep="\n"))
+		}
+	inputdf			<- data.frame("xscore"=xscore,"yscore"=yscore)
+	colnames(inputdf)<- c("xscore","yscore")
+	#
+	xmax			<- max(inputdf$xscore)
+	xmin			<- min(inputdf$xscore)
+	ymax			<- max(inputdf$yscore)
+	ymin			<- min(inputdf$yscore)
+	if(!is.null(export))
+		{
+		legendlabel	<- ifelse(addlegend,"withlegend","NOlegend")
+		if(export=="eps"){postscript(paste(plotname,legendlabel,"eps",sep="."),width=8,height=8)}
+		if(export=="pdf"){pdf(paste(plotname,legendlabel,"pdf",sep="."),width=8,height=8)}
+		if(export=="png"){png(paste(plotname,legendlabel,"png",sep="."),width=720,height=720)}
+		if(export=="wmf"){win.metafile(paste(plotname,legendlabel,"wmf",sep="."),width=8,height=8)} 
+		}
+	par(mar=c(5.5,8.5,2.5,0.5),cex.axis=2.5,cex.lab=3,cex.main=3)
+	mylog	<- ifelse(logx,ifelse(logy,"xy","x"),ifelse(logy,"y",""))
+	plot(inputdf$xscore,inputdf$yscore,pch=21,lwd=5,log=mylog,col=as.character(popcol1),bg=as.character(popcol2),xlim=c(xmin,xmax),ylim=c(ymin,ymax),cex=symbolsize,xlab=xlabel,ylab="",las=1)
+	mtext(side=2,line=yline,ylabel,cex=3)
+	if(addlegend)
+		{
+		legend(legendpos,legend=mysambar$poporder,bty='n',fill=mysambar$colorder,border=mysambar$colorder,cex=legendcex)
+		}
+	if(!is.null(corrpos))
+		{
+		mycorr1		<- round(cor(inputdf$xscore,inputdf$yscore,method="pearson"),2)
+		mycorr2		<- round(cor(inputdf$xscore,inputdf$yscore,method="spearman"),2)
+		legend(corrpos,legend=c(paste("Pearson r: ",mycorr1,sep=""),paste("Spearman r: ",mycorr2,sep="")),bty='n',fill=NA,border=NA,cex=1.75)
+		}
+	if(!is.null(plottitle))
+		{
+		mtext(side=3,plottitle,cex=2.5,line=0.5)
+		}
+	if(!is.null(export))
+		{
+		dev.off()
+		cat("Scatterplot has been exported to the directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
+	}
+
 
 # if not importing data, but instead converting from a genlight object:
 genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NULL,popvector=NULL,major=1,minor=4,qcplot=TRUE,heplot=TRUE,silent=TRUE,allow_edit=FALSE,pop_order=NULL)
@@ -9148,6 +9235,17 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 			popprtree(export="pdf",do_analysis=FALSE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=FALSE,mylwd=3,addnodelabels=FALSE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+			#
+			cat("Calculating Nei's genetic distance using stamppNeisD function of the package 'StAMPP'...",sep="\n")
+			pop_neimatrix(export=NULL)
+			if(length(mysambar$populations)>3)
+				{
+				# 22-09-2021:
+				getpopneitree(donj=FALSE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5)
+				getpopneitree(donj=TRUE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5)
+				getpopneitree(donj=FALSE,edgecolors=TRUE,mytype="phylogram",labelcex=1.5)
+				getpopneitree(donj=TRUE,edgecolors=TRUE,mytype="phylogram",labelcex=1.5)
+				}
 			}
 		if(do_popca)
 			{
@@ -10297,8 +10395,8 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	if(!silent){cat("Running plot.phylo function of the ape package...",sep="\n")}
 	ape::plot.phylo(mytree,cex=labelcex,font=myfont,adj=0,show.tip.label=tiplabels,tip.color=my_colours,type=mytype,lab4ut=labelangle,edge.width=mylwd,node.pos=1,edge.color=mycolors2,rotate.tree=tree_angle,direction=mydirection)
 	if(!is.null(mytree$node.label)&addnodelabels)
-		{
 		# this are node labels (e.g. support values), not tip labels (e.g. sample names, stored at mytree$label)
+		{
 		if(!silent){cat("Adding node labels...",sep="\n")}
 		if(!is.null(maxnodelabel))
 			{
@@ -10987,7 +11085,7 @@ multiplot_pcoa<-function(exporttype=NULL,mymethod="hamming",dolabels=FALSE,print
 
 # This script is to create combined pcoa plots for different axis combinations
 # The function is different from 'plotmulti_pcoa' (see above)
-multiplot_pcoa_axes<-function(exporttype=NULL,exportname=NULL,mymethod="hamming",cex_lab=2.75,dolabels=FALSE,print_miss=FALSE,print_name=NULL,dolegend=TRUE,poslegend="bottom",cex_legend=3,size_symbol=4,size_label=2.5,maxmiss=0.01,myaxes=c(1,2,1,3,2,3),mirroraxis=c(rep(FALSE,6)),use_symbol2=FALSE)
+multiplot_pcoa_axes<-function(exporttype=NULL,my_legend=NULL,my_legendcol=NULL,exportname=NULL,mymethod="hamming",cex_lab=2.75,dolabels=FALSE,print_miss=FALSE,print_name=NULL,dolegend=TRUE,poslegend="bottom",cex_legend=3,size_symbol=4,size_label=2.5,maxmiss=0.01,myaxes=c(1,2,1,3,2,3),mirroraxis=c(rep(FALSE,6)),use_symbol2=FALSE)
 	{
 	setwd(mysambar$structuredir)
 	#my_plist	<<- list()
@@ -11029,7 +11127,12 @@ multiplot_pcoa_axes<-function(exporttype=NULL,exportname=NULL,mymethod="hamming"
 		}else{
 		mymissvector	<- inds$miss
 		}
-	ape_pcoa(snpselection=snps$filter,method=mymethod,labcex=cex_lab,labels=dolabels,label_size=size_label,missvector=mymissvector,printname=print_name,axis1=myaxes[1],axis2=myaxes[2],do_mirror=boolmirror1,axiscex=3,axisdistance=2,labeldistance=5.5,use_symboltype2=use_symbol2,resetgraphics=FALSE,addlegend=dolegend,legendpos=poslegend,symbolsize=size_symbol,legendcex=cex_legend,dodc=FALSE)
+	if(is.null(my_legend)&is.null(my_legendcol))
+		{
+		ape_pcoa(snpselection=snps$filter,method=mymethod,labcex=cex_lab,labels=dolabels,label_size=size_label,missvector=mymissvector,printname=print_name,axis1=myaxes[1],axis2=myaxes[2],do_mirror=boolmirror1,axiscex=3,axisdistance=2,labeldistance=5.5,use_symboltype2=use_symbol2,resetgraphics=FALSE,addlegend=dolegend,legendpos=poslegend,symbolsize=size_symbol,legendcex=cex_legend,dodc=FALSE)
+		}else{
+		ape_pcoa(snpselection=snps$filter,method=mymethod,labcex=cex_lab,labels=dolabels,label_size=size_label,missvector=mymissvector,printname=print_name,axis1=myaxes[1],axis2=myaxes[2],do_mirror=boolmirror1,axiscex=3,axisdistance=2,labeldistance=5.5,use_symboltype2=use_symbol2,resetgraphics=FALSE,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=FALSE,legendpos=poslegend,symbolsize=size_symbol,legendcex=cex_legend,dodc=FALSE)
+		}
 	mtext("PC1 vs PC2",side=3,cex=2.75,line=0.5)
 	ape_pcoa(snpselection=snps$filter,method=mymethod,labcex=cex_lab,labels=dolabels,label_size=size_label,missvector=mymissvector,printname=print_name,axis1=myaxes[3],axis2=myaxes[4],do_mirror=boolmirror2,axiscex=3,axisdistance=2,labeldistance=5.5,use_symboltype2=use_symbol2,resetgraphics=FALSE,addlegend=FALSE,symbolsize=size_symbol,legendcex=cex_legend,dodc=FALSE)
 	mtext("PC1 vs PC3",side=3,cex=2.75,line=0.5)
@@ -11189,7 +11292,7 @@ multisnprelate_pca<-function(dolabels=FALSE,exporttype=NULL,dolegend=TRUE,posleg
 	if(!is.null(exporttype)){dev.off()}
 	}
 
-snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,indsfilter=inds$filter,snpsfilter=snps$filter,export=NULL,symbolsize=2,labels=FALSE,addaxislabel=TRUE,addlegend=TRUE,legendpos="right",popnames=mysambar$populations,symboltype=16,legendcex=2,dodc=TRUE)
+snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,indsfilter=inds$filter,snpsfilter=snps$filter,export=NULL,exportname="pca.snprelate",plottitle=NULL,symbolsize=5,labels=FALSE,addaxislabel=TRUE,addlegend=TRUE,legendpos="right",popnames=mysambar$populations,popcolours=mysambar$colorder,symboltype=16,legendcex=3,dodc=TRUE)
 	{
 	mymatrix	<- as.matrix(mygenlight[indsfilter,snpsfilter])
 	mypops		<- as.factor(inds$pop[indsfilter]) 
@@ -11210,7 +11313,7 @@ snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,indsfilter=inds$filter,sn
 	# sambarfunction_findstructure:
 	sample.id 	<- read.gdsn(index.gdsn(genofile, "sample.id"))
 	npops		<- length(popnames)
-	pcadata 	<- data.frame(sample.id = pca$sample.id,pop=factor(mypops)[match(pca$sample.id,sample.id)],EV1 = pca$eigenvect[,1],EV2 = pca$eigenvect[,2],stringsAsFactors = FALSE)
+	pcadata 	<- data.frame(sample.id = pca$sample.id,pop=factor(mypops)[match(pca$sample.id,sample.id)],EV1 = pca$eigenvect[,axis1],EV2 = pca$eigenvect[,axis2],stringsAsFactors = FALSE)
 	pcadata$col	<- mypopcolours
 	# sambarfunction_findstructure:
 	snpgdsClose(genofile)
@@ -11219,28 +11322,34 @@ snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,indsfilter=inds$filter,sn
 		graphics.off()
 		if(!is.null(export))
 			{
+			exportname		<- paste(exportname,paste(axis1,"vs",axis2,sep=""),sep=".")
 			if(labels)
 				{
-				if(export=="eps"){postscript("pca.snprelate.labels.eps",family=mysambar$myfont,width=10.5,height=10.5)}	# 10.5 instead of 10 because otherwise some labels are missing
-				if(export=="pdf"){pdf("pca.snprelate.labels.pdf",family=mysambar$myfont,width=10.5,height=10.5)}
-				if(export=="png"){png("pca.snprelate.labels.png",family=mysambar$myfont,width=720,height=720)}
-				if(export=="wmf"){win.metafile("pca.snprelate.labels.wmf",family=mysambar$myfont,width=10.5,height=10.5)}
+				exportname	<- paste(exportname,"labels",sep=".")
+				if(export=="eps"){postscript(paste(exportname,"eps",sep="."),family=mysambar$myfont,width=10.5,height=10.5)}	# 10.5 instead of 10 because otherwise some labels are missing
+				if(export=="pdf"){pdf(paste(exportname,"pdf",sep="."),family=mysambar$myfont,width=10.5,height=10.5)}
+				if(export=="png"){png(paste(exportname,"png",sep="."),family=mysambar$myfont,width=720,height=720)}
+				if(export=="wmf"){win.metafile(paste(exportname,"wmf",sep="."),family=mysambar$myfont,width=10.5,height=10.5)}
 				}else{
-				if(export=="eps"){postscript("pca.snprelate.eps",family=mysambar$myfont,width=10.5,height=10.5)}
-				if(export=="pdf"){pdf("pca.snprelate.pdf",family=mysambar$myfont,width=10.5,height=10.5)}
-				if(export=="png"){png("pca.snprelate.png",family=mysambar$myfont,width=720,height=720)}
-				if(export=="wmf"){win.metafile("pca.snprelate.wmf",family=mysambar$myfont,width=10.5,height=10.5)}
+				if(export=="eps"){postscript(paste(exportname,"eps",sep="."),family=mysambar$myfont,width=10.5,height=10.5)}
+				if(export=="pdf"){pdf(paste(exportname,"pdf",sep="."),family=mysambar$myfont,width=10.5,height=10.5)}
+				if(export=="png"){png(paste(exportname,"png",sep="."),family=mysambar$myfont,width=720,height=720)}
+				if(export=="wmf"){win.metafile(paste(exportname,"wmf",sep="."),family=mysambar$myfont,width=10.5,height=10.5)}
 				}
 			}
 		par(mar=c(5,6,5,2),cex.axis=2,cex.lab=3,cex.main=3.5)
 		}
 	# First create outline of the plot. The argument 'col="white"' hides the datapoints, so we can edit them in the next commands. 
-	mycols		<- mysambar$mycolours[1:npops]
+	# 28-09-2021: replaced following line:
+	# mycols		<- mysambar$mycolours[1:npops]
+	mycols			<- popcolours
 	if(addaxislabel)
 		{
 		plot(pcadata$EV1,pcadata$EV2,pch=16,col="white",xlab="",ylab="",cex=symbolsize)
-		mtext("eigenvector 1",side=1,line=3,cex=3)
-		mtext("eigenvector 2",side=2,line=3,cex=3)
+		#mtext("eigenvector 1",side=1,line=3.5,cex=3.5)
+		#mtext("eigenvector 2",side=2,line=3.5,cex=3.5)
+		mtext(paste("Dim ",axis1," (",round(100*pca$varprop[axis1],1)," %)",sep=""),side=1,line=3.5,cex=3.5)
+		mtext(paste("Dim ",axis2," (",round(100*pca$varprop[axis2],1)," %)",sep=""),side=2,line=3.5,cex=3.5)
 		}else{
 		plot(pcadata$EV1,pcadata$EV2,pch=16,col="white",xlab="",ylab="",cex=symbolsize,xaxt='n')
 		axis(side=1,mgp=c(0,2.5,0))
@@ -11268,10 +11377,14 @@ snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,indsfilter=inds$filter,sn
 		{
 		if(length(symboltype)>1)
 			{
-			legend(legendpos,legend=popnames,fill=mycols,pch=symboltype,bty="n",cex=legendcex)
+			legend(legendpos,legend=popnames,fill=mycols,border=mycols,pch=symboltype,bty="n",cex=legendcex)
 			}else{
-			legend(legendpos,legend=popnames,fill=mycols,bty="n",cex=legendcex)
+			legend(legendpos,legend=popnames,fill=mycols,border=mycols,bty="n",cex=legendcex)
 			}
+		}
+	if(!is.null(plottitle))
+		{
+		mtext(side=3,plottitle,line=0.5,cex=3.5)
 		}
 	if(!is.null(export)){dev.off()}	
 	mypcascores	<- cbind(pcadata$EV1,pcadata$EV2)
@@ -14719,7 +14832,11 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 		if(mysambar$os=="Windows"){pop_neimatrix(export="wmf")}
 		if(length(mysambar$populations)>3&dopoptree)
 			{
-			getpopneitree()
+			# 22-09-2021:
+			getpopneitree(donj=FALSE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5)
+			getpopneitree(donj=TRUE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5)
+			getpopneitree(donj=FALSE,edgecolors=TRUE,mytype="phylogram",labelcex=1.5)
+			getpopneitree(donj=TRUE,edgecolors=TRUE,mytype="phylogram",labelcex=1.5)
 			}
 		cat("Calculating Pearson's correlation coefficient and variance fst values...",sep="\n")
 		runWrightFst()
@@ -14800,6 +14917,12 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 				cat("Not running the function 'comparefstplot' because the flag 'dodistgenpop' has been set to FALSE.",sep="\n")
 				}
 			}
+		if(!silent){cat("Exporting Nei-table.",sep="\n")}
+		exportneitable()
+		if(!silent){cat("Exporting scatter plots showing comparisons between genetic distance estimates.",sep="\n")}
+		poppairscatter(export="pdf",plotname="Poppair_NeiDvsWC1983Fst",xscore=mysambar$popneivector,yscore=mysambar$WC1983fstvector,xlabel="Nei's genetic distance (D)",ylabel="Weir & Cockerham 1983 Fst",yline=4.5)
+		poppairscatter(export="pdf",plotname="Poppair_NeiDvsWright1943Fst",xscore=mysambar$popneivector,yscore=mysambar$Wrightfstvector,xlabel="Nei's genetic distance (D)",ylabel="Wright 1943 Fst")
+		poppairscatter(export="pdf",plotname="Poppair_Wright1943Fst_WC1983Fst",xscore=mysambar$Wrightfstvector,yscore=mysambar$WC1983fstvector,xlabel="Wright 1943 Fst",ylabel="Weir & Cockerham 1983 Fst")
 		if(!is.null(nchroms))
 			{
 			cat("Sliding window analyses...",sep="\n")
@@ -17029,6 +17152,7 @@ block_jackknife <- function(block_indices, FUN, ...)
     }
 
 # Correlation between allele frequencies:
+# This measure was first published by Sewall Wright in 1943 (Wright, 1943, see equation 48 and the SambaR manual).   
 runWrightFst<-function(popnames=mysambar$populations,popcols=mysambar$mycolours)
 	{
 	if(length(popnames)==1)
@@ -17038,8 +17162,8 @@ runWrightFst<-function(popnames=mysambar$populations,popcols=mysambar$mycolours)
 	npops			<- length(popnames)
 	nsnps			<- nrow(snps)
 	combitable		<- combn(popnames,m=2)
-	mysambar$pairpop1<<- combitable[1,]
-	mysambar$pairpop2<<- combitable[2,]
+	mysambar$pairpop1		<<- combitable[1,]
+	mysambar$pairpop2		<<- combitable[2,]
 	mysambar$pairpopcol1	<<- vector()
 	mysambar$pairpopcol2	<<- vector()
 	for(k in c(1:ncol(combitable)))
@@ -17326,30 +17450,109 @@ pop_neimatrix<-function(popnames=mysambar$populations,export=NULL)
 	mysambar$pairpop2<<- combitable[2,]
 	}
 
+# 22-09-2021:
+exportneitable<-function()
+	{
+	if(is.null(mysambar$popneimatrix))
+		{
+		return(cat("ERROR: mysambar$popneimatrix not present.",sep="\n"))
+		}
+	if(!is.null(mysambar$Wrightfstvector))
+		{
+		#### Wright Fst:
+		mymat					<- mysambar$popneimatrix
+		mymat[lower.tri(mymat)]	<- mysambar$Wrightfstvector
+		ordermat				<- mymat
+		#
+		# reorder populations (27-04-2021):
+		ordermat				<- ordermat[mysambar$popordernr,mysambar$popordernr]
+		ordermat				<- round(ordermat,3)
+		write.table(ordermat,"NeiD_above_WrightFst_below.txt",row.names=TRUE,col.names=TRUE,sep="\t",quote=FALSE)
+		}
+	#
+	if(!is.null(mysambar$WC1983fstvector))
+		{
+		#### Weir and Cockherham Fst:
+		mymat					<- mysambar$popneimatrix
+		mymat[lower.tri(mymat)]	<- mysambar$WC1983fstvector
+		ordermat				<- mymat
+		# reorder populations (27-04-2021):
+		ordermat				<- ordermat[mysambar$popordernr,mysambar$popordernr]
+		ordermat				<- round(ordermat,3)
+		write.table(ordermat,"NeiD_above_WC1983Fst_below.txt",row.names=TRUE,col.names=TRUE,sep="\t",quote=FALSE)
+		#
+		# check if values are corresponding:
+		# mymat2<-t(mymat)
+		# plot(mymat2[lower.tri(mymat2)],mymat[lower.tri(mymat)])
+		}
+	}
+
 # tree for populations:
 # This shows genetic difference between populations, not evolutionary relationship!
 # i.e. a recently diverged founder population can be genetically more distant from the source population than a bigger population which diverged earlier. 
-getpopneitree<-function(mymatrix=mysambar$popneimatrix)
+getpopneitree<-function(mymatrix=mysambar$popneimatrix,labelcex=1.5,mytype="phylogram",myheight=NULL,mywidth=NULL,mylwd=3,edgecolors=TRUE,donj=TRUE,popnames=mysambar$populations,popcolours=mysambar$mycolours,silent=TRUE,doexport=TRUE,addnodelabels=TRUE,maxnodelabel=NULL)
 	{
 	#install.packages("phangorn")
 	#library(phangorn)
-	mymatrix[lower.tri(mymatrix)]	<- mymatrix[upper.tri(mymatrix)]
+	# 22-09-2021: replaced following line:
+	# mymatrix[lower.tri(mymatrix)]	<- mymatrix[upper.tri(mymatrix)]
+	# 22-09-2021: with the following lines:
+	if(is.null(mymatrix))
+		{
+		return(cat("ERROR: input matrix (defined using mymatrix flag) does not exist.",sep="\n"))
+		}
+	mymatrix						<- t(mymatrix)
+	#mymatrix[lower.tri(mymatrix)]	<- mytmatrix[lower.tri(mytmatrix)]
+	#
 	colnames(mymatrix)				<- mysambar$populations
 	colnames(mymatrix)				<- mysambar$populations
-	mytree_upgma					<- upgma(mymatrix)
-	mytree_nj						<- NJ(mymatrix)
+	if(!donj)
+		{
+		mytree						<- upgma(mymatrix)
+		}else{
+		mytree						<- NJ(mymatrix)
+		}
+	#
+	mycolors2 				<- rep("black",Nedge(mytree))
+	npops					<- length(popnames)
+	mytree					<<- mytree
+	if(edgecolors)
+		{
+		if(!silent){cat("Defining edge colours...",sep="\n")}
+		tipindex				<- which(mytree$edge[,2]%in%c(1:npops))
+		poporder				<- mytree$edge[tipindex,2]
+		mycolors2[tipindex]		<- popcolours[poporder]
+		}
 	#
 	# plot:
-	pdf("UPGMA_nei_tree.pdf")
-	# plot(mytree_upgma,cex=2)
-	plot.phylo(mytree_upgma,cex=2.5,font=1,adj=0)
-	dev.off()
-	#
-	# plot:
-	# pdf("NJ_tree.pdf")
-	# plot(mytree_upgma,cex=2)
-	# plot.phylo(mytree_nj,cex=2.5,font=2,adj=0)
-	# dev.off()
+	plotname	<- ifelse(donj,paste("Poptree",mytype,"NJ.pdf",sep="."),paste("Poptree",mytype,"UPGMA.pdf",sep="."))
+	if(doexport)
+		{
+		if(is.null(myheight)&is.null(mywidth))
+			{
+			pdf(plotname)
+			}else{
+			pdf(plotname,height=myheight,width=mywidth)
+			}
+		}
+	labelangle	<- ifelse(mytype=="phylogram","horizontal","axial")
+	plot.phylo(mytree,cex=labelcex,font=3,adj=0,edge.color=mycolors2,tip.color=popcolours,lwd=mylwd,edge.width=mylwd,show.node.label=TRUE,type=mytype,lab4ut=labelangle)
+	if(addnodelabels)
+		{
+		if(!is.null(mytree$node.label))
+			{
+			if(!silent){cat("Adding node labels...",sep="\n")}
+			# this are node labels (e.g. support values), not tip labels (e.g. sample names, stored at mytree$label)
+			if(!is.null(maxnodelabel))
+				{
+				mytree$node.label	<- ifelse(mytree$node.label>=maxnodelabel,NA,mytree$node.label)
+				}
+			nodelabels(mytree$node.label,adj=c(1.3,-0.5),frame="n",cex=nodelabelcex,font=3,xpd=TRUE,col="grey50")
+			}else{
+			if(!silent){cat("Nodelabels not present.",sep="\n")}
+			}
+		}
+	if(doexport){dev.off()}
 	}
 
 runhudsonfst<-function(maf1=0)
@@ -18336,11 +18539,11 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 	plotgenotri(export="eps",allsites=FALSE)
 	plotgenotri(export="pdf",allsites=FALSE)
 	plotgenotri(export="png",allsites=FALSE)
-	if(mysambar$os=="Windows"){plotgenotri(export="pdf",allsites=TRUE)}
+	if(mysambar$os=="Windows"){plotgenotri(export="wmf",allsites=TRUE)}
 	plotgenotri(export="eps",allsites=TRUE)
 	plotgenotri(export="pdf",allsites=TRUE)
 	plotgenotri(export="png",allsites=TRUE)
-	if(mysambar$os=="Windows"){plotgenotri(export="pdf",allsites=TRUE)}
+	if(mysambar$os=="Windows"){plotgenotri(export="wmf",allsites=TRUE)}
 	cat("Hardy Weinberg calculations...",sep="\n")
 	cat("If you receive an error after this line, set the flag dohwe to FALSE.",sep="\n")
 	if(dohwe)
@@ -18360,19 +18563,19 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 		MLHboxplot(export="eps",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
 		MLHboxplot(export="pdf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
 		MLHboxplot(export="png",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
-		if(mysambar$os=="Windows"){MLHboxplot(export="pdf",sMLH=FALSE,plotname="MLH_boxplot",popnames=mysambar$populations,popcolours=mysambar$mycolours,ylabel="Multi locus heterozygosity")}
+		if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")}
 		cat("Plotting multilocus heterozygosity...",sep="\n")
 		MLHboxplot(export="eps",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
 		MLHboxplot(export="pdf",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
 		MLHboxplot(export="png",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
-		if(mysambar$os=="Windows"){MLHboxplot(export="pdf",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")}
+		if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")}
 		}else{
 		# the function will use the column 'hetero_all' rather than MLH (identical values): 
 		cat("Plotting multilocus heterozygosity...",sep="\n")
 		MLHboxplot(export="eps",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
 		MLHboxplot(export="pdf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
 		MLHboxplot(export="png",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
-		if(mysambar$os=="Windows"){MLHboxplot(export="pdf",sMLH=FALSE,plotname="MLH_boxplot",popnames=mysambar$populations,popcolours=mysambar$mycolours,ylabel="Multi locus heterozygosity")}
+		if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")}
 		}
 	#
 	# identical to MLH:
@@ -18384,7 +18587,7 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 	indheboxplot(export="eps",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)
 	indheboxplot(export="pdf",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)	
 	indheboxplot(export="png",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)
-	if(mysambar$os=="Windows"){indheboxplot(export="eps",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)}
+	if(mysambar$os=="Windows"){indheboxplot(export="wmf",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)}
 	#
 	# plot_F(export=TRUE)				# 26-09-2019: incorrect at the moment, needs to be improved	
 	if(length(mysambar$populations)==1)
@@ -18429,7 +18632,8 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 			{
 			# Venn diagram showing overlap of polymorphic sites between loci
 			# Works for maximum 5 populations
-			markervenn(export=TRUE)
+			markervenn(export=TRUE,doprop=FALSE)
+			markervenn(export=TRUE,doprop=TRUE)
 			}
 		}else{
 		cat("Only 1 population defined. Skipping count of private alleles.")
@@ -18917,7 +19121,7 @@ private_hist<-function(popnames=mysambar$populations,snpsfilter=NULL,export=NULL
 # 14-09-2021:
 # Shows number of private allele as well as shared alleles
 # Works for maximum 5 populations
-markervenn<-function(export=FALSE,plotname="Segregatingsites_venn",minmaf=0,myfilter=snps$filter,popnames=mysambar$populations,popcolours=mysambar$mycolours,silent=TRUE,numbercex=2.5,labelcex=2.5,addtotal=FALSE,include_overall=FALSE)
+markervenn<-function(export=FALSE,plotname="Private_and_shared_alleles_venndiagram",minmaf=0,myfilter=snps$filter,popnames=mysambar$populations,popcolours=mysambar$mycolours,silent=TRUE,numbercex=2.5,labelcex=2.5,addtotal=FALSE,include_overall=FALSE,doprop=FALSE)
 	{
 	seglist		<<- list()
 	npops		<- length(popnames)
@@ -18951,9 +19155,29 @@ markervenn<-function(export=FALSE,plotname="Segregatingsites_venn",minmaf=0,myfi
 		}
 	if(!silent){cat("Plotting...",sep="\n")}
 	# depends on package VennDiagram
+	plotname	<- ifelse(doprop,paste(plotname,"prop",sep="."),plotname)
 	if(export){pdf(paste(plotname,minmaf,"pdf",sep="."),height=6,width=8)}
 	#v1 <- venn.diagram(seglist,filename=NULL,alpha=0.6,cex=3,cat.cex=3,fill=c("blue","darkorchid4"),col=c("blue","darkgreen","darkorchid4"),margin=0.1)
-	v1 <- venn.diagram(seglist,filename=NULL,alpha=0.6,cex=numbercex,cat.cex=labelcex,fill=popcolours,col=popcolours,margin=0.1)
+	v1 	<<- venn.diagram(seglist,filename=NULL,alpha=0.6,cex=numbercex,cat.cex=labelcex,fill=popcolours,col=popcolours,margin=0.1)
+	if(doprop)
+		{
+		# 01-10-2021: has been tested on four populations:
+		ngroups		<- 0
+		for(j in c(1:npops))
+			{
+			ngroups	<- ngroups+choose(npops,j)
+			}
+		labelvec	<- vector()
+		for(k in c(1:ngroups))
+			{
+			labelvec[k]	<- as.numeric(v1[[k+(npops*2)]][1]) 
+			}
+		mysum	<- sum(labelvec)
+		for(k in c(1:ngroups))
+			{
+			v1[[k+(npops*2)]][1]	<- round(labelvec[k]/mysum,2) 
+			}
+		}
 	grid.newpage()
 	grid.draw(v1)
 	if(export)
@@ -21327,15 +21551,17 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 		mymac				<- snps$minorcount
 		myhecount			<- snps$Aa
 		}else{
-		nonmissallelecount	<- rep(2*nind,nrow(snps))			# no missing data in imputed dataset
+		#nonmissallelecount	<- rep(2*nind,nrow(snps))			# no missing data in imputed dataset
+		nonmissallelecount	<- snps$nonmissallelecount
 		mymac				<- snps$imputed_minorcount
 		myhecount			<- snps$imputed_Aa
 		}
 	if(length(mymac)!=length(nonmissallelecount))
 		{
-		return(cat("ERROR: length of mymac vector does not correspond with length of nonmissallelecount vector.",sep="\n"))
+		return(cat("ERROR: length of mymac vector (metapopulation) does not correspond with length of nonmissallelecount vector (1).",sep="\n"))
 		}
-	mymac					<- ifelse(any(mymac>(0.5*nonmissallelecount)),nonmissallelecount-mymac,mymac)
+	#mymac					<- ifelse(any(mymac>(0.5*nonmissallelecount)),nonmissallelecount-mymac,mymac)
+	mymac					<- ifelse(mymac>(0.5*nonmissallelecount),nonmissallelecount-mymac,mymac)
 	#
 	if(histo)
 		{
@@ -21355,12 +21581,13 @@ getfoldedsfs<-function(popnames=mysambar$populations,histo=FALSE,yrange=c(0,nrow
 		}
 	if(length(mymac)!=length(nonmissallelecount))
 		{
-		return(cat("ERROR: length of mymac vector does not correspond with length of nonmissallelecount vector.",sep="\n"))
+		return(cat("ERROR: length of mymac vector (metapopulation) does not correspond with length of nonmissallelecount vector (2).",sep="\n"))
 		}
-	mymac				<- ifelse(any(mymac>(0.5*nonmissallelecount)),nonmissallelecount-mymac,mymac)
+	#mymac				<- ifelse(any(mymac>(0.5*nonmissallelecount)),nonmissallelecount-mymac,mymac)
+	mymac				<- ifelse(mymac>(0.5*nonmissallelecount),nonmissallelecount-mymac,mymac)
 	if(any(mymac<0,na.rm=TRUE))
 		{
-		return(cat("ERROR: negative minor allele counts. Please contact the developer of SambaR.",sep="\n"))
+		return(cat("ERROR: negative minor allele counts (for metapopulation data). Please contact the developer of SambaR.",sep="\n"))
 		}
 	#
 	# SFS VECTOR METAPOPULATION:
@@ -21575,6 +21802,7 @@ barplotsfs<-function(popnames=mysambar$populations,silent=TRUE,export=NULL,plotl
 		}
 	maxn	<- lengths(foldedsfstable[-1])[which(lengths(foldedsfstable[-1])==max(lengths(foldedsfstable[-1])))]
 	#
+	# POPULATIONS:
 	graphics.off()
 	if(!is.null(export))
 		{
@@ -21612,8 +21840,50 @@ barplotsfs<-function(popnames=mysambar$populations,silent=TRUE,export=NULL,plotl
 		}
 	mtext("Number of minor allele copies",side=1,line=2,cex=3.5,outer=TRUE)
 	if(!is.null(export)){dev.off()}	
+	#
+	# META-POPULATION:
+	mysfs	<- foldedsfstable[[1]]
+	mymax	<- max(mysfs,na.rm=TRUE)*1.05
+	ninds	<- length(mysfs)
+	mycex	<- ifelse(ninds>30,0.5,1)
+	graphics.off()
+	if(!is.null(export))
+		{
+		myheight	<- 8
+		myheight2	<- 800
+		mywidth		<- 12
+		mywidth2	<- 1200
+		plotname	<- ifelse(!is.null(bootstrapsd)&!is.null(bootstrapmean),paste("SFSbarplot_metapopulation",plotlabel,"withbootstrap",sep="."),paste("SFSbarplot_metapopulation",plotlabel,sep="."))
+		if(export=="eps"){postscript(paste(plotname,"eps",sep="."),family=mysambar$myfont,width=mywidth,height=myheight)}
+		if(export=="pdf"){pdf(paste(plotname,"pdf",sep="."),family=mysambar$myfont,width=mywidth,height=myheight)}
+		if(export=="png"){png(paste(plotname,"png",sep="."),family=mysambar$myfont,width=mywidth2,height=myheight2)}
+		if(export=="wmf"){win.metafile(paste(plotname,"wmf",sep="."),family=mysambar$myfont,width=mywidth,height=myheight)}
+		}
+	par(oma=c(1,5,1,1),cex.axis=mycex)
+	barcenters	<- barplot(mysfs,col="grey50",border=NA,names.arg=c(1:ninds),las=2,ylim=c(0,mymax),yaxt='n')
+	axis(side=2,cex.axis=2.5,las=1)
+	mtext("Metapopulation",side=3,line=0,cex=3)
+	mtext("Number of sites",side=2,line=7,cex=3)
+	#
+	if(!is.null(bootstrapsd)&!is.null(bootstrapmean))
+		{
+		mymean	<- unlist(bootstrapmean[[1]])
+		mysd	<- unlist(bootstrapsd[[1]])
+		#segments(barcenters,mymean-mysd*2,barcenters,mymean+mysd*2,lwd=0.5)
+		arrows(barcenters,mymean-mysd*2,barcenters,mymean+mysd*2,lwd=0.5,angle=90,code=3,length=0.03)
+		}
+	mtext("Number of minor allele copies",side=1,line=-1,cex=3,outer=TRUE)
+	if(!is.null(export))
+		{
+		dev.off()
+		if(!silent)
+			{
+			cat("Barplots have been exported to the directory:",sep="\n")
+			cat(getwd(),sep="\n")
+			}
+		}	
 	}
-	
+
 extractmafdata<-function(mypops=mysambar$populations)
 	{
 	npops		<- length(mypops)
