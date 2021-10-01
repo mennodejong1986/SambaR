@@ -1,6 +1,6 @@
 # SambaR
 
-SambaR is a R package which allows users to import a SNP dataset into R and to perform quality control and population genetic analyses with a minimum number (i.e. ≤ 10) of R commands. Summary statistics and analyses outcomes are automatically exported in ready to publish graphs with coherent layout (i.e. consistent font type, font size and colour coding based on population assignment).
+SambaR is a R package which allows users to import a biallelic SNP dataset into R and to perform quality control and population genetic analyses with a minimum number (i.e. ≤ 10) of R commands. Summary statistics and analyses outcomes are automatically exported in ready to publish graphs with coherent layout (i.e. consistent font type, font size and colour coding based on population assignment).
 
 The selection scan 'GWDS' is implemented in SambaR.
 
