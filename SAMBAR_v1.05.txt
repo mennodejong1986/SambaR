@@ -2653,7 +2653,7 @@ editchr2<-function(silent=FALSE,countsnps=FALSE,nchroms=NULL)
 	snps$autosomal	<<- ifelse(snps$chr=="X",FALSE,TRUE)
 	}
 
-indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,plotname="Indscatter",xscore="snp_he",yscore="hetero_all",labelscore=NULL,xlabel="Genome-wide He (%)",ylabel="TE He",legendpos="topleft",yline=5.5,symbolsize=3.5,logx=FALSE,logy=FALSE,labelcex=1)
+indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,plotname="Indscatter",xscore="snp_he",yscore="hetero_all",labelscore=NULL,xlabel="Genome-wide He (%)",ylabel="TE He",legendpos="topleft",yline=5.5,symbolsize=3.5,logx=FALSE,logy=FALSE,labelcex=1,corrpos=NULL,corrcex=1.75)
 	{
 	ind				<- droplevels(inds[inds$filter,])
 	mypops			<- as.character(mysambar$populations)
@@ -2702,6 +2702,12 @@ indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,pl
 		text(inputdf$xscore,inputdf$yscore,inputlabels,col=as.character(ind$popcol),cex=labelcex)
 		}
 	mtext(side=2,line=yline,ylabel,cex=3)
+	if(!is.null(corrpos))
+		{
+		mycorr1		<- round(cor(inputdf$xscore,inputdf$yscore,method="pearson"),2)
+		mycorr2		<- round(cor(inputdf$xscore,inputdf$yscore,method="spearman"),2)
+		legend(corrpos,legend=c(paste("Pearson r: ",mycorr1,sep=""),paste("Spearman r: ",mycorr2,sep="")),bty='n',fill=NA,border=NA,cex=corrcex)
+		}
 	if(addlegend)
 		{
 		legend(legendpos,legend=mysambar$poporder,bty='n',fill=mysambar$colorder,border=mysambar$colorder,cex=legendcex)
@@ -2718,7 +2724,7 @@ indsscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,pl
 		}
 	}
 
-poppairscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,plotname="Poppair_scatter",xscore=mysambar$popneivector,yscore=mysambar$WC1983fstvector,xlabel="Nei's genetic distance (D)",ylabel="Weir & Cockerham 1983 Fst",legendpos="bottomright",yline=5.5,symbolsize=3.5,logx=FALSE,logy=FALSE,labelcex=1,corrpos=NULL)
+poppairscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL,plotname="Poppair_scatter",xscore=mysambar$popneivector,yscore=mysambar$WC1983fstvector,xlabel="Nei's genetic distance (D)",ylabel="Weir & Cockerham 1983 Fst",legendpos="bottomright",yline=5.5,symbolsize=3.5,logx=FALSE,logy=FALSE,labelcex=1,corrpos=NULL,corrcex=1.75,alignaxes=FALSE)
 	{
 	pop1		<- mysambar$poppair1
 	pop2		<- mysambar$poppair2
@@ -2760,14 +2766,23 @@ poppairscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL
 	if(!is.null(export))
 		{
 		legendlabel	<- ifelse(addlegend,"withlegend","NOlegend")
-		if(export=="eps"){postscript(paste(plotname,legendlabel,"eps",sep="."),width=8,height=8)}
-		if(export=="pdf"){pdf(paste(plotname,legendlabel,"pdf",sep="."),width=8,height=8)}
-		if(export=="png"){png(paste(plotname,legendlabel,"png",sep="."),width=720,height=720)}
-		if(export=="wmf"){win.metafile(paste(plotname,legendlabel,"wmf",sep="."),width=8,height=8)} 
+		alignlabel	<- ifelse(alignaxes,"aligned","NOTaligned")
+		if(export=="eps"){postscript(paste(plotname,alignlabel,legendlabel,"eps",sep="."),width=8,height=8)}
+		if(export=="pdf"){pdf(paste(plotname,alignlabel,legendlabel,"pdf",sep="."),width=8,height=8)}
+		if(export=="png"){png(paste(plotname,alignlabel,legendlabel,"png",sep="."),width=720,height=720)}
+		if(export=="wmf"){win.metafile(paste(plotname,alignlabel,legendlabel,"wmf",sep="."),width=8,height=8)} 
 		}
 	par(mar=c(5.5,8.5,2.5,0.5),cex.axis=2.5,cex.lab=3,cex.main=3)
 	mylog	<- ifelse(logx,ifelse(logy,"xy","x"),ifelse(logy,"y",""))
-	plot(inputdf$xscore,inputdf$yscore,pch=21,lwd=5,log=mylog,col=as.character(popcol1),bg=as.character(popcol2),xlim=c(xmin,xmax),ylim=c(ymin,ymax),cex=symbolsize,xlab=xlabel,ylab="",las=1)
+	if(alignaxes)
+		{
+		axismin	<- min(c(inputdf$xscore,inputdf$yscore))
+		axismax	<- max(c(inputdf$xscore,inputdf$yscore))
+		plot(inputdf$xscore,inputdf$yscore,pch=21,lwd=5,log=mylog,col=as.character(popcol1),bg=as.character(popcol2),xlim=c(axismin,axismax),ylim=c(axismin,axismax),cex=symbolsize,xlab=xlabel,ylab="",las=1)
+		lines(c(0,1),c(0,1),lty=2)
+		}else{
+		plot(inputdf$xscore,inputdf$yscore,pch=21,lwd=5,log=mylog,col=as.character(popcol1),bg=as.character(popcol2),xlim=c(xmin,xmax),ylim=c(ymin,ymax),cex=symbolsize,xlab=xlabel,ylab="",las=1)
+		}
 	mtext(side=2,line=yline,ylabel,cex=3)
 	if(addlegend)
 		{
@@ -2777,7 +2792,7 @@ poppairscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL
 		{
 		mycorr1		<- round(cor(inputdf$xscore,inputdf$yscore,method="pearson"),2)
 		mycorr2		<- round(cor(inputdf$xscore,inputdf$yscore,method="spearman"),2)
-		legend(corrpos,legend=c(paste("Pearson r: ",mycorr1,sep=""),paste("Spearman r: ",mycorr2,sep="")),bty='n',fill=NA,border=NA,cex=1.75)
+		legend(corrpos,legend=c(paste("Pearson r: ",mycorr1,sep=""),paste("Spearman r: ",mycorr2,sep="")),bty='n',fill=NA,border=NA,cex=corrcex)
 		}
 	if(!is.null(plottitle))
 		{
@@ -2790,7 +2805,6 @@ poppairscatter<-function(export=NULL,addlegend=TRUE,legendcex=2.5,plottitle=NULL
 		cat(getwd(),sep="\n")
 		}
 	}
-
 
 # if not importing data, but instead converting from a genlight object:
 genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NULL,popvector=NULL,major=1,minor=4,qcplot=TRUE,heplot=TRUE,silent=TRUE,allow_edit=FALSE,pop_order=NULL)
@@ -4649,6 +4663,10 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 	if(min_spacing<0)
 		{
 		return(cat("ERROR: value to min_spacing flag should be positive.",sep="\n"))
+		}
+	if(is.null(inds$poporder))
+		{
+		return(cat("ERROR: inds$poporder is NULL. Was the data succesfully imported?",sep="\n"))
 		}
 	my_devices	<- dev.list()
 	n_devices	<- length(my_devices)
@@ -17450,40 +17468,59 @@ pop_neimatrix<-function(popnames=mysambar$populations,export=NULL)
 	mysambar$pairpop2<<- combitable[2,]
 	}
 
-# 22-09-2021:
-exportneitable<-function()
+# 04_10_2021:
+# Below function is alternative to the more simple command:
+# ordermat=mat[mysambar$popordernr,mysambar$popordernr]
+# Note that the above single line command (and below function as well in fact) only works if values above and below diagonal are identical.
+reordermat<-function(myvector=mysambar$popneivector)
 	{
-	if(is.null(mysambar$popneimatrix))
+	popnames				<- mysambar$populations
+	npops					<- length(popnames)
+	mymat					<- matrix(0,nrow=npops,ncol=npops)
+	colnames(mymat)			<- popnames
+	rownames(mymat)			<- popnames
+	mymat[lower.tri(mymat)]	<- myvector
+	tmat					<- t(mymat)
+	mymat[upper.tri(mymat)]	<- tmat[upper.tri(tmat)]
+	#
+	# reorganize order:
+	mydf					<- data.frame("x"=rep(mysambar$popordernr,each=npops),"y"=rep(mysambar$popordernr,npops),"z"=NA)
+	for(k in c(1:nrow(mydf)))
 		{
-		return(cat("ERROR: mysambar$popneimatrix not present.",sep="\n"))
+		x				<- mydf$x[k]
+		y				<- mydf$y[k]
+		mydf$z[k]		<- mymat[x,y]
 		}
+	ordermat			<- matrix(mydf$z,npops,npops,byrow=TRUE)
+	colnames(ordermat)	<- mysambar$poporder
+	rownames(ordermat)	<- mysambar$poporder
+	return(ordermat)
+	}
+
+# 22-09-2021, edited on 04-10-2021 (earlier version contained an issue with reordering)
+exportneitable<-function(popnames=mysambar$populations)
+	{
+	if(is.null(mysambar$popneivector))
+		{
+		return(cat("ERROR: mysambar$popneivector not present.",sep="\n"))
+		}
+	# Nei's D:
+	neimat	<- reordermat(myvector=mysambar$popneivector)
 	if(!is.null(mysambar$Wrightfstvector))
 		{
-		#### Wright Fst:
-		mymat					<- mysambar$popneimatrix
-		mymat[lower.tri(mymat)]	<- mysambar$Wrightfstvector
-		ordermat				<- mymat
-		#
-		# reorder populations (27-04-2021):
-		ordermat				<- ordermat[mysambar$popordernr,mysambar$popordernr]
-		ordermat				<- round(ordermat,3)
-		write.table(ordermat,"NeiD_above_WrightFst_below.txt",row.names=TRUE,col.names=TRUE,sep="\t",quote=FALSE)
+		# Wright Fst:
+		wrightmat				<- reordermat(myvector=mysambar$Wrightfstvector)
+		mymat					<- neimat
+		mymat[lower.tri(mymat)]	<- wrightmat[lower.tri(wrightmat)]
+		write.table(round(mymat,3),"NeiD_above_WrightFst_below.txt",row.names=TRUE,col.names=TRUE,sep="\t",quote=FALSE)
 		}
-	#
 	if(!is.null(mysambar$WC1983fstvector))
 		{
-		#### Weir and Cockherham Fst:
-		mymat					<- mysambar$popneimatrix
-		mymat[lower.tri(mymat)]	<- mysambar$WC1983fstvector
-		ordermat				<- mymat
-		# reorder populations (27-04-2021):
-		ordermat				<- ordermat[mysambar$popordernr,mysambar$popordernr]
-		ordermat				<- round(ordermat,3)
-		write.table(ordermat,"NeiD_above_WC1983Fst_below.txt",row.names=TRUE,col.names=TRUE,sep="\t",quote=FALSE)
-		#
-		# check if values are corresponding:
-		# mymat2<-t(mymat)
-		# plot(mymat2[lower.tri(mymat2)],mymat[lower.tri(mymat)])
+		# Weir and Cockerham Fst:
+		wcmat					<- reordermat(myvector=mysambar$WC1983fstvector)
+		mymat					<- neimat
+		mymat[lower.tri(mymat)]	<- wcmat[lower.tri(wcmat)]
+		write.table(round(mymat,3),"NeiD_above_WC1983Fst_below.txt",row.names=TRUE,col.names=TRUE,sep="\t",quote=FALSE)
 		}
 	}
 
@@ -25441,7 +25478,9 @@ calcNI<-function(indmiss=0.25)
 # There shouldn't be any outliers, as individuals are randomly sampled from all populations, and hence we know there is no association between group division and selection pressure
 randomassoc<-function(dopcadapt=FALSE)
 	{
-	inds$randompheno	<<- sample(c(TRUE,FALSE),nrow(inds),TRUE)
+	#inds$randompheno	<<- sample(c(TRUE,FALSE),nrow(inds),TRUE)
+	# 03_10_2021: changed method of random sampling:
+	inds$randompheno	<<- ifelse(runif(nrow(inds))<0.5,TRUE,FALSE)
 	runOutflank(export=TRUE,my_dataset="assoc1_assoc2",popcolumn=inds$randompheno,mycorrection="holm")
 	if(dopcadapt)
 		{
