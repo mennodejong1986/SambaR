@@ -8,7 +8,9 @@
 # To run most SambaR functions, you need to run 10 R commands, which roughly look like this:
 example_run<-function()
 	{
-	source("SAMBAR_v1.00.txt")
+	source("https://github.com/mennodejong1986/SambaR/raw/master/SAMBAR_v1.05.txt")
+	# or:
+	# source("SAMBAR_v1.00.txt")
 	setwd("C:/path/to/workingdir")
 	getpackages(myrepos='http://cran.us.r-project.org')
 	importdata(inputprefix="SNPdataprefix",sumstatsfile=FALSE,depthfile=FALSE)
@@ -1461,6 +1463,10 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 	snps$genlightname	<<- mygenlight@loc.names
 	snps$nr				<<- c(1:nrow(snps))
 	#snps$genlightname	<<- colnames(as.matrix(mygenlight))
+	if(any(is.na(snps$chr)))
+		{
+		return(cat("ERROR: NA-value(s) present in snps$chr column. Please check the first column of the BIM-file and remove/replace NA-values. Afterwards rerun the importdata function.",sep="\n"))	
+		}
 	if(is.logical(snps$minor))
 		{
 		# addition 15-06-2021
@@ -4894,7 +4900,7 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 				cat("Observe the 'He_vs_maf' plot to evaluate whether the discarded SNPs do indeed exhibit excessive levels of heterozygosity, indicative of paralogous loci.",sep="\n")
 				cat("If so, rerun the filterdata function with a higher threshold 'maxprop_hefilter' value.",sep="\n")
 				cat("If not, set the flag dohefilter to FALSE, or rerun the filterdata function with different heterozygosity filter settings, as defined by the 'paralog_threshold1' (default=0.5) and 'paralog_threshold2' flags (default=0.05).",sep="\n")
-				return(cat("SambaR's heterozygosity excess filter defines he-excess as: He>(2pq+zq) for q>w, with p and q representing major and minor allele frequency, and z and q representing threshold1 and threshold2.",sep="\n"))  
+				return(cat("SambaR's heterozygosity excess filter defines he-excess as: He>(2pq+zq) for q>w, with p and q representing major and minor allele frequency, and z and w representing threshold1 and threshold2.",sep="\n"))  
 				}
 			}
 		if(any(!colnames(as.matrix(mygenlight))==snps$genlightname))
@@ -5258,7 +5264,7 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 		}
 	}
 
-runthinfilter<-function(overwrite_bin=TRUE,binsize=500)
+runthinfilter<-function(overwrite_bin=TRUE,binsize=500,silent=TRUE)
 	{
 	if(binsize<0)
 		{
@@ -5268,6 +5274,14 @@ runthinfilter<-function(overwrite_bin=TRUE,binsize=500)
 		{
 		snps$distfilter							<<- TRUE
 		return(cat("WARNING: binsize set to 0. As a consequence, no thinning will be applied. All values in distfilter column will be set to TRUE.",sep="\n"))
+		}
+	if(!"pos"%in%colnames(snps))
+		{
+		return(cat("ERROR: column snps$pos is missing.",sep="\n"))
+		}
+	if(any(is.na(snps$pos)))
+		{
+		cat("WARNING: NA-values present in snps$pos column.",sep="\n")
 		}
 	if("dist" %in% colnames(snps))
 		{
@@ -5282,11 +5296,11 @@ runthinfilter<-function(overwrite_bin=TRUE,binsize=500)
 			mychroms		<- as.vector(unique(snps$chr))
 			for(mychrom in mychroms)
 				{
-				#cat(mychrom,sep="\n")
+				if(!silent){cat(mychrom,sep="\n")}
 				mysnpspos							<- snps$pos[snps$chr==mychrom]
 				if(length(mysnpspos)>1)
 					{
-					mybreaks						<- seq(0,max(mysnpspos)+binsize,binsize)
+					mybreaks						<- seq(0,max(mysnpspos,na.rm=TRUE)+binsize,binsize)
 					if(length(mybreaks)==1)
 						{
 						if(mybreaks==0)
@@ -5298,8 +5312,8 @@ runthinfilter<-function(overwrite_bin=TRUE,binsize=500)
 							snps$distclass[snps$chr==mychrom]	<<- as.vector(cut(mysnpspos,mybreaks,labels=mylabels))
 							}
 						}else{
-						mylabelstemp	<- mybreaks[2:length(mybreaks)]-binsize/2
-						mylabels		<- paste(as.character(mychrom),as.character(mylabelstemp),sep="_")
+						mylabelstemp		<- mybreaks[2:length(mybreaks)]-binsize/2
+						mylabels			<- paste(as.character(mychrom),as.character(mylabelstemp),sep="_")
 						snps$distclass[snps$chr==mychrom]	<<- as.vector(cut(mysnpspos,mybreaks,labels=mylabels))
 						}
 					}else{
@@ -8948,7 +8962,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=TRUE,do_pi=TRUE,do_dapc=TRUE,do_subsets=TRUE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE)
+findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -9357,7 +9371,7 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 				genlight2genind()
 				if(!silent){cat("adegenet_dapc",sep="\n")}
 				}
-			multi_adegenet_dapc(export="pdf",thresvector=c(20,50,80,95),max_clusters=Kmax,legendadd=add_legend,poslegend=legend_pos,cexlegend=legend_cex,symsize=symbol_size,rundc=do_dc)
+			multi_adegenet_dapc(export="pdf",thresvector=c(20,50,80,95),max_clusters=Kmax,legendadd=add_legend,poslegend=legend_pos,cexlegend=legend_cex,symsize=symbol_size,rundc=do_dc,plot_heatmap=dapc_heatmap)
 			}
 		if(length(mysambar$populations)>1&doBAPT)
 			{
@@ -11269,7 +11283,7 @@ plotmiss_vs_p<-function(mymethod="hamming",exporttype="pdf")
 # Depends on package SNPRelate
 # Note, if you didn't close the genofile before calling it again, you will get this ERROR: ERROR in file(filename, "wb") : cannot open the connection
 # In addition: Warning message: # In file(filename, "wb") : cannot open file 'my.gds': Permission denied
-multisnprelate_pca<-function(dolabels=FALSE,exporttype=NULL,dolegend=TRUE,poslegend="right",cex_legend=4,size_symbol=3.5,maxmiss=0.01)
+multisnprelate_pca<-function(dolabels=FALSE,exporttype=NULL,dolegend=TRUE,poslegend="right",cex_legend=4,size_symbol=2.75,maxmiss=0.01)
 	{
 	if(!is.null(exporttype))
 		{
@@ -11670,7 +11684,7 @@ overlapdapc<-function(popnames=mysambar$populations,observedmat=NULL)
 #Choose the number discriminant functions to retain (>=1):	 3
 #If you have your samples assigned to more than one population, this will be done automatically for you, so you won’t be prompted.  
 
-multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(20,50,80,95),max_clusters=6,legendadd=TRUE,poslegend="right",cexlegend=2.5,symsize=2,silent=FALSE,rundc=TRUE)
+multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(20,50,80,95),max_clusters=6,legendadd=TRUE,poslegend="right",cexlegend=2.5,symsize=2,silent=FALSE,rundc=TRUE,plot_heatmap=TRUE)
 	{
 	npops	<- length(mysambar$populations)
 	if(!xvalonly)
@@ -11688,7 +11702,7 @@ multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(2
 				setwd(file.path(mysambar$structuredir,dapcfolder))
 				}
 			cat(paste("Starting DAPC analyses with number of PC's based on an explained variance of ",mythres,"%.",sep=""),sep="\n")
-			adegenet_dapc(maxclusters=max_clusters,export="pdf",min_explainedvariance=mythres,use_genind=FALSE,addlegend=legendadd,legendpos=poslegend,legendcex=cexlegend,symbolsize=symsize,use_current_dir=TRUE,dodc=rundc)
+			adegenet_dapc(maxclusters=max_clusters,export="pdf",min_explainedvariance=mythres,use_genind=FALSE,addlegend=legendadd,legendpos=poslegend,legendcex=cexlegend,symbolsize=symsize,use_current_dir=TRUE,dodc=rundc,plotheatmap=plot_heatmap)
 			if(length(mysambar$dapcoverlaplist)>=(npops-1)&npops!=1)
 				{
 				if(!silent){cat("Calculating overlap between inferred and expected clusters...",sep="\n")}
@@ -11772,7 +11786,7 @@ runxval<-function(nrep=20,exporttype="pdf")
 		}
 	}
 
-adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=0.6,symbolsize=2,addlegend=TRUE,legendpos="right",legendcex=2.5,use_current_dir=FALSE,silent=TRUE,dodc=TRUE)
+adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=0.6,symbolsize=2,addlegend=TRUE,legendpos="right",legendcex=2.5,use_current_dir=FALSE,silent=TRUE,dodc=TRUE,plotheatmap=TRUE)
 	{	
 	# if min_explainedvariance is not NULL, this function will use min_explainedvariance threshold (any value between 0 and 100) to define number of PC's to incorporate
 	# otherwise, the function will use the a-score to define the number of PC's. 
@@ -11879,7 +11893,7 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 			cat(paste("Based on the a-score statistic,",mynpca,"is the optimal number of PCs. DAPC-analyses will be executed using this value.",sep=" "),sep="\n")
 			}else{
 			mynpca		<- which(mypcaeigensum>min_explainedvariance)[1]
-			cat(paste("Number of PCs to retain given the prespecified amount of explained variance is:,",mynpca,". DAPC-analyses will be executed using this value.",sep=" "),sep="\n")
+			cat(paste("Number of PCs to retain given the prespecified amount of explained variance is: ",mynpca,". DAPC-analyses will be executed using this value.",sep=""),sep="\n")
 			}
 		cat(paste("Number of PC's included in analysis: ",mynpca,sep=""),sep="\n") 
 		plot(mypcaeigensum,col=rep(c("orange","grey20"),c(mynpca,1000)),ylim=c(0,100),xlim=c(0,mytotalpca),main="Variance explained by PCA", xlab="PCA axis", ylab="Cumulated variance (%)",cex=1, pch=20, type="h", lwd=2)
@@ -11933,7 +11947,7 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 	myclusters	<- c(2:maxclusters)
 	cat("Running DAPC analyses for various number of expected clusters (K).",sep="\n")
 	cat("Observe the screeplot in the 'dapc.summarystatistics'-plot to find the optimal K value (lowest point or flattening of decline).",sep="\n")
-	myoverlap	<- list()
+	myoverlap		<- list()
 	dapcqmatrixlist	<- list()
 	for (i in myclusters)
 		{
@@ -12173,36 +12187,46 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 		mysambar$dapcqmatrixlist<<- dapcqmatrixlist
 		#
 		# lastly, create heatmaps showing overlap between dapc inferred clusters and your a priori defined populations:
-		graphics.off()
-		ntables			<- length(myoverlap)
-		mymax			<- max(unlist(myoverlap))
-		mymin			<- min(unlist(myoverlap))
-		mycolfunc 		<- colorRampPalette(c("white","orange"))
-		myBreaks		<- seq(mymin,mymax,(mymax/10))
-		myColours		<- c(mycolfunc(length(myBreaks)-1))		
-		gl <- lapply(1:length(myoverlap), function(i){
-		mymatrix		<- data.matrix(myoverlap[[i]])
-		heatmap.2(mymatrix,cellnote=mymatrix,lhei=c(0.5,4),lwid=c(0.5,4),labRow=rownames(mymatrix),labCol=colnames(mymatrix),
-		notecol="black",notecex=2.5,Rowv=NA,Colv=NA,scale="none",col=myColours,breaks=myBreaks,dendrogram="none",trace="none",cexCol=1.5,cexRow=1.5,
-		ylab="",xlab="",srtRow=45,srtCol=45,key=FALSE,margins=c(8,8))
-		grid.echo()
-		grid.grab()})
-		graphics.off()
-		if(!is.null(export))
+		if(plotheatmap)
 			{
-			myheight	<- ceiling(ntables/2)*6.5
-			mywidth		<- ifelse(ntables==1,7.5,15)
-			myheight2	<- ceiling(ntables/2)*650
-			mywidth2	<- ifelse(ntables==1,750,1500)
-			if(export=="eps"){postscript("dapc.inferred.vs.expectedclusters.eps",height=myheight,width=mywidth)}
-			if(export=="pdf"){pdf("dapc.inferred.vs.expectedclusters.pdf",height=myheight,width=mywidth,onefile=FALSE)}
-			if(export=="png"){png("dapc.inferred.vs.expectedclusters.png",height=myheight2,width=mywidth2)}
-			if(export=="wmf"){win.metafile("dapc.inferred.vs.expectedclusters.wmf",height=myheight,width=mywidth)}
-			}	
-		grid.newpage()
-		grid.arrange(grobs=gl, ncol=2, clip=TRUE)	
-		if(!is.null(export)){dev.off()}
+			cat("Plotting correspondence between expected and inferred clusters...",sep="\n")
+			cat("If you receive an error after this line, rerun the findstructure function with the flag 'dapc_heatmap' set to FALSE.",sep="\n") 
+			dapc_heatmap(export_type=export,myoverlap=mysambar$dapcoverlaplist)
+			}
 		}
+	}
+
+dapc_heatmap<-function(export_type=NULL,myoverlap=mysambar$dapcoverlaplist)
+	{
+	graphics.off()
+	ntables			<- length(myoverlap)
+	mymax			<- max(unlist(myoverlap))
+	mymin			<- min(unlist(myoverlap))
+	mycolfunc 		<- colorRampPalette(c("white","orange"))
+	myBreaks		<- seq(mymin,mymax,(mymax/10))
+	myColours		<- c(mycolfunc(length(myBreaks)-1))		
+	gl 				<- lapply(1:length(myoverlap), function(i){
+	mymatrix		<- data.matrix(myoverlap[[i]])
+	heatmap.2(mymatrix,cellnote=mymatrix,lhei=c(0.5,4),lwid=c(0.5,4),labRow=rownames(mymatrix),labCol=colnames(mymatrix),
+	notecol="black",notecex=2.5,Rowv=NA,Colv=NA,scale="none",col=myColours,breaks=myBreaks,dendrogram="none",trace="none",cexCol=1.5,cexRow=1.5,
+	ylab="",xlab="",srtRow=45,srtCol=45,key=FALSE,margins=c(8,8))
+	grid.echo()
+	grid.grab()})
+	graphics.off()
+	if(!is.null(export_type))
+		{
+		myheight	<- ceiling(ntables/2)*6.5
+		mywidth		<- ifelse(ntables==1,7.5,15)
+		myheight2	<- ceiling(ntables/2)*650
+		mywidth2	<- ifelse(ntables==1,750,1500)
+		if(export_type=="eps"){postscript("dapc.inferred.vs.expectedclusters.eps",height=myheight,width=mywidth)}
+		if(export_type=="pdf"){pdf("dapc.inferred.vs.expectedclusters.pdf",height=myheight,width=mywidth,onefile=FALSE)}
+		if(export_type=="png"){png("dapc.inferred.vs.expectedclusters.png",height=myheight2,width=mywidth2)}
+		if(export_type=="wmf"){win.metafile("dapc.inferred.vs.expectedclusters.wmf",height=myheight,width=mywidth)}
+		}	
+	grid.newpage()
+	grid.arrange(grobs=gl,ncol=2,clip=TRUE)	
+	if(!is.null(export_type)){dev.off()}
 	}
 
 # 02-05-2020: to create stand alone plot
@@ -25037,8 +25061,12 @@ allcontrol<-function(ntrue=3,maxcomp=5,popnames=mysambar$populations)
 	}
 
 # this function extracts all outlierinfo files present in subdirectories
-run_getoutlierinfo<-function(my_dir="C:/Users/Menno_de_Jong/Documents/SNPdatasets",silent=TRUE)
+run_getoutlierinfo<-function(my_dir=NULL,silent=TRUE)
 	{
+	if(is.null(my_dir))
+		{
+		return(cat("ERROR: define a directory to the my_dir flag.",sep="\n"))
+		}
 	if(file.exists(my_dir))
 		{
 		setwd(my_dir)
@@ -25083,18 +25111,22 @@ run_getoutlierinfo<-function(my_dir="C:/Users/Menno_de_Jong/Documents/SNPdataset
 	hist(alloutliersdf$gwds_padj[alloutliersdf$dataset=="pheno"&alloutliersdf$rfisherGWDS==TRUE])
 	}
 
-getoutlierinfo<-function(mydir="C:/Users/Menno_de_Jong/Documents/SNPdatasets",selectall=FALSE,silent=TRUE,skipdata=TRUE,datatype="pooled",checkclass=FALSE)
+getoutlierinfo<-function(mydir=NULL,selectall=FALSE,silent=TRUE,skipdata=TRUE,datatype="pooled",checkclass=FALSE)
 	{
 	# datatype can be 'pooled', 'pooled_control', 'pairwise', 'pairwise_control', and 'ind_control'
 	# file_extensions are "pheno.info.txt","pheno.pop_control.pooled.info.txt","pairwise.info.txt","pop_control.pairwise.info.txt","assoc1_assoc2.info.txt"
 	#
+	if(is.null(mydir))
+		{
+		return(cat("ERROR: define a directory to the mydir flag.",sep="\n"))
+		}
 	getinfoerror	<<- FALSE
 	if(!silent){cat("Setting path defined to mydir as working directory...",sep="\n")}
 	if(file.exists(mydir))
 		{
 		setwd(mydir)
 		}else{
-		cat("ERROR: Non existing directory specified to mydir flag:",sep="\n")
+		cat("ERROR: Non-existing directory specified to mydir flag:",sep="\n")
 		return(cat(mydir,sep="\n"))	
 		}
 	if(datatype!="pooled"&&datatype!="pooled_control"&&datatype!="pairwise"&&datatype!="pairwise_control"&&datatype!="ind_control")
