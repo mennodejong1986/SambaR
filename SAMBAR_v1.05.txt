@@ -159,7 +159,7 @@ getcitations<-function()
 
 getversions<-function(return_object=FALSE)
 	{
-	mysoftwares			<- c("ade4","adegenet","ape","bibtex","circlize","colorspace","curl","devtools","fsthet","gdsfmt","gplots","grid","gridExtra","gridGraphics","LEA","mapplots","MASS","migest","OutFLANK","pcadapt","pegas","plot3D","plyr","poppr","qvalue","RcppEigen","RColorBrewer","rworldmap","scales","scatterplot3d","SNPRelate","StAMPP","stats","tess3r","vegan","vioplot","zoo") 
+	mysoftwares			<- c("ade4","adegenet","ape","bibtex","circlize","colorspace","curl","devtools","fsthet","gdsfmt","gplots","grid","gridExtra","gridGraphics","LEA","mapplots","MASS","migest","OutFLANK","pcadapt","pegas","phangorn","plot3D","plyr","poppr","qvalue","RcppEigen","RColorBrewer","rworldmap","scales","scatterplot3d","SNPRelate","StAMPP","stats","tess3r","vegan","vioplot","zoo") 
 	mysoftwares			<- mysoftwares[order(mysoftwares)]
 	mybool				<- mysoftwares%in%installed.packages()
 	mysoftwares			<- mysoftwares[mybool]
@@ -167,7 +167,7 @@ getversions<-function(return_object=FALSE)
 	for (j in c(1:length(mysoftwares)))
 		{	
 		mypackage		<- mysoftwares[j] 
-		myversions[j]		<- packageDescription(mypackage)$Version
+		myversions[j]	<- packageDescription(mypackage)$Version
 		}
 	mysoftwares			<- c("R",mysoftwares)
 	myversions			<- c(getRversion(),myversions)
@@ -197,6 +197,7 @@ exportmethods<-function(ind_miss=0.25,snp_miss=0.1,minmac=2,hefilter=TRUE,minimu
 	myade4			<- myversions$combined[myversions$package=="ade4"]
 	myape			<- myversions$combined[myversions$package=="ape"]
 	mystampp		<- myversions$combined[myversions$package=="StAMPP"]
+	myphangorn		<- myversions$combined[myversions$package=="phangorn"]
 	mypoppr			<- myversions$combined[myversions$package=="poppr"]
 	mysnprelate		<- myversions$combined[myversions$package=="SNPRelate"]
 	mystats			<- myversions$combined[myversions$package=="stats"]
@@ -307,6 +308,7 @@ exportmethods<-function(ind_miss=0.25,snp_miss=0.1,minmac=2,hefilter=TRUE,minimu
 	paste("Principal component analyses (PCA) were performed using the function 'snpgdsPCA' of the R package ",mysnprelate," (Zheng et al., 2012).",sep=""),
 	paste("DAPC analyses were performed using the function 'dapc' of the R package ",myadegenet," (Jombart, 2008; Jombart and Ahmed, 2011), both with and without prior population assignment. The number of PCs was set to ... (based on the a-score), the number of clusters was set to ..., and the number of discriminant functions to 3.",sep=""), 
 	paste("Multi dimensional scaling (MDS) was performed using the function 'cmdscale' (metric MDS) of the R package ",mystats," (R Core Team, 2019) and the function 'isoMDS' (non-metric MDS) of the R package ",mymass," (Venables and Ripley, 2002), on a Euclidean distance matrix generated with the function 'dist' of the R package ",mystats," (R Core Team, 2019).",sep=""),
+	paste("Neighbourhood joining (NJ) clustering was performed using the function 'NJ' of the R package ",myphangorn," (Schliep, 2011), using as input a Hamming’s genetic distance matrix between individuals, calculated with the function 'bitwise.dist' of the R package ",mypoppr," (Kamvar et al. 2014).",sep=""), 
 	"Bayesian population assignment (BPA) probabilities were calculated and plotted using the functions 'assign2pop' and 'plotassign2pop' of the R package SambaR.",
 	paste("Admixture coefficients were calculated with the functions 'obj.snmf' and 'Q' of the R package ",mylea," (Frichot and Francois, 2014). Alpha was set to 10, tolerance to 0.00001, and number of iterations to 200.",sep=""), 
 	"Ancestry coefficients were calculated with the software Admixture-1.3 (Alexander et al., 2009) and plotted using the 'plotstructure'-function of SambaR.",
@@ -11722,7 +11724,7 @@ multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(2
 			setwd(file.path(mysambar$structuredir,dapcfolder))
 			}
 		cat("Starting DAPC analyses with number of PC's based on an the a-score.",sep="\n")
-		adegenet_dapc(maxclusters=max_clusters,export="pdf",use_genind=FALSE,addlegend=legendadd,legendpos=poslegend,legendcex=cexlegend,symbolsize=symsize,use_current_dir=TRUE,dodc=rundc)
+		adegenet_dapc(maxclusters=max_clusters,export="pdf",use_genind=FALSE,addlegend=legendadd,legendpos=poslegend,legendcex=cexlegend,symbolsize=symsize,use_current_dir=TRUE,dodc=rundc,plotheatmap=plot_heatmap)
 		if(length(mysambar$dapcoverlaplist)>=(npops-1)&npops!=1)
 			{
 			# calculate chi-squared value for overlap between inferred and expected clusters:
