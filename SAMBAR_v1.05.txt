@@ -12194,6 +12194,8 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 			cat("Plotting correspondence between expected and inferred clusters...",sep="\n")
 			cat("If you receive an error after this line, rerun the findstructure function with the flag 'dapc_heatmap' set to FALSE.",sep="\n") 
 			dapc_heatmap(export_type=export,myoverlap=mysambar$dapcoverlaplist)
+			}else{
+			cat("Not plotting correspondence between expected and inferred clusters because the flag 'plotheatmap' is set to FALSE.",sep="\n")
 			}
 		}
 	}
