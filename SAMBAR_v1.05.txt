@@ -14107,16 +14107,18 @@ plotlocations2<-function(export=NULL,longthreshold=15,xmargin=0.05,ymargin=0.15,
 	}
 	
 	
-multi_mantel_plot<-function(popnames=mysambar$populations,doexport=FALSE)
+multi_mantel_plot<-function(popnames=mysambar$populations,doexport=FALSE,silent=TRUE)
 	{
 	if(!"tajdlist_meta" %in% names(mysambar))
 		{
 		calcpi(pi_per_pop=FALSE)
 		}
 	# between all populations:
+	if(!silent){cat("between and within populations...",sep="\n")}
 	mantel_plot(pi_df=mysambar$tajdlist_meta[[1]],export=doexport,exportname="Mantel.meta.withlegend",addlegend=TRUE)
 	mantel_plot(pi_df=mysambar$tajdlist_meta[[1]],export=doexport,exportname="Mantel.meta",addlegend=FALSE)
 	# between all populations, excluding within population comparisons:
+	if(!silent){cat("between populations...",sep="\n")}
 	mantel_plot(pi_df=mysambar$tajdlist_meta[[1]],export=doexport,exportname="Mantel.meta.onlybetweenpops.withlegend",addlegend=TRUE,only_betweenpop=TRUE)
 	mantel_plot(pi_df=mysambar$tajdlist_meta[[1]],export=doexport,exportname="Mantel.meta.onlybetweenpops",addlegend=FALSE,only_betweenpop=TRUE)
 	#
@@ -14126,10 +14128,13 @@ multi_mantel_plot<-function(popnames=mysambar$populations,doexport=FALSE)
 		{
 		if(!"tajdlist_pop" %in% names(mysambar))
 			{
+			if(!silent){cat("calculating pi...",sep="\n")}
 			calcpi(pi_per_pop=TRUE)
 			}
+		if(!silent){cat("per population...",sep="\n")}
 		for(mypopname in popnames)
 			{
+			if(!silent){cat(mypopname,sep="\n")}
 			mypopdf		<- mysambar$tajdlist_pop[[which(names(mysambar$tajdlist_pop)==mypopname)]]
 			export_name	<- paste("Mantel",mypopname,"within",sep=".")
 			mantel_plot(pi_df=mypopdf,export=doexport,exportname=export_name,addlegend=FALSE)
