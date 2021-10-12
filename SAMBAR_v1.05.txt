@@ -14266,9 +14266,12 @@ mantel_plot<-function(gdistmat=NULL,pi_df=mysambar$tajdlist_meta[[1]],export=FAL
 		pi_distmat		<<- pi_distmatrix
 		geo_distmat		<<- geo_distmatrix 
 		}
-	mantel.lm			<- lm(as.vector(pi_distmatrix)~as.vector(geo_distmatrix))
-	mantel_pvalue		<- as.vector(round(summary(mantel.lm)$coefficients[,4],4)[2])
-	mantel_r2			<- round(summary(mantel.lm)$r.squared,4)
+	if(length(as.vector(geo_distmatrix))>2)
+		{
+		mantel.lm			<- lm(as.vector(pi_distmatrix)~as.vector(geo_distmatrix))
+		mantel_pvalue		<- as.vector(round(summary(mantel.lm)$coefficients[,4],4)[2])
+		mantel_r2			<- round(summary(mantel.lm)$r.squared,4)
+		}
 	#
 	# plot:
 	if(export){pdf(paste(exportname,"pdf",sep="."))}
@@ -14297,7 +14300,10 @@ mantel_plot<-function(gdistmat=NULL,pi_df=mysambar$tajdlist_meta[[1]],export=FAL
 			}
 		}
 	# regression R2 and p-value:
-	abline(mantel.lm,lwd=2)
+	if(length(as.vector(geo_distmatrix))>2)
+		{
+		abline(mantel.lm,lwd=2)
+		}
 	legend("topright",legend=c(paste("R2 = ",mantel_r2,sep=""),paste("p-value = ",mantel_pvalue,sep="")),lty=2,col=c(NA,NA),bty='n',cex=1.5)
 	#
 	if(npops==1)
