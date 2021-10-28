@@ -4,7 +4,7 @@ version	uploaded_to_Github	edit
 1.02	09_03_2021	possibility to provide vectors with minor and major allele types (e.g. 1,2,3,4,0 or A,C,G,T,NA) when running genlight2sambar function 
 1.02	09_03_2021	inclusion of mysambar$datasource
 1.02	09_03_2021	added 'rlang' and 'vctrs' to list of packages to be installed
-1.03	17_03_2021	fixed issue with plots showing number of retained/discarded sites per filterclass 
+1.03	17_03_2021	bug fix concerning plots showing number of retained/discarded sites per filterclass 
 1.03	17_03_2021	SFS vectors based on imputed data
 1.03	17_03_2021	new SFS plot showing proportion of He sites per MAC class
 1.03	17_03_2021	new method of data imputation for CA plots
@@ -15,3 +15,7 @@ version	uploaded_to_Github	edit
 1.05	29_06_2021	new thinning algorithm (affecting snps$distfilter and snps$filter2 columns)
 1.05	29_06_2021	new instructions for installing Bioconductor packages
 1.05	29_06_2021	bug fix concerning GWDS thin option 
+1.06	28_10_2021	bug fix concerning reordering of population distance matrix, leading to incorrect NJ population tree (getpoptree() function)
+1.06	28_10_2021	NJ population tree analyses based on Reynolds genetic distance (Reynolds et al. 1983, "Estimation of the coancestry coefficient: Basis for a short-term genetic distance")   
+1.06	28_10_2021	option 'retain' in excludepop() function, which allows to specify the populations to be retained (rather than the populations to be excluded)
+1.06	28_10_2021	converting to pcadapt format directly from genlight rather than using a ped-file as intermediate - as a consequence SambaR no longer depends on (and no longer accepts) PCadapt version 4.1.0
