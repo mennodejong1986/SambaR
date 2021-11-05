@@ -14878,7 +14878,7 @@ scattergeneland<-function(myiter=1000,myburnin=2,gradient=TRUE,export=NULL,makep
 # Population differentiation analyses
 
 # This function executes all genetic distance analyses at once:
-calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=FALSE,do_distplot=TRUE,do_comparefst=TRUE,my_triplets=NULL,dostamppfst=TRUE,do_Dfst=FALSE,only_geneflow=FALSE,max_ntriplets=60,do_jackknife=TRUE,minjkblocks=50,dopoptree=TRUE,dodistgenpop=TRUE,do_dxy=TRUE)
+calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=FALSE,do_distplot=TRUE,do_comparefst=TRUE,my_triplets=NULL,dostamppfst=TRUE,do_Dfst=FALSE,only_geneflow=FALSE,max_ntriplets=60,do_jackknife=TRUE,jk_blocksize=1000000,minjkblocks=50,dopoptree=TRUE,dodistgenpop=TRUE,do_dxy=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -15081,7 +15081,7 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 			cat("The input to the my_triplets should be a dataframe with three columns called 'p1','p2', and 'p3', listing for each triplet the ingroup1, ingroup2, and the introgressor species.",sep="\n") 
 			}else{
 			cat("Calculating ABBA-BABA statistics...",sep="\n")
-			calcD(popnames=mysambar$populations,snpfilter=snps$filter,silent=TRUE,mytriplets=my_triplets,dojackknife=do_jackknife,minblocks=minjkblocks)
+			calcD(popnames=mysambar$populations,snpfilter=snps$filter,silent=TRUE,mytriplets=my_triplets,dojackknife=do_jackknife,minblocks=minjkblocks,jkblocksize=jk_blocksize)
 			plotD(export="eps")
 			plotD(export="png")
 			plotD(export="pdf")
@@ -16438,7 +16438,7 @@ calcf3sim<-function(meanmaf=0.15,t1=20,t2=40,ninds=100,nruns=1000,nsnps=100,admi
 		}
 	}
 
-calcD<-function(popnames=mysambar$populations,snpfilter=snps$filter,mytriplets=NULL,silent=FALSE,dojackknife=TRUE,minblocks=50,storematrix=TRUE,ancestral="major")
+calcD<-function(popnames=mysambar$populations,snpfilter=snps$filter,mytriplets=NULL,silent=FALSE,dojackknife=TRUE,minblocks=50,jkblocksize=1000000,storematrix=TRUE,ancestral="major")
 	{
 	# mytriplets should be a dataframe with three columns (ingroup1, ingroup2, and in the third column the introgressor)
 	#
@@ -16674,15 +16674,15 @@ calcD<-function(popnames=mysambar$populations,snpfilter=snps$filter,mytriplets=N
 	dscores$mylabels2	<- paste("(((",dscores$p1,", ",dscores$p2,"), ",dscores$p3,"), O)",sep="")
 	#
 	# dividing genome in blocks needed for jackknife procedure:
-	if(!silent){cat("Dividing genome in blocks of fixed length of 1Mb...",sep="\n")}
+	cat(paste("Dividing genome in blocks of fixed length of ",jkblocksize," bp...",sep=""),sep="\n")
 	mychroms		<- snps$chr[myfilter]
 	mypos			<- snps$pos[myfilter]
-	block_indices 	<- get_block_indices(block_size=1e6,positions=mypos,chromosomes=mychroms)
+	block_indices 	<- get_block_indices(block_size=jkblocksize,positions=mypos,chromosomes=mychroms)
 	mysambar$block_indices	<<- block_indices
 	n_blocks 		<- length(block_indices)
 	if(n_blocks<50)
 		{
-		cat(paste("WARNING: Genome divided in only", n_blocks, "blocks."),sep="\n")
+		cat(paste("WARNING: Genome divided in only", n_blocks, "blocks. This number might not allow for meaningful jackknife resampling."),sep="\n")
 		}else{
 		cat(paste("Genome divided into", n_blocks, "blocks."),sep="\n")
 		}
@@ -17204,8 +17204,17 @@ D.stat<-function(p1,p2,p3)
 	{
 	ABBA <- (1-p1)*p2*p3
     BABA <- p1*(1-p2)*p3
-    return((sum(ABBA)-sum(BABA))/(sum(ABBA)+sum(BABA)))
-    }
+	# 05_11_2021: get rid of NA-values:
+	# return((sum(ABBA)-sum(BABA))/(sum(ABBA)+sum(BABA)))
+    # option 1:
+	# return((sum(ABBA,na.rm=TRUE)-sum(BABA,na.rm=TRUE))/(sum(ABBA,na.rm=TRUE)+sum(BABA,na.rm=TRUE)))
+	# option 2:
+	mybool		<- (!is.na(ABBA))&(!is.na(BABA))
+	nretained	<- length(mybool[mybool])
+	ntotal		<- length(mybool)
+	#cat(paste("Number of retained blocks (no missing values): ",nretained," out of ",ntotal,".",sep=""),sep="\n")
+	return((sum(ABBA[mybool])-sum(BABA[mybool]))/(sum(ABBA[mybool])+sum(BABA[mybool])))
+	}
 
 # taken from tutorial of simonhmartin on github ('ABBA BABA statistics using genome wide SNP data'):
 # The D statistic does not quantify the proportion of the genome that has been shared. 
