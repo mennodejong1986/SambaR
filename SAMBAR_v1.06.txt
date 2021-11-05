@@ -14878,7 +14878,7 @@ scattergeneland<-function(myiter=1000,myburnin=2,gradient=TRUE,export=NULL,makep
 # Population differentiation analyses
 
 # This function executes all genetic distance analyses at once:
-calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=FALSE,do_distplot=TRUE,do_comparefst=TRUE,my_triplets=NULL,dostamppfst=TRUE,do_Dfst=FALSE,only_geneflow=FALSE,max_ntriplets=60,dopoptree=TRUE,dodistgenpop=TRUE,do_dxy=TRUE)
+calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=FALSE,do_distplot=TRUE,do_comparefst=TRUE,my_triplets=NULL,dostamppfst=TRUE,do_Dfst=FALSE,only_geneflow=FALSE,max_ntriplets=60,do_jackknife=TRUE,minjkblocks=50,dopoptree=TRUE,dodistgenpop=TRUE,do_dxy=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -15081,7 +15081,7 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 			cat("The input to the my_triplets should be a dataframe with three columns called 'p1','p2', and 'p3', listing for each triplet the ingroup1, ingroup2, and the introgressor species.",sep="\n") 
 			}else{
 			cat("Calculating ABBA-BABA statistics...",sep="\n")
-			calcD(popnames=mysambar$populations,snpfilter=snps$filter,silent=TRUE,mytriplets=my_triplets)
+			calcD(popnames=mysambar$populations,snpfilter=snps$filter,silent=TRUE,mytriplets=my_triplets,dojackknife=do_jackknife,minblocks=minjkblocks)
 			plotD(export="eps")
 			plotD(export="png")
 			plotD(export="pdf")
@@ -16177,6 +16177,34 @@ calcwindowDfst<-function(popnames=mysambar$populations,mytriplets=NULL)
 
 runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE)
 	{
+	# f3 statistics as implemented in admixtools and admixtools2
+	# see: 
+	# Patterson et al. 2012 Ancient admixture in human history
+	# Peter et al. 2016 Admixture, population structure and F-statistics
+	# The most friendly introduction can be found at the github tutorial page of Admixtools2.
+	#
+	# Key measure is f2, which, like a Fst-statistic, quantifies the differences in allele frequencies (a and b) between population A and B:
+	# f2(A,B) = (a-b)^2 
+	# The measure f3 is a composite of f2.
+	# Assume that you have the following phylogeny: ((A,B),C). Then f3 is defined as:
+	# f3(A;B,C) = 0.5*(f2(A,B) + f2(A,C) - f2(B,C))
+	#
+	# How to interpret this?
+	# Incorrect interpretation: 
+	# If allele frequency in A is similar to C but different to B, then evidence for admixture between A and C.
+	# Correct interpretation:
+	# If allele frequency difference (AFD) between A and B is negatively correlated to AFD between A and C, then evidence for admixture between A and C.
+	# In other words, it is about the covariance of allele frequencies.
+	# A negative f3 implies that:
+	# - the more similar allele frequencies are between A and B, the more different they are between A and C. 
+	# - vice versa: the more dissimilar AFs are between A and B, the more similar they are between A and C.
+	# 
+	# The measure f4 is very similar to f3, but incorporating a fourth population.
+	# Assume that you have the following phylogeny: ((A,B),C,D) (or/and (((A,B),C),D))?)
+	# f4(A,B;B,C) = 0.5*(f2(A,B) + f2(A,C) - f2(B,C))
+	#
+	# A negative f3 indicates f2(A,C) < f2(B,C), indicating A is admixed between A and C.   
+	#
 	# To avoid error: File admixtools2/Baltic/Black_f2.rds not found!', you might have to delete the output of previous runs.
 	# BiocManager::install("snpStats",suppressUpdates=TRUE)
 	# library(snpStats)
@@ -16410,7 +16438,7 @@ calcf3sim<-function(meanmaf=0.15,t1=20,t2=40,ninds=100,nruns=1000,nsnps=100,admi
 		}
 	}
 
-calcD<-function(popnames=mysambar$populations,snpfilter=snps$filter,mytriplets=NULL,silent=FALSE,dojackknife=TRUE,storematrix=TRUE,ancestral="major")
+calcD<-function(popnames=mysambar$populations,snpfilter=snps$filter,mytriplets=NULL,silent=FALSE,dojackknife=TRUE,minblocks=50,storematrix=TRUE,ancestral="major")
 	{
 	# mytriplets should be a dataframe with three columns (ingroup1, ingroup2, and in the third column the introgressor)
 	#
@@ -16599,35 +16627,6 @@ calcD<-function(popnames=mysambar$populations,snpfilter=snps$filter,mytriplets=N
 		fnum[i]				<- ABBAnumerator[i]-BABAnumerator[i]
 		fden[i]				<- ABBAdenominator[i]-BABAdenominator[i]
 		fvec[i]				<- ifelse(dvec[i]>0,(ABBAnumerator[i]-BABAnumerator[i])/(ABBAdenominator[i]-BABAdenominator[i]),NA)
-		#
-		# 26-02-2021:
-		# f3 statistics as implemented in admixtools and admixtools2
-		# see: 
-		# Patterson et al. 2012 Ancient admixture in human history
-		# Peter et al. 2016 Admixture, population structure and F-statistics
-		# The most friendly introduction can be found at the github tutorial page of Admixtools2.
-		#
-		# Key measure is f2, which, like a Fst-statistic, quantifies the differences in allele frequencies (a and b) between population A and B:
-		# f2(A,B) = (a-b)^2 
-		# The measure f3 is a composite of f2.
-		# Assume that you have the following phylogeny: ((A,B),C). Then f3 is defined as:
-		# f3(A;B,C) = 0.5*(f2(A,B) + f2(A,C) - f2(B,C))
-		#
-		# How to interpret this?
-		# Incorrect interpretation: 
-		# If allele frequency in A is similar to C but different to B, then evidence for admixture between A and C.
-		# Correct interpretation:
-		# If allele frequency difference (AFD) between A and B is negatively correlated to AFD between A and C, then evidence for admixture between A and C.
-		# In other words, it is about the covariance of allele frequencies.
-		# A negative f3 implies that:
-		# - the more similar allele frequencies are between A and B, the more different they are between A and C. 
-		# - vice versa: the more dissimilar AFs are between A and B, the more similar they are between A and C.
-		# 
-		# The measure f4 is very similar to f3, but incorporating a fourth population.
-		# Assume that you have the following phylogeny: ((A,B),C,D) (or/and (((A,B),C),D))?)
-		# f4(A,B;B,C) = 0.5*(f2(A,B) + f2(A,C) - f2(B,C))
-		#
-		# A negative f3 indicates f2(A,C) < f2(B,C), indicating A is admixed between A and C.   
 		}
 	mytriplets$AAAA		<- AAAA/nsnps
 	#
@@ -16674,22 +16673,21 @@ calcD<-function(popnames=mysambar$populations,snpfilter=snps$filter,mytriplets=N
 	dscores$mylabels	<- paste("(((",dscores$p1,", ",dscores$p2,"), ",dscores$p3,"), out)",sep="")
 	dscores$mylabels2	<- paste("(((",dscores$p1,", ",dscores$p2,"), ",dscores$p3,"), O)",sep="")
 	#
-	if(dojackknife)
+	# dividing genome in blocks needed for jackknife procedure:
+	if(!silent){cat("Dividing genome in blocks of fixed length of 1Mb...",sep="\n")}
+	mychroms		<- snps$chr[myfilter]
+	mypos			<- snps$pos[myfilter]
+	block_indices 	<- get_block_indices(block_size=1e6,positions=mypos,chromosomes=mychroms)
+	mysambar$block_indices	<<- block_indices
+	n_blocks 		<- length(block_indices)
+	if(n_blocks<50)
 		{
-		# dividing genome in blocks needed for jackknife procedure:
-		if(!silent){cat("Dividing genome in blocks of fixed length of 1Mb...",sep="\n")}
-		mychroms		<- snps$chr[myfilter]
-		mypos			<- snps$pos[myfilter]
-		block_indices 	<- get_block_indices(block_size=1e6,positions=mypos,chromosomes=mychroms)
-		mysambar$block_indices	<<- block_indices
-		n_blocks 		<- length(block_indices)
-		if(n_blocks<100)
-			{
-			if(!silent){cat(paste("WARNING: Genome divided in only", n_blocks, "blocks."),sep="\n")}
-			}else{
-			cat(paste("Genome divided into", n_blocks, "blocks."),sep="\n")
-			}
-		#
+		cat(paste("WARNING: Genome divided in only", n_blocks, "blocks."),sep="\n")
+		}else{
+		cat(paste("Genome divided into", n_blocks, "blocks."),sep="\n")
+		}
+	if(dojackknife&n_blocks>=minblocks)
+		{
 		if(!silent){cat("Starting jackknife procedure...",sep="\n")}
 		D_sd			<- vector()
 		D_err			<- vector()
@@ -16762,7 +16760,7 @@ calcD<-function(popnames=mysambar$populations,snpfilter=snps$filter,mytriplets=N
 		#
 		Dtable			<- dscores[,c("p1","p2","p3","BBAA","ABBA","BABA","D","D_nsnps","D_sd","nblocks","D_err","D_Z","pvalue","sign","excess")]
 		}else{
-		cat("Flag dojackknife has been set to FALSE. Omitting jackknife calculations and hence no identification if obtained D-values are significant.",sep="\n")
+		cat(paste("Flag dojackknife has been set to FALSE or number of genome blocks is below ",minblocks," (value defined to minblocks flag). Omitting jackknife calculations and hence no identification if obtained D-values are significant.",sep=""),sep="\n")
 		Dtable			<- dscores[,c("p1","p2","p3","BBAA","ABBA","BABA","D","D_nsnps")]
 		}
 	mysambar$dscores	<<- dscores
