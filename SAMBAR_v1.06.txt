@@ -14878,7 +14878,7 @@ scattergeneland<-function(myiter=1000,myburnin=2,gradient=TRUE,export=NULL,makep
 # Population differentiation analyses
 
 # This function executes all genetic distance analyses at once:
-calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=FALSE,do_distplot=FALSE,do_comparefst=TRUE,my_triplets=NULL,dostamppfst=TRUE,do_Dfst=FALSE,only_geneflow=FALSE,max_ntriplets=60,dopoptree=TRUE,dodistgenpop=TRUE)
+calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=FALSE,do_distplot=TRUE,do_comparefst=TRUE,my_triplets=NULL,dostamppfst=TRUE,do_Dfst=FALSE,only_geneflow=FALSE,max_ntriplets=60,dopoptree=TRUE,dodistgenpop=TRUE,do_dxy=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -14964,9 +14964,10 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 		cat("Calculating pairwise Cockerham & Weir 1987 Fst...",sep="\n")
 		run_locusWCfst(export="pdf",silent=silent)	# histogram, depends on locusWCfst	
 		if(mysambar$os=="Windows"){run_locusWCfst(export="wmf")}
-		if(do_distplot)
+		if(length(mysambar$populations)<=5&do_distplot)
 			{
 			if(!silent){cat("Fdist_multiplot",sep="\n")}
+			cat("Generating Fdist plots. If you run into an error after this line, set the flag do_distplot to FALSE (i.e. 'calcdistance(do_distplot=FALSE)').",sep="\n")
 			Fdist_multiplot(export="eps")	# He-Fst scatterplot, depends on Fdist_plot
 			Fdist_multiplot(export="pdf")
 			Fdist_multiplot(export="png")
@@ -15036,14 +15037,21 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 			# window fst:
 			plotwindowfst(fst_type="Wrightfst",n_chroms=nchroms,export="pdf")	# to create windowfstdf
 			}
+		if(do_dxy)
+			{
+			cat("Calculating Dxy (mean raw distance between populations)...",sep="\n")
+			cat("If you run into an error after this line, or if the calculation takes too long, rerun the calcdistance function with the flag do_dxy set to false (i.e. 'calcdistance(do_dxy=FALSE)')",sep="\n")
+			popmeandxy()
+			cat("Creating boxplots with between sample genetic distances...",sep="\n")  
+			cat("Again, if you run into an error after this line, or if the calculation takes too long, rerun the calcdistance function with the flag do_dxy set to false (i.e. 'calcdistance(do_dxy=FALSE)')",sep="\n")
+			seqdivplot(nsites=NULL,export=TRUE)
+			}
 		}
-	cat("Dxy...",sep="\n")
-	popmeandxy()
 	#
 	### GENE FLOW ANALYSES
 	# many options:
 	# - D calculation implemented in SAMBAR (according to algorithm of Simon H Martin)
-	# - Dfst calculation implemented in SAMBAR (not tested algorithm)
+	# - Dfst calculation implemented in SAMBAR (not validated, experimental algorithm)
 	# - R package HybridCheck
 	# - R package StrataG (related to HybridCheck?)
 	# - R package Admixtools2 (f3 and f4 statistics)
@@ -15092,6 +15100,7 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 			#if(mysambar$os=="Windows"){plotD(export="wmf",shortpop=TRUE,doboxplot=TRUE)}	# file too big		
 			#
 			barplotD(mydf=mysambar$dscores,export="pdf",silent=TRUE,plottitle=NULL,allcombi=FALSE,addnsnps=TRUE)
+			barplotD(mydf=mysambar$dscores,export="pdf",silent=TRUE,plottitle=NULL,allcombi=TRUE,addnsnps=TRUE)
 			#
 			if(do_Dfst)
 				{
@@ -15104,6 +15113,8 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 				plotD(export="png",plotDfst=TRUE,shortpop=TRUE)
 				#if(mysambar$os=="Windows"){plotD(export="wmf",plotDfst=TRUE,shortpop=TRUE)}	# file too big
 				}
+			# 04-11-2021: still to add:
+			# runadmixtools()
 			# strataG package:
 			# binaryD()
 			}
@@ -15210,9 +15221,10 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 	if(!silent){cat("popdistlist",sep="\n")}
 	popdistlist				<- list()
 	mymethods				<- c("Nei_D_1972_adegenet","Edwards_1971_adegenet","Reynolds_Weir_Cockerham_1983_adegenet","Rodgers_1972_adegenet","Provesti_1975_adegenet")
+	myshortnames			<- c("NeiD1972_ad","Edwards1971_ad","RWC1983_ad","Rodgers1972_ad","Provesti1975_ad") 
 	popdistdf				<- as.data.frame(matrix(NA,ncol=length(mymethods),nrow=npairwise))
-	colnames(popdistdf)		<- mymethods
-	rownames(popdistdf)		<- combinames 
+	colnames(popdistdf)		<- myshortnames
+	rownames(popdistdf)		<- combinames
 	if(!silent){cat("mypopdist",sep="\n")}
 	for (k in c(1:5))
 		{
@@ -15233,7 +15245,7 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 		{
 		if(!silent){cat("popneivector",sep="\n")}
 		popdistdf$tempdistscore			<- mysambar$popneivector
-		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "Nei_D_1972_stampp"
+		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "NeiD1972_st"
 		}else{
 		if(!silent){cat("popneivector not present",sep="\n")}
 		}
@@ -15241,7 +15253,7 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 		{	
 		if(!silent){cat("WC1983fst",sep="\n")}
 		popdistdf$tempdistscore			<- mysambar$WC1983fstvector
-		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "Weir_Cockerham_Fst_1983_stampp"
+		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "WC1983_st"
 		}else{
 		if(!silent){cat("WC1983fstvector not present",sep="\n")}
 		}
@@ -15249,7 +15261,7 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 		{	
 		if(!silent){cat("WC1983p",sep="\n")}
 		popdistdf$tempdistscore			<- mysambar$WC1983pvector
-		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "Weir_Cockerham_pvalue_1983_stampp"
+		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "WC1983p_st"
 		}else{
 		if(!silent){cat("WC1983pvector not present",sep="\n")}
 		}
@@ -15257,7 +15269,7 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 		{	
 		if(!silent){cat("WC1983logp",sep="\n")}
 		popdistdf$tempdistscore			<- mysambar$WC1983logpvector
-		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "Weir_Cockerham_logp_1983_stampp"
+		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "WC1983logp_st"
 		}else{
 		if(!silent){cat("WC1983pvector not present",sep="\n")}
 		}
@@ -15265,7 +15277,7 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 		{
 		if(!silent){cat("Wrightfst",sep="\n")}
 		popdistdf$tempdistscore			<- mysambar$Wrightfstvector
-		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "Wright_Fst_1943_sambar"
+		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "Wright1943_sa"
 		}else{
 		if(!silent){cat("Wrightfstvector not present",sep="\n")}
 		}
@@ -15273,7 +15285,7 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 		{
 		if(!silent){cat("varfst",sep="\n")}
 		popdistdf$tempdistscore			<- mysambar$varfstvector
-		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "variance_sambar"
+		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "variance_sa"
 		}else{
 		if(!silent){cat("varfstvector not present",sep="\n")}
 		}
@@ -15281,7 +15293,7 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 		{
 		if(!silent){cat("pearson",sep="\n")}
 		popdistdf$tempdistscore			<- mysambar$pearsonvector
-		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "Pearson_r_sambar"
+		colnames(popdistdf)[colnames(popdistdf)=="tempdistscore"]	<- "Pearson_r_sa"
 		}else{
 		if(!silent){cat("pearsonvector not present",sep="\n")}
 		}
@@ -15296,8 +15308,7 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 
 comparefstplot<-function(export=NULL)
 	{
-	distdf2				<- mysambar$popdistdf[,c(1:7,10:11)]
-	colnames(distdf2)	<- c("NeiD1972_a","Edwards1971_a","RWC1983_a","Rodgers1972_a","Provesti1975_a","NeiD1972_st","WC1983_st","Wright1943_sa","variance_sa")
+	distdf2				<- mysambar$popdistdf[,!(colnames(mysambar$popdistdf)%in%c("WC1983p_st","WC1983logp_st","variance_sa","Pearson_r_sa"))]
 	if(!is.null(export))
 		{
 		pdf("Compare_pairwise_distmethods.pdf",height=8,width=8)
@@ -15306,6 +15317,7 @@ comparefstplot<-function(export=NULL)
 	pairs(distdf2,xlim=c(0,mymax),lower.panel=NULL,ylim=c(0,mymax),pch=16,las=2,cex=0.5)
 	if(!is.null(export)){dev.off()}
 	}
+
 
 # AMOVA
 # Depends on package StamPP'
@@ -17156,24 +17168,34 @@ plotD<-function(mydf=mysambar$dscores,plotname="Dstats",mycol="grey50",export=NU
 			}
 		if(add_Z)
 			{
-			axis(4,at=ypos[-(ndata+1)],round(mydf$D_Z,1),las=2,cex.axis=1.5,labels=FALSE)
-			myzscores	<- abs(round(mydf$D_Z,1))
-			mycols		<- ifelse(myzscores<3,"grey60","black")
-			mtext(round(mydf$D_Z,1),at=ypos[-(ndata+1)],side=4,line=1,col=mycols,las=1,cex=1.75)
+			if("D_Z"%in%colnames(mydf))
+				{
+				axis(4,at=ypos[-(ndata+1)],round(mydf$D_Z,1),las=2,cex.axis=1.5,labels=FALSE)
+				myzscores	<- abs(round(mydf$D_Z,1))
+				mycols		<- ifelse(myzscores<3,"grey60","black")
+				mtext(round(mydf$D_Z,1),at=ypos[-(ndata+1)],side=4,line=1,col=mycols,las=1,cex=1.75)
+				}else{
+				cat("WARNING: column 'D_Z' is missing. Not adding z-scores to plot.",sep="\n")
+				}
 			}
 		if(add_f)
 			{
-			par(new=TRUE,mgp=c(3,0.25,0))
-			plot(c(-1,1),c(0,1),col="white",xlab="",ylab="",yaxt='n',xaxt='n')
-			for(k in c(1:ndata))
+			if("f"%in%colnames(mydf))
 				{
-				if(!is.na(mydf$sign[k])&mydf$sign[k]!="NS")
+				par(new=TRUE,mgp=c(3,0.25,0))
+				plot(c(-1,1),c(0,1),col="white",xlab="",ylab="",yaxt='n',xaxt='n')
+				for(k in c(1:ndata))
 					{
-					points(x=mydf$f[k],y=ypos[k],pch=18,col="orange",cex=2.5)
+					if(!is.na(mydf$sign[k])&mydf$sign[k]!="NS")
+						{
+						points(x=mydf$f[k],y=ypos[k],pch=18,col="orange",cex=2.5)
+						}
 					}
+				axis(side=3,col.axis="orange",col="orange")
+				mtext(side=3,line=2,"f score",cex=3,col="orange")
+				}else{
+				cat("WARNING: column 'f' is missing. Not adding f-scores to plot.",sep="\n")
 				}
-			axis(side=3,col.axis="orange",col="orange")
-			mtext(side=3,line=2,"f score",cex=3,col="orange")
 			}
 		}
 	if(!is.null(export)){dev.off()}
@@ -17604,7 +17626,11 @@ pop_reynoldsmatrix<-function(export=NULL)
 		return(cat("ERROR: mysambar$popdistdf is missing. Did you run the popdistances function?",sep="\n")) 
 		}
 	# get distance matrix:
-	distvec						<- mysambar$popdistdf[,"Reynolds_Weir_Cockerham_1983_adegenet",drop=FALSE]
+	if(!"RWC1983_ad"%in%colnames(mysambar$popdistdf))
+		{
+		return(cat("ERROR: column 'RWC1983_ad' not present in mysambar$popdistdf. Did you run the popdistances function?",sep="\n")) 
+		}
+	distvec						<- mysambar$popdistdf[,"RWC1983_ad",drop=FALSE]
 	mattemp						<- matrix(NA,nrow=npops,ncol=npops)
 	colnames(mattemp)			<- popnames
 	rownames(mattemp)			<- popnames
