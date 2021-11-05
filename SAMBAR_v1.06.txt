@@ -14914,6 +14914,7 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 		}
 	cat("REMINDER: if you receive an error stating 'cannot open file' (without the addition 'No such file or directory') this is likely because the file is opened in another file viewer.",sep="\n")
 	cat("If so, close the relevant file in the file viewer and try again.",sep="\n")
+	#
 	setwd(mysambar$divergencedir)
 	#
 	if(!only_geneflow)
