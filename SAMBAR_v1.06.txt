@@ -29624,7 +29624,7 @@ runRDA<-function(export="pdf",legendpos="topleft",envfile="ENVDATAr5noBSCLEAN_MJ
 		if(export=="png"){png("RDA.1_2.png",family=mysambar$myfont,width=720,height=720)}
 		if(export=="wmf"){win.metafile("RDA.1_2.wmf",family=mysambar$myfont,width=10,height=10)}
 		}
-	eco 	<- envdata$population
+	eco 	<- as.factor(envdata$population)		# 10-11-2021: added 'as.factor()'
 	bg		<- mysambar$mycolours
 	par(cex.axis=2.5,mar=c(5,5,1,1))
 	plot(myrda, type="n", scaling=3, xlab="", ylab = "")
@@ -29790,12 +29790,12 @@ genlight2DNAbin<-function(input=mygenlight,in_snps=snps,in_inds=inds,snpsfilter=
         g[g=="22"]  		<- "C"
 		g[g=="33"]			<- "G"
 		g[g=="44"]  		<- "T"
-		g[g=="12"|g=="21"] 	<- "M"
-       	g[g=="13"|g=="31"]	<- "R"
-		g[g=="14"|g=="41"] 	<- "W"
-        g[g=="23"|g=="32"]  <- "S"
-		g[g=="24"|g=="42"]	<- "Y"
-		g[g=="34"|g=="43"]  <- "K"
+		g[g=="12"|g=="21"] 	<- "M"		
+       	g[g=="13"|g=="31"]	<- "R"		
+		g[g=="14"|g=="41"] 	<- "W"		
+        g[g=="23"|g=="32"]  <- "S"		
+		g[g=="24"|g=="42"]	<- "Y"		
+		g[g=="34"|g=="43"]  <- "K"		
 		genot2[,j]			<- g
 		}
 	mydnabin			<<- as.DNAbin(genot2)
@@ -29812,6 +29812,101 @@ genlight2DNAbin<-function(input=mygenlight,in_snps=snps,in_inds=inds,snpsfilter=
 			}
 		}
 	}	
+
+# 01-12-2021:
+DNAbin2genlight<-function(mydnabin=mysambar$mydnabin)
+	{
+	if(is.null(mydnabin))
+		{
+		return(cat("ERROR: specified dnabin object (to mydnabin argument) not found.",sep="\n")) 
+		}
+	x				<- toupper(as.character(mydnabin))
+	genot			<- matrix(NA,nrow=nrow(x),ncol=ncol(x))
+	snpnames		<- paste("SNP",c(1:ncol(x)),sep="")
+	#
+	# find out major and minor allele:
+	cat("Determining alleles...",sep="\n")
+	mydf			<- as.data.frame(matrix(NA,nrow=ncol(x),ncol=11))
+	colnames(mydf)	<- c("a","c","g","t","m","r","w","s","y","k","INDEL")
+	for (j in c(1:ncol(x))) 
+		{
+		g				<- x[,j]
+		mydf[j,1]		<- length(g[g=="A"])
+		mydf[j,2]		<- length(g[g=="C"])
+		mydf[j,3]		<- length(g[g=="G"])
+		mydf[j,4]		<- length(g[g=="T"])
+		mydf[j,5]		<- length(g[g=="M"])
+		mydf[j,6]		<- length(g[g=="R"])
+		mydf[j,7]		<- length(g[g=="W"])
+		mydf[j,8]		<- length(g[g=="S"])
+		mydf[j,9]		<- length(g[g=="Y"])
+		mydf[j,10]		<- length(g[g=="K"])
+		mydf[j,11]		<- length(g[g=="-"])	# INDEL
+		}
+	# M = AC
+	# R = AG
+	# W = AT
+	# S = CG
+	# Y = CT
+	# K = GT
+	mydf2				<- data.frame("A"=mydf$a+mydf$m+mydf$r+mydf$w,"C"=2*mydf$c+mydf$m+mydf$s+mydf$y,"G"=2*mydf$g+mydf$r+mydf$s+mydf$k,"T"=2*mydf$t+mydf$w+mydf$y+mydf$k)
+	nalleles			<- apply(mydf2,1,FUN=function(x) length(which(x!=0)) )
+	mybool				<- nalleles<=2
+	mybool2				<- nalleles==2
+	if(all(mybool))
+		{
+		if(all(mybool2))
+			{
+			cat("All sites are biallelic.",sep="\n")
+			}else{
+			cat("All sites are either monomorphic or biallelic.",sep="\n")
+			}
+		}else{
+		nmulti	<- length(mybool[!mybool])
+		nsites	<- length(mybool)
+		cat(paste("WARNING: ",nmulti," multi-allelic sites found (out of ",nsites," in total). These sites will be excluded from the genlight object.",sep=""),sep="\n")
+		if(nmulti==nsites)
+			{
+			return(cat("ERROR: all sites are multi-allelic. Not converting to genlight.",sep="\n"))
+			}
+		mydf	<- mydf[mybool,]
+		mydf2	<- mydf2[mybool,]
+		x		<- x[,mybool]
+		genot	<- genot[,mybool]
+		snpnames<- snpnames[mybool]
+		}
+	#
+	cat("Determining minor and major alleles...",sep="\n")
+	majorvec			<- c("A","C","G","T")[apply(mydf2,1,which.max)]
+	mydf3				<- mydf2[,c("T","G","C","A")]		# reverse order, because in case maximum value is represented by two rather than one column, which.max returns first occurence.
+	mydf3[mydf3==0]		<- 1000								# this enables to find minor.allele (assuming that no minor allele is represented by 1000 copies or more)
+	minorvec			<- c("T","G","C","A")[apply(mydf3,1,which.min)]
+	#
+	# next convert to genlight:	
+	cat("Converting to genlight...",sep="\n")
+	cat("WARNING: if present, indels (-), will be converted to NA-values.",sep="\n")
+	for (j in c(1:ncol(x))) 
+		{
+		g						<- x[,j]
+		mymajor					<- majorvec[j]
+		myminor					<- minorvec[j]
+		g[g==mymajor&!is.na(g)] <- "0"
+		g[g==myminor&!is.na(g)] <- "2"
+       	g[(g=="M"|g=="R"|g=="W"|g=="S"|g=="Y"|g=="K")&!is.na(g)] 	<- "1"
+       	g[g=="N"]				<- NA
+		g[g=="-"]				<- NA
+		genot[,j]				<- g
+		}
+	mygeno						<- as.data.frame(genot)
+	rownames(mygeno)			<- rownames(x)
+	colnames(mygeno)			<- snpnames
+	mygl						<<- as.genlight(mygeno)
+	mygl@loc.all				<<- paste(majorvec,minorvec,sep="/")
+	mygl@other[[1]]				<<- majorvec
+	mygl@other[[2]]				<<- minorvec
+	cat("Data has been stored in a genlight object called 'mygl'.",sep="\n")
+	cat("Vectors listing the major and minor alleles are stored at mygl@other[[1]] and mygl@other[[2]].",sep="\n")   
+	}
 
 genlight2structure<-function(input=mygenlight,in_snps=snps,in_inds=inds,snpsfilter=snps$filter,indsfilter=inds$filter,exportname=NULL,quiet=FALSE,popasfirstcolumn=TRUE) 
 	{
