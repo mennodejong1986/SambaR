@@ -4950,37 +4950,6 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 			cat("As of 25-04-2021, relatedness calculations are no longer part of the filterdata function.",sep="\n")
 			cat("Instead, run the calckinship() function.",sep="\n")
 			}
-		#cat("Step 4 out of 6: Calculating relatedness between samples...",sep="\n")
-		#if(do_calckin)
-		#	{
-		#	if(is.null(mysambar$kindf))
-		#		{
-		#		nind		<- nrow(inds)
-		#		npairwise	<- (nind*(nind-1))/2
-		#		nsnp		<- nrow(snps[snps$filter,])
-		#		ntotal		<- nsnp*nind
-		#		if(ntotal>6000000)
-		#			{
-		#			cat("Dataset is quite big. Omitting relatedness calculations for sake of calculation time.",sep="\n")
-		#			cat("If you want to calculate relatedness, run the function:",sep="\n")
-		#			cat("calckin(export='pdf',silent=FALSE)",sep="\n")
-		#			cat("However, for big datasets you might be better off using PLINK or GCTA.",sep="\n")
-		#			cat("The output of PLINK and GCTA can be plotted using the SambaR functions plinkrelatedness() and do_gctamatrix().",sep="\n")
-		#			cat("PLINK's pi_hat score is the most sophisticated way to calculate relatedness and therefore the preferred method.",sep="\n") 
-		#			cat("See the SambaR manual for more details.",sep="\n")	
-		#			}else{
-		#			calckin(export="pdf",silent=TRUE)
-		#			}
-		#		}else{
-		#		calckin(export="pdf",silent=TRUE)	# only plotting (in built conditional to omit calculations if mysambar$kindf is already present.
-		#		}
-		#	}else{
-		#	cat("Omitting relatedness calculations because the flag do_calckin is set to FALSE.",sep="\n")
-		#	cat("Especially for big datasets you might be better off using PLINK or GCTA for relatedness calculations.",sep="\n")
-		#	cat("The output of PLINK and GCTA can be plotted using the SambaR functions plinkrelatedness() and do_gctamatrix().",sep="\n")
-		#	cat("PLINK's pi_hat score is the most sophisticated way to calculate relatedness and therefore the preferred method.",sep="\n") 
-		#	cat("See the SambaR manual for more details.",sep="\n")	
-		#	}
 		# inds maf/he:
 		cat ("Step 4 out of 6: Calculating sample specific minor allele frequencies and heterozygosities...",sep="\n")
 		if(any(!colnames(as.matrix(mygenlight))==snps$genlightname))
@@ -10137,9 +10106,10 @@ wahlundplot<-function(export=NULL,popnames=mysambar$poporder,addlabels=TRUE,sile
 	colnames(fdf)	<- c("pop","F","HWE")
 	fdf$pop			<- "0_meta"
 	npops			<- length(popnames)+1
-	for (j in c(1:npops))
+	for (j in c(1:(npops-1)))
 		{
 		mypop			<- popnames[j]
+		if(!silent){cat(mypop,sep="\n")}
 		fdfpop			<- snps[snps$filter,c("morgan",paste("F",mypop,sep="_"),paste("HWE",mypop,sep="_"))]
 		colnames(fdfpop)<- c("pop","F","HWE")
 		fdfpop$pop		<- paste(j,mypop,sep="_")
@@ -23418,6 +23388,7 @@ calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=
 		}
 	if(!silent){cat("Calculating kinship...",sep="\n")}
 	calckin(do_overwrite=overwrite_kindf,export="pdf")
+	multi_geno2Dmat(kindf=mysambar$kindf,maxplots=20,mythres=0.4,export_type="pdf")
 	if(!silent){cat("Creating boxplots...",sep="\n")}
 	kinboxplot(export="pdf",plotname="Relatedness_boxplot_kingrobust",kinshipscore="kingrobust",ylabel="King-robust score",yline=4.5,onlywithin=TRUE)
 	kinboxplot(export="pdf",plotname="Relatedness_boxplot",kinshipscore="kincoef",ylabel="Relatedness coefficient",yline=4.5,onlywithin=TRUE)
@@ -23449,7 +23420,7 @@ calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=
 		}
 	}
 
-calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,do_overwrite=FALSE)
+calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,do_overwrite=FALSE,kinthreshold=0.4)
 	{
 	my_wd		<- getwd()
 	myinds		<- inds$nr
@@ -23548,6 +23519,7 @@ calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,
 				# get 2D-SFS:
 				indsfs		<- table(geno1,geno2)
 				indsfs		<- indsfs[1:3,1:3]
+				# 
 				# indsfslist[[i]]	<<- indsfs
 				# calculate statistics:
 				r0vec[i]	<- (indsfs[3,1]+indsfs[1,3])/indsfs[2,2]  
@@ -23558,10 +23530,15 @@ calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,
 				k1vec[i]	<- (indsfs[1,2]+indsfs[2,1]+indsfs[2,3]+indsfs[3,2])/mysum
 				k2vec[i]	<- (indsfs[1,1]+indsfs[2,2]+indsfs[3,3])/mysum
 				kincoef[i]	<- round(k1vec[i]/4+k2vec[i]/2,3)
-				# kincoefficient values formula is based on explanation in introduction of Waples et al, 2018, Allele frequency‐free inference of close familial relationships from genotypes or low depth sequencing data
+				# kincoefficient values formula is based on explanation in introduction of Waples et al, 2018, Allele frequency free inference of close familial relationships from genotypes or low depth sequencing data
 				# At first glance not very distinctive estimates, so I didn't bother (yet) plotting the results
 				# still to incorporate: PLINK pi_hat estimates
 				# for detailed description of pihat calculation see: Purcell et al, 2007, PLINK: A Tool Set for Whole-Genome Association and Population-Based Linkage Analyses
+				#
+				if(kingvec[i]>=kinthreshold&(!silent))
+					{
+					cat(paste("High relatedness-score for individual ",ind1," and ",ind2,".",sep=""),sep="\n")
+					}
 				}
 			kindf			<- data.frame("ind1"=ind1vec,"ind2"=ind2vec,"name1"=name1vec,"name2"=name2vec,"pop1"=pop1vec,"pop2"=pop2vec,"popcol1"=popcol1vec,"popcol2"=popcol2vec,"ind1_bool"=ind1bool,"ind2_bool"=ind2bool,"ndata1"=ndata1vec,"ndata2"=ndata2vec,"F1"=f1vec,"F2"=f2vec,"r0"=r0vec,"r1"=r1vec,"kingrobust"=kingvec,"k0"=k0vec,"k1"=k1vec,"k2"=k2vec,"kincoef"=kincoef)
 			kindf$samepop	<- kindf$pop1==kindf$pop2
@@ -23630,6 +23607,147 @@ calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,
 		}
 	}
 
+multi_geno2Dmat<-function(kindf=mysambar$kindf,maxplots=20,mythres=0.4,export_type="pdf",n_bins=5,silent=TRUE)
+	{
+	if(is.null(kindf))
+		{
+		return(cat("ERROR: kindf dataframe not found.",sep="\n"))
+		}
+	kindf		<- kindf[kindf$ind1_bool&kindf$ind2_bool&kindf$kingrobust>=mythres,]
+	npairs		<- nrow(kindf)
+	cat(paste("Number of sample pairs with King-robust relatedness-score >= ",mythres," equals ",npairs,".",sep=""),sep="\n")
+	if(npairs>maxplots)
+		{
+		return(cat("WARNING: Many related pairs. If you want to plot them anyway, run the multi_geno2Dmat function with a higher value specified to the flag maxplots (default is 20).",sep="\n"))
+		}
+	cat("Creating heatmaps with 2D sample genotypes proportions of sample pairs with high relatedness scores.",sep="\n") 
+	for(i in c(1:npairs))
+		{
+		if(!silent){cat(i,sep="\n")}
+		geno2Dmat(ind1=kindf$ind1[i],ind2=kindf$ind2[i],export=export_type,use_currentdir=TRUE,nbins=n_bins,doprop=TRUE,ndecimals=3,myBreaks=seq(0,0.1,0.1/n_bins))
+		}
+	cat("Heatmaps with 2D sample genotype proportions have been exported to the directory:",sep="\n")
+	cat(getwd(),sep="\n")
+	cat("Orange colour scale indicates deviation from random expectations (dark orange: high deviation; white: low deviation).",sep="\n")
+	}
+	
+
+geno2Dmat<-function(ind1=1,ind2=2,export=NULL,use_currentdir=TRUE,nbins=5,doprop=TRUE,ndecimals=3,myBreaks=seq(0,0.1,0.1/nbins))
+	{
+	# This plot create a heatmap with two dimensional genotype score proportions.
+	# The colours represent the magnitude of difference compared to expected (random combination) values.
+	# If no relatedness, there will be hardly any orange colour.
+	#
+	############# get 2D genotype scores:
+	name1		<- as.character(inds$name[ind1])
+	name2		<- as.character(inds$name[ind2])
+	genlightmat			<- as.matrix(mygenlight[,snps$filter])
+	geno1				<- genlightmat[ind1,]
+	geno2				<- genlightmat[ind2,]
+	# To avoid that NA is included when stating geno==0/1/2, we change NA to 3:
+	geno1[is.na(geno1)]	<- 3
+	geno2[is.na(geno2)]	<- 3
+	obsmatrix			<- matrix(NA,nrow=3,ncol=3)
+	genos				<- c(0,1,2)
+	colnames(obsmatrix)	<- genos
+	rownames(obsmatrix)	<- genos
+	expmatrix			<- obsmatrix
+	genoprop1			<- vector()
+	genoprop2			<- vector()
+	for (i in c(1:3))
+		{
+		g1	<- genos[i]
+		for (j in c(1:3))
+			{
+			g2	<- genos[j]
+			obsmatrix[i,j]	<- length(geno1[geno1==g1&geno2==g2])
+			}
+		}
+	if(doprop)
+		{
+		mymatrix	<- round(obsmatrix/sum(obsmatrix),ndecimals)
+		}else{
+		mymatrix	<- obsmatrix
+		}
+	#
+	############ expected 2D genotype scores:
+	for (i in c(1:3))
+		{
+		g1				<- genos[i]
+		p1				<- length(geno1[geno1==g1])/length(geno1[geno1!=3])
+		genoprop1[i]	<- round(length(geno1[geno1==g1])/length(geno1[geno1!=3]),2)
+		genoprop2[i]	<- round(length(geno2[geno2==g1])/length(geno2[geno2!=3]),2)
+		for (j in c(1:3))
+			{
+			g2				<- genos[j]
+			p2				<- length(geno1[geno2==g2])/length(geno2[geno2!=3])
+			expmatrix[i,j]	<- p1*p2
+			}
+		}
+	exppropmat	<- round(expmatrix/sum(expmatrix),ndecimals)
+	ntotal		<- length(geno1[geno1!=3&geno2!=3])		
+	obsmatrix	<- obsmatrix
+	expnmat		<- round(expmatrix*ntotal)
+	ndiffmat	<- expnmat-obsmatrix
+	propdiffmat	<<- abs(ndiffmat/sum(obsmatrix))
+	#
+	### PLOTTING
+	# balloonplot(as.table(mymatrix),xlab=name1,ylab=name2,main="")
+	# create colours:
+	myvec	<- c("0","1","2")
+	rownames(propdiffmat)	<- paste(myvec,genoprop1,sep=": ")
+	colnames(propdiffmat)	<- paste(myvec,genoprop2,sep=": ")
+	if(is.null(myBreaks))
+		{
+		#if(doprop)
+		#	{
+		#	floor_dec 	<- function(x, level=1) round(x - 5*10^(-level-1), level)
+		#	ceiling_dec <- function(x, level=1) round(x + 5*10^(-level-1), level)
+		#	mymin		<- floor_dec(min(mymatrix,na.rm=TRUE),1)
+		#	mymax		<- ceiling_dec(max(mymatrix,na.rm=TRUE),1)
+		#	}else{
+		#	mymin		<- min(mymatrix,na.rm=TRUE)
+		#	mymax		<- max(mymatrix,na.rm=TRUE)
+		#	}
+		mymin		<- min(propdiffmat,na.rm=TRUE)
+		mymax		<- max(propdiffmat,na.rm=TRUE)
+		binsize		<- ifelse(is.null(nbins),(mymax-mymin)/10,(mymax-mymin)/nbins)
+		myBreaks	<- seq(mymin,mymax,binsize)
+		}
+	myBreaks	<<- myBreaks
+	mycolfunc 	<<- colorRampPalette(c("white","darkorange"))
+	myColours	<<- c(mycolfunc(length(myBreaks)-1))
+	#
+	my_wd		<- getwd()
+	if(!use_currentdir)
+		{
+		setwd(kinshipdir)
+		}
+	graphics.off()
+	if(!is.null(export))
+		{
+		ngeno	<- 3
+		mysize	<- 3+ngeno*1.75
+		mysize2	<- 300+ngeno*150
+		plotname<- paste("Geno2Dmat",paste(ind1,"vs",ind2,sep=""),sep=".")
+		if(export=="eps"){postscript(paste(plotname,"eps",sep="."),family=mysambar$myfont,width=mysize,height=mysize)}
+		if(export=="pdf"){pdf(paste(plotname,"pdf",sep="."),family=mysambar$myfont,width=mysize,height=mysize)}
+		if(export=="png"){png(paste(plotname,"png",sep="."),family=mysambar$myfont,width=mysize2,height=mysize2)}
+		if(export=="wmf"){win.metafile(paste(plotname,"wmf",sep="."),family=mysambar$myfont,width=mysize,height=mysize)}
+		}
+	heatmap.2(propdiffmat,lwid=c(0.5,4),lhei=c(0.5,4),cellnote=mymatrix,
+	notecol="black",notecex=2.5,Rowv=NA,cexCol=2.5,cexRow=2.5,Colv=NA,scale="none",
+	col=myColours,breaks=myBreaks,dendrogram="none",key=FALSE,trace="none",srtRow=45,srtCol=45,margins=c(12,12))
+	mtext(name1, side = 1, cex = 2, line = 3.5)
+	mtext(name2, side = 4, cex = 2, line = 0.5)
+	mtext("2D sample genotype proportions", side = 3, line = 1, cex = 2.5)	
+	if(!is.null(export)){dev.off()}
+	if(!use_currentdir)
+		{
+		setwd(my_wd)
+		}
+	}
+
 kintable<-function(my_thres=0,silent=FALSE)
 	{
 	kindf	<- mysambar$kindf
@@ -23677,7 +23795,7 @@ Fvskin<-function(dolabels=FALSE,export=NULL,limitrange=FALSE)
 		#if(export=="wmf"){win.metafile(paste(plotname,plotlabel,"wmf",sep="."),family=mysambar$myfont,width=10,height=10)} # this file is too big
 		}
 	par(mar=c(5,6,5,2),cex.axis=2.5,cex.lab=3,cex.main=3)
-	if(limitrange)
+	if(!limitrange)
 		{
 		limx	<- c(-1,1)
 		limy	<- c(-1,0.5)
