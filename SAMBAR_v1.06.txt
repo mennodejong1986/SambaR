@@ -8977,7 +8977,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
+findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -9337,6 +9337,7 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 			if(length(mysambar$populations)>3)
 				{
 				# 22-09-2021:
+				cat("Creating population phylogenies. If you receive an error after this line, set the flag dopoptree to FALSE.",sep="\n") 
 				getpoptree(exportlabel="neiD",donj=FALSE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5)
 				getpoptree(exportlabel="neiD",donj=TRUE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5)
 				getpoptree(exportlabel="neiD",donj=FALSE,edgecolors=TRUE,mytype="phylogram",labelcex=1.5)
@@ -9435,7 +9436,7 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 				genlight2genind()
 				if(!silent){cat("adegenet_dapc",sep="\n")}
 				}
-			multi_adegenet_dapc(export="pdf",thresvector=c(20,50,80,95),max_clusters=Kmax,add_ellipse=dapc_ellipse,ellipse_level=0.5,legendadd=add_legend,poslegend=legend_pos,cexlegend=legend_cex,symsize=symbol_size,rundc=do_dc,plot_heatmap=dapc_heatmap)
+			multi_adegenet_dapc(export="pdf",thresvector=c(20,50,80,95),max_clusters=Kmax,add_ellipse=dapc_ellipse,ellipse_level=dapc_ellipse_level,legendadd=add_legend,poslegend=legend_pos,cexlegend=legend_cex,symsize=symbol_size,rundc=do_dc,plot_heatmap=dapc_heatmap)
 			}
 		if(length(mysambar$populations)>1&doBAPT)
 			{
@@ -10153,10 +10154,12 @@ hwe<-function(popnames=mysambar$populations,indselection=inds$filter,mycolours=m
 
 wahlundplot<-function(export=NULL,popnames=mysambar$poporder,addlabels=TRUE,silent=TRUE,plotname="Wahlund_effect",addylabel=TRUE)
 	{
+	if(!silent){cat("Plotting locus-specific HWE score...",sep="\n")}
 	fdf				<- snps[snps$filter,c("morgan","F_meta","HWE")]
 	colnames(fdf)	<- c("pop","F","HWE")
 	fdf$pop			<- "0_meta"
 	npops			<- length(popnames)+1
+	if(!silent){cat("Per population...",sep="\n")}
 	for (j in c(1:(npops-1)))
 		{
 		mypop			<- popnames[j]
@@ -11766,6 +11769,8 @@ overlapdapc<-function(popnames=mysambar$populations,observedmat=NULL)
 
 multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(20,50,80,95),max_clusters=6,legendadd=TRUE,poslegend="right",cexlegend=2.5,symsize=2,silent=FALSE,rundc=TRUE,plot_heatmap=TRUE,add_ellipse=FALSE,ellipse_level=0.5)
 	{
+	# Note: adding ellipse causes warning:
+	# In chol.default(shape, pivot = TRUE) : the matrix is either rank-deficient or indefinite
 	npops	<- length(mysambar$populations)
 	if(!xvalonly)
 		{
@@ -12182,7 +12187,7 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 								{
 								#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
 								if("car"%in%(.packages()) == FALSE) {library(car)}
-								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD2,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
 								}
 							}else{
 							plot(mydapc$LD1,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
@@ -12199,7 +12204,7 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 								{
 								#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
 								if("car"%in%(.packages()) == FALSE) {library(car)}
-								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD2,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								car::dataEllipse(x=mydapc$LD2,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
 								}
 							}else{
 							plot(mydapc$LD2,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
@@ -12230,6 +12235,12 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 						if(myrun<3)
 							{
 							plot(mydapc$LD1,mydapc$LD2,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+							if(addellipse)
+								{
+								#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
+								if("car"%in%(.packages()) == FALSE) {library(car)}
+								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD2,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								}
 							}else{
 							plot(mydapc$LD1,mydapc$LD2,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
 							text(mydapc$LD1,mydapc$LD2,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
@@ -12246,6 +12257,12 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 						if(myrun<3)
 							{
 							plot(mydapc$LD1,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+							if(addellipse)
+								{
+								#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
+								if("car"%in%(.packages()) == FALSE) {library(car)}
+								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								}
 							}else{
 							plot(mydapc$LD1,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
 							text(mydapc$LD1,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
@@ -12257,6 +12274,12 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 						if(myrun<3)
 							{
 							plot(mydapc$LD2,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+							if(addellipse)
+								{
+								#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
+								if("car"%in%(.packages()) == FALSE) {library(car)}
+								car::dataEllipse(x=mydapc$LD2,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								}
 							}else{
 							plot(mydapc$LD2,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
 							text(mydapc$LD2,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
@@ -12268,6 +12291,12 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 						if(myrun<3)
 							{
 							plot(mydapc$LD1,mydapc$LD4,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+							if(addellipse)
+								{
+								#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
+								if("car"%in%(.packages()) == FALSE) {library(car)}
+								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD4,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								}
 							}else{
 							plot(mydapc$LD1,mydapc$LD4,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
 							text(mydapc$LD1,mydapc$LD4,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
@@ -15001,6 +15030,7 @@ calcdistance<-function(silent=TRUE,nchroms=NULL,do_hybridcheck=FALSE,do_binaryD=
 		if(length(mysambar$populations)>3&dopoptree)
 			{
 			# 22-09-2021:
+			cat("Creating population phylogenies. If you receive an error after this line, set the flag dopoptree to FALSE.",sep="\n") 
 			getpoptree(mymatrix=mysambar$popneimatrix,exportlabel="neiD",donj=FALSE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5)
 			getpoptree(mymatrix=mysambar$popneimatrix,exportlabel="neiD",donj=TRUE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5)
 			getpoptree(mymatrix=mysambar$popneimatrix,exportlabel="neiD",donj=FALSE,edgecolors=TRUE,mytype="phylogram",labelcex=1.5)
