@@ -1254,7 +1254,7 @@ getpackages_old<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE,
 
 
 # import biallelic data from PLINK raw format:
-importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,samplefile=NULL,vcfsamplefile=NULL,allow_edit=FALSE,geofile=NULL,depthfile=FALSE,poolsfile=NULL,nchroms=NULL,namechars=10,colourvector=NULL,popcol_by_alphabetical_order_popname=TRUE,popnchars=10,silent=TRUE,heplot=TRUE,qcplot=TRUE,do_citations=TRUE,dosoftwarecheck=FALSE,acceptalleles=FALSE,legend_cex=3,pop_order=NULL)
+importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,samplefile=NULL,vcfsamplefile=NULL,allow_edit=FALSE,geofile=NULL,depthfile=FALSE,poolsfile=NULL,nchroms=NULL,namechars=10,colourvector=NULL,popcol_by_alphabetical_order_popname=TRUE,popnchars=10,silent=TRUE,heplot=TRUE,domap=TRUE,qcplot=TRUE,do_citations=TRUE,dosoftwarecheck=FALSE,acceptalleles=FALSE,legend_cex=3,pop_order=NULL)
 	{
 	# poolsfile: Name of optional input file (default is NULL) with the names of the sequencing library pool names of the samples. 
 	# Input file should contain two tab-separated columns called ‘sample’ and ‘pool’. Sample names in the poolsfile should be identical to sample names in PED-file. 
@@ -2491,6 +2491,12 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 	#
 	cat("REMINDER: if you receive an error stating 'cannot open file' (without the addition 'No such file or directory') this is likely because the file is opened in another file viewer.",sep="\n")
 	cat("If so, close the relevant file in the file viewer and try again.",sep="\n")
+	if("longitude"%in%colnames(inds)&"latitude"%in%colnames(inds)&domap)
+		{
+		cat("Creating geographical map with sample locations. If you receive an error after this line, so the flag domap to FALSE.",sep="\n")
+		plotlocations2(export="pdf",indsfilter=rep(TRUE,nrow(inds)),addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=2.5,dolabels=FALSE,showborders=TRUE)
+		plotlocations2(export="pdf",indsfilter=rep(TRUE,nrow(inds)),addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=1,dolabels=TRUE,showborders=TRUE)
+		}
 	if(qcplot)
 		{	
 		cat("Creating data_quality plot...",sep="\n")
@@ -8971,7 +8977,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
+findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -9083,6 +9089,55 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 	# do analyses:
 	if(!onlyLEA)
 		{
+		if(quickrun)
+			{
+			cat("Creating pcoa plot based on Nei's genetic distance using StAMPP and Ape...",sep="\n")
+			ape_pcoa(labels=FALSE,method="hamming",export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=FALSE)
+			multiplot_pcoa_axes(exporttype="pdf",mymethod="hamming",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
+			multiplot_pcoa_axes(exporttype="pdf",mymethod="hamming",dolabels=TRUE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
+			multiplot_pcoa_axes(exporttype="pdf",mymethod="hamming",dolabels=TRUE,print_miss=TRUE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
+			if("SNPRelate"%in%(.packages())&do_pca)
+				{
+				cat("Creating pca plot using snprelate...",sep="\n")
+				cat("If you receive an error shortly after this line, rerun the findstructure function with the flag do_pca set to FALSE.",sep="\n")
+				snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=FALSE)
+				file.remove("my.gds")
+				}else{
+				cat("Package 'SNPrelate' not installed and/or loaded. Not creating snprelate-based PCA plots.",sep="\n")
+				}
+			if(do_tree)
+				{
+				cat("Creating phylogeny based on Hamming's genetic distance (i.e. using bitwise.dist function of poppr package)...",sep="\n")
+				cat("If you receive an error after this line (for example about 'ploidy' issues), rerun the findstructure function with the 'do_tree' flag set to false (i.e. findstructure(do_tree=FALSE)).",sep="\n")
+				popprtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+				popprtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=100,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+				}
+			if("LEA" %in% (.packages()) == FALSE)
+				{
+				cat("Package LEA not installed or loaded. Skipping LEA admixture analyses.",sep="\n")
+				}else{
+				cat("Creating admixture barplot using LEA...",sep="\n")
+				runLEA(mindemes=Kmin,maxdemes=Kmax,poporder=pop_order)
+				LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",poporder=pop_order,shortpop=short_pop,addindnr=TRUE,colourvector=colour_vector,heightfactor=LEAheightfactor,widthfactor=LEAwidthfactor,axiscex=LEAaxiscex,labelcex=LEAlabelcex,yaxiscex=LEAyaxiscex)
+				if(("latitude" %in% colnames(inds)&"longitude" %in% colnames(inds)))
+					{
+					if(any(is.na(inds$longitude))|any(is.na(inds$latitude)))
+						{
+						cat("No missing values allowed in longitude and latitude column.",sep="\n")
+						cat("SambaR will not order LEA structure plots by longitude.",sep="\n")
+						}else{
+						if(!silent){cat("LEAstructureplot by longitude",sep="\n")}
+						runLEA(mindemes=Kmin,maxdemes=Kmax,order_on_longitude=TRUE)
+						LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",addindnr=TRUE,order_on_longitude=TRUE,colourvector=colour_vector,heightfactor=LEAheightfactor,widthfactor=LEAwidthfactor,axiscex=LEAaxiscex,labelcex=LEAlabelcex,yaxiscex=LEAyaxiscex)
+						}
+					}
+				}
+			create_sambarmaps(K_max=Kmax,radius_ratio=30,marine_data=marine_dataset,dotess=FALSE,dolea=FALSE,dodapc=FALSE,domantel=FALSE,plot_per_pop=FALSE)
+			# reset working directory to default:
+			setwd(mysambar$inputdatadir)
+			cat("Finished structure analyses. Because the flag quickrun is set to TRUE, only a subset of analyses were run (namely PCoA, phylogeny, admixture).",sep="\n")
+			return(cat("For additional analyses (e.g. DAPC, MDS, CA, BAPT) and to run PCoA, phylogenetic and admixture analyses with various settings and for multiple data subsets, set the flag quickrun to FALSE.",sep="\n"))
+			}
 		if(do_pi)
 			{
 			cat("Creating pcoa plot based on pairwise sequence similarity using Sambar functions and Ape...",sep="\n")
@@ -9091,18 +9146,18 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 			calcpi(pi_per_pop=TRUE)
 			if(!silent){cat("ape_pcoa",sep="\n")}
 			cat("If you receive an error after this line, rerun findstructure with the flag 'do_pi' set to FALSE (i.e., findstructure(do_pi=FALSE)).",sep="\n")  
-			ape_pcoa(labels=FALSE,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=FALSE,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=FALSE,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-			ape_pcoa(labels=TRUE,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)}
-			ape_pcoa(labels=TRUE,missvector=inds$miss,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,missvector=inds$miss,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,missvector=inds$miss,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,missvector=inds$miss,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)}
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
 			#
 			#multiplot_pcoa_axes(exporttype="eps",mymethod="pi",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
 			#multiplot_pcoa_axes(exporttype="pdf",mymethod="pi",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
@@ -9120,18 +9175,18 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 			if(mysambar$os=="Windows"){plot_ind_neimatrix(export="wmf")}
 			cat("Creating pcoa plot based on Nei's genetic distance using StAMPP and Ape...",sep="\n")
 			cat("If you receive an error after this line, rerun findstructure with the flag 'do_nei' set to FALSE (i.e., findstructure(do_nei=FALSE)).",sep="\n")  
-			ape_pcoa(labels=FALSE,method="nei",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=FALSE,method="nei",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=FALSE,method="nei",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,method="nei",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-			ape_pcoa(labels=TRUE,method="nei",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,method="nei",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,method="nei",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,method="nei",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-			ape_pcoa(labels=TRUE,method="nei",missvector=inds$miss,export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,method="nei",missvector=inds$miss,export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,method="nei",missvector=inds$miss,export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,method="nei",missvector=inds$miss,export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
 			#
 			multiplot_pcoa_axes(exporttype="eps",mymethod="nei",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
 			multiplot_pcoa_axes(exporttype="pdf",mymethod="nei",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
@@ -9179,18 +9234,18 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 				}
 			}
 		cat("Creating pcoa plot based on Hamming's genetic distance using poppr and Ape...",sep="\n")
-		ape_pcoa(labels=FALSE,method="hamming",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=FALSE,method="hamming",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=FALSE,method="hamming",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,method="hamming",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-		ape_pcoa(labels=TRUE,method="hamming",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=TRUE,method="hamming",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=TRUE,method="hamming",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,method="hamming",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-		ape_pcoa(labels=TRUE,method="hamming",missvector=inds$miss,export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=TRUE,method="hamming",missvector=inds$miss,export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=TRUE,method="hamming",missvector=inds$miss,export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,method="hamming",missvector=inds$miss,export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
 		#
 		multiplot_pcoa_axes(exporttype="eps",mymethod="hamming",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
 		multiplot_pcoa_axes(exporttype="pdf",mymethod="hamming",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
@@ -9342,14 +9397,14 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 			{
 			cat("Creating pca plot using snprelate...",sep="\n")
 			cat("If you receive an error shortly after this line, rerun the findstructure function with the flag do_pca set to FALSE.",sep="\n")
-			snprelate_pca(export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)	
-			snprelate_pca(export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			snprelate_pca(export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){snprelate_pca(export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-			snprelate_pca(export="eps",addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)	
-			snprelate_pca(export="pdf",addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			snprelate_pca(export="png",addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){snprelate_pca(export="wmf",addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			snprelate_pca(export="eps",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)	
+			snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			snprelate_pca(export="png",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){snprelate_pca(export="wmf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			snprelate_pca(export="eps",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)	
+			snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			snprelate_pca(export="png",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){snprelate_pca(export="wmf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
 			if(do_subsets)
 				{
 				cat("Creating pca plot using snprelate using various SNP filter settings...",sep="\n")
@@ -9380,7 +9435,7 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 				genlight2genind()
 				if(!silent){cat("adegenet_dapc",sep="\n")}
 				}
-			multi_adegenet_dapc(export="pdf",thresvector=c(20,50,80,95),max_clusters=Kmax,legendadd=add_legend,poslegend=legend_pos,cexlegend=legend_cex,symsize=symbol_size,rundc=do_dc,plot_heatmap=dapc_heatmap)
+			multi_adegenet_dapc(export="pdf",thresvector=c(20,50,80,95),max_clusters=Kmax,add_ellipse=dapc_ellipse,ellipse_level=0.5,legendadd=add_legend,poslegend=legend_pos,cexlegend=legend_cex,symsize=symbol_size,rundc=do_dc,plot_heatmap=dapc_heatmap)
 			}
 		if(length(mysambar$populations)>1&doBAPT)
 			{
@@ -9504,7 +9559,7 @@ findstructure<-function(add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Km
 	cat("Finished structure analyses.",sep="\n")
 	}
 
-create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodapc=TRUE,domantel=TRUE,plot_per_pop=FALSE,marine_data=FALSE)
+create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodapc=TRUE,domantel=TRUE,plot_per_pop=FALSE,marine_data=FALSE,adjust_ratio=1,symbolsize=3)
 	{
 	# radius_ratio is the ratio between radius of piechart and the range of either longitude or latitude (i.e. smallest of the two)
 	# e.g.: 30 means 1/30th.
@@ -9622,17 +9677,13 @@ create_sambarmaps<-function(K_max=6,radius_ratio=30,dotess=TRUE,dolea=TRUE,dodap
 			multi_mantel_plot(popnames=mysambar$populations,doexport=TRUE)
 			}
 		cat("Plotting location of samples using R package Rworldmap...",sep="\n")
-		plotlocations(export="pdf",addaxislabels=FALSE)
-		plotlocations(export="pdf",addaxislabels=TRUE)
-		plotlocations(export="pdf",addaxislabels=TRUE,adjustratio=0.5,mycex=3)
-		plotlocations(export="pdf",addaxislabels=FALSE,adjustratio=0.5,mycex=3)
-		plotlocations(export="pdf",addaxislabels=TRUE,adjustratio=0.5,mycex=3,mydeviation=1)
-		plotlocations(export="pdf",addaxislabels=FALSE,adjustratio=0.5,mycex=3,mydeviation=1)
+		plotlocations(export="pdf",addaxislabels=FALSE,adjustratio=adjust_ratio,mycex=symbolsize,mydeviation=NULL)
+		plotlocations(export="pdf",addaxislabels=TRUE,adjustratio=adjust_ratio,mycex=1,mydeviation=1)
 		cat("Plotting location of samples using R package maps...",sep="\n")
-		plotlocations2(export="pdf",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=1.25,dolabels=FALSE,showborders=FALSE)
-		plotlocations2(export="pdf",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=1.25,dolabels=FALSE,showborders=TRUE)
-		plotlocations2(export="pdf",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=1.25,dolabels=TRUE,showborders=FALSE)
-		plotlocations2(export="pdf",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=1.25,dolabels=TRUE,showborders=TRUE)
+		#plotlocations2(export="pdf",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=symbolsize,dolabels=FALSE,showborders=FALSE)
+		plotlocations2(export="pdf",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=1,dolabels=TRUE,showborders=TRUE)
+		plotlocations2(export="pdf",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=symbolsize,dolabels=FALSE,showborders=TRUE)
+		#plotlocations2(export="pdf",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=1.25,dolabels=TRUE,showborders=FALSE)
 		cat("Files have been exported to the directory:",sep="\n")
 		cat(getwd(),sep="\n")
 		setwd(mysambar$structuredir)
@@ -10652,7 +10703,7 @@ ape_pcoa_pop<-function(popnames=mysambar$populations,exporttype="pdf",my_method=
 
 # PCoA: Principal Coordinates Analysis (NOTE: this is different from principal component analysis or PCA). Depends on StAMPP (Nei's genetic distance) and Ape (pcoa):
 # ape_pcoa(method="hamming",symbolkey="sex",legendpos="topleft")
-ape_pcoa<-function(pscores=NULL,axis1=1,axis2=2,doplot=TRUE,dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,method="nei",export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=NULL,mylegendcol=NULL,mylegendtitle=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addbox=TRUE,shuffle_par=NULL,addxy=FALSE)
+ape_pcoa<-function(pscores=NULL,axis1=1,axis2=2,doplot=TRUE,dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,method="nei",export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=NULL,mylegendcol=NULL,mylegendtitle=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,shuffle_par=NULL,addxy=FALSE)
 	{
 	# method can be "nei" (Nei's genetic distance D), "hamming" (Hamming's genetic distance), "euclidean", or "pi".
 	# Note: snpselection and indselection can not be applied when running method 'pi'. You should use calcpi() function to recalculate pi on different snp dataset.
@@ -10834,6 +10885,12 @@ ape_pcoa<-function(pscores=NULL,axis1=1,axis2=2,doplot=TRUE,dodc=TRUE,do_mirror=
 				plot(myp1,myp2,xlab="",ylab="",col="white",frame=FALSE,xaxt='n',yaxt='n')
 				box(which="plot")
 				}
+			}
+		if(addellipse)
+			{
+			cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
+			if("car"%in%(.packages()) == FALSE) {library(car)}
+			car::dataEllipse(x=myp1,y=myp2,add=TRUE,groups=as.factor(inds$pop[indselection]),col=popcolours,levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
 			}
 		myxlab	<- paste("PC",axis1," (",round(p$values$Relative_eig[axis1]*100,1),"%)",sep="")
 		myylab	<- paste("PC",axis2," (",round(p$values$Relative_eig[axis2]*100,1),"%)",sep="")
@@ -11334,7 +11391,7 @@ multisnprelate_pca<-function(dolabels=FALSE,exporttype=NULL,dolegend=TRUE,posleg
 	if(!is.null(exporttype)){dev.off()}
 	}
 
-snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,indsfilter=inds$filter,snpsfilter=snps$filter,export=NULL,exportname="pca.snprelate",plottitle=NULL,symbolsize=5,labels=FALSE,addaxislabel=TRUE,addlegend=TRUE,legendpos="right",popnames=mysambar$populations,popcolours=mysambar$colorder,symboltype=16,legendcex=3,dodc=TRUE)
+snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,do_mirror=c(FALSE,FALSE),indsfilter=inds$filter,snpsfilter=snps$filter,export=NULL,exportname="pca.snprelate",plottitle=NULL,symbolsize=5,labels=FALSE,addaxislabel=TRUE,addlegend=TRUE,legendpos="right",popnames=mysambar$populations,popcolours=mysambar$colorder,symboltype=16,legendcex=3,dodc=TRUE)
 	{
 	mymatrix	<- as.matrix(mygenlight[indsfilter,snpsfilter])
 	mypops		<- as.factor(inds$pop[indsfilter]) 
@@ -11381,13 +11438,25 @@ snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,indsfilte
 			}
 		par(mar=c(5,6,5,2),cex.axis=2,cex.lab=3,cex.main=3.5)
 		}
-	# First create outline of the plot. The argument 'col="white"' hides the datapoints, so we can edit them in the next commands. 
 	# 28-09-2021: replaced following line:
-	# mycols		<- mysambar$mycolours[1:npops]
-	mycols			<- popcolours
+	# mycols	<- mysambar$mycolours[1:npops]
+	mycols		<- popcolours
+	# First create outline of the plot. The argument 'col="white"' hides the datapoints, so we can edit them in the next commands. 
+	myp1		<- pcadata$EV1
+	myp2		<- pcadata$EV2
+	if(do_mirror[1])
+		{
+		cat("Mirror image of axis1.",sep="\n")
+		myp1	<- -myp1
+		}
+	if(do_mirror[2])
+		{
+		cat("Mirror image of axis2.",sep="\n")
+		myp2	<- -myp2
+		}
 	if(addaxislabel)
 		{
-		plot(pcadata$EV1,pcadata$EV2,pch=16,col="white",xlab="",ylab="",cex=symbolsize)
+		plot(myp1,myp2,pch=16,col="white",xlab="",ylab="",cex=symbolsize)
 		#mtext("eigenvector 1",side=1,line=3.5,cex=3.5)
 		#mtext("eigenvector 2",side=2,line=3.5,cex=3.5)
 		mtext(paste("Dim ",axis1," (",round(100*pca$varprop[axis1],1)," %)",sep=""),side=1,line=3.5,cex=3.5)
@@ -11398,7 +11467,7 @@ snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,indsfilte
 		}
 	if(labels)
 		{
-		text(pcadata$EV1,pcadata$EV2,inds$nr[inds$filter],pch=16,col=pcadata$col,cex=0.75)
+		text(myp1,myp2,inds$nr[inds$filter],pch=16,col=pcadata$col,cex=0.75)
 		}else{
 		if(length(symboltype)>1)
 			{
@@ -11410,9 +11479,9 @@ snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,indsfilte
 				mysymbols	<- c(mysymbols,symboltemp)		
 				}
 			rm(symboltemp)
-			points(pcadata$EV1,pcadata$EV2,col=pcadata$col,pch=mysymbols,cex=symbolsize)
+			points(myp1,myp2,col=pcadata$col,pch=mysymbols,cex=symbolsize)
 			}else{
-			points(pcadata$EV1,pcadata$EV2,col=pcadata$col,pch=16,cex=symbolsize)
+			points(myp1,myp2,col=pcadata$col,pch=16,cex=symbolsize)
 			}
 		}
 	if(addlegend==TRUE&npops>1)
@@ -11630,6 +11699,7 @@ overlapdapc<-function(popnames=mysambar$populations,observedmat=NULL)
 	{
 	# if mysambar$dapcoverlaplist does not correspond with current mysambar$populations, the following error:  
 	# Error in dimnames(x) <- dn : length of 'dimnames' [1] not equal to array extent
+	#
 	if(is.null(observedmat))
 		{
 		return(cat("ERROR: Provide input to observedmat flag.",sep="\n"))
@@ -11694,7 +11764,7 @@ overlapdapc<-function(popnames=mysambar$populations,observedmat=NULL)
 #Choose the number discriminant functions to retain (>=1):	 3
 #If you have your samples assigned to more than one population, this will be done automatically for you, so you won’t be prompted.  
 
-multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(20,50,80,95),max_clusters=6,legendadd=TRUE,poslegend="right",cexlegend=2.5,symsize=2,silent=FALSE,rundc=TRUE,plot_heatmap=TRUE)
+multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(20,50,80,95),max_clusters=6,legendadd=TRUE,poslegend="right",cexlegend=2.5,symsize=2,silent=FALSE,rundc=TRUE,plot_heatmap=TRUE,add_ellipse=FALSE,ellipse_level=0.5)
 	{
 	npops	<- length(mysambar$populations)
 	if(!xvalonly)
@@ -11712,10 +11782,10 @@ multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(2
 				setwd(file.path(mysambar$structuredir,dapcfolder))
 				}
 			cat(paste("Starting DAPC analyses with number of PC's based on an explained variance of ",mythres,"%.",sep=""),sep="\n")
-			adegenet_dapc(maxclusters=max_clusters,export="pdf",min_explainedvariance=mythres,use_genind=FALSE,addlegend=legendadd,legendpos=poslegend,legendcex=cexlegend,symbolsize=symsize,use_current_dir=TRUE,dodc=rundc,plotheatmap=plot_heatmap)
-			if(length(mysambar$dapcoverlaplist)>=(npops-1)&npops!=1)
+			adegenet_dapc(maxclusters=max_clusters,export="pdf",addellipse=add_ellipse,ellipselevel=ellipse_level,min_explainedvariance=mythres,use_genind=FALSE,addlegend=legendadd,legendpos=poslegend,legendcex=cexlegend,symbolsize=symsize,use_current_dir=TRUE,dodc=rundc,plotheatmap=plot_heatmap)
+			if(length(mysambar$dapcoverlaplist)>=(npops-1)&npops!=1&plot_heatmap)
 				{
-				if(!silent){cat("Calculating overlap between inferred and expected clusters...",sep="\n")}
+				cat("Calculating correspondence between inferred and expected clusters. If you receive an error after this line, rerun the findstructure function with the flag 'dapc_heatmap' set to FALSE.",sep="\n")
 				# calculate chi-squared value for overlap between inferred and expected clusters:
 				overlapdapc(observedmat=mysambar$dapcoverlaplist[[npops-1]])
 				}
@@ -11732,9 +11802,10 @@ multi_adegenet_dapc<-function(export=NULL,xvalonly=FALSE,nrep=50,thresvector=c(2
 			setwd(file.path(mysambar$structuredir,dapcfolder))
 			}
 		cat("Starting DAPC analyses with number of PC's based on an the a-score.",sep="\n")
-		adegenet_dapc(maxclusters=max_clusters,export="pdf",use_genind=FALSE,addlegend=legendadd,legendpos=poslegend,legendcex=cexlegend,symbolsize=symsize,use_current_dir=TRUE,dodc=rundc,plotheatmap=plot_heatmap)
-		if(length(mysambar$dapcoverlaplist)>=(npops-1)&npops!=1)
+		adegenet_dapc(maxclusters=max_clusters,export="pdf",addellipse=add_ellipse,ellipselevel=ellipse_level,use_genind=FALSE,addlegend=legendadd,legendpos=poslegend,legendcex=cexlegend,symbolsize=symsize,use_current_dir=TRUE,dodc=rundc,plotheatmap=plot_heatmap)
+		if(length(mysambar$dapcoverlaplist)>=(npops-1)&npops!=1&plot_heatmap)
 			{
+			cat("Calculating correspondence between inferred and expected clusters. If you receive an error after this line, rerun the findstructure function with the flag 'dapc_heatmap' set to FALSE.",sep="\n")
 			# calculate chi-squared value for overlap between inferred and expected clusters:
 			overlapdapc(observedmat=mysambar$dapcoverlaplist[[npops-1]])
 			}
@@ -11796,7 +11867,7 @@ runxval<-function(nrep=20,exporttype="pdf")
 		}
 	}
 
-adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=0.6,symbolsize=2,addlegend=TRUE,legendpos="right",legendcex=2.5,use_current_dir=FALSE,silent=TRUE,dodc=TRUE,plotheatmap=TRUE)
+adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,sumstatsplot=TRUE,maxclusters=5,transparent=0.6,symbolsize=2,addlegend=TRUE,legendpos="right",legendcex=2.5,use_current_dir=FALSE,silent=TRUE,dodc=TRUE,plotheatmap=TRUE,addellipse=FALSE,ellipselevel=0.5)
 	{	
 	# if min_explainedvariance is not NULL, this function will use min_explainedvariance threshold (any value between 0 and 100) to define number of PC's to incorporate
 	# otherwise, the function will use the a-score to define the number of PC's. 
@@ -12039,6 +12110,12 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 					if(myrun<3)
 						{
 						plot(mydapc$LD1,mydapc$LD2,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+						if(addellipse)
+							{
+							#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
+							if("car"%in%(.packages()) == FALSE) {library(car)}
+							car::dataEllipse(x=mydapc$LD1,y=mydapc$LD2,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+							}
 						}else{
 						plot(mydapc$LD1,mydapc$LD2,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
 						text(mydapc$LD1,mydapc$LD2,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
@@ -12079,6 +12156,12 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 						if(myrun<3)
 							{
 							plot(mydapc$LD1,mydapc$LD2,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+							if(addellipse)
+								{
+								#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
+								if("car"%in%(.packages()) == FALSE) {library(car)}
+								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD2,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								}
 							}else{
 							plot(mydapc$LD1,mydapc$LD2,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=4)
 							text(mydapc$LD1,mydapc$LD2,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
@@ -12095,6 +12178,12 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 						if(myrun<3)
 							{
 							plot(mydapc$LD1,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+							if(addellipse)
+								{
+								#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
+								if("car"%in%(.packages()) == FALSE) {library(car)}
+								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD2,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								}
 							}else{
 							plot(mydapc$LD1,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
 							text(mydapc$LD1,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
@@ -12106,6 +12195,12 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 						if(myrun<3)
 							{
 							plot(mydapc$LD2,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+							if(addellipse)
+								{
+								#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
+								if("car"%in%(.packages()) == FALSE) {library(car)}
+								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD2,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								}
 							}else{
 							plot(mydapc$LD2,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
 							text(mydapc$LD2,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
@@ -13418,7 +13513,7 @@ runLEA<-function(mindemes=2,maxdemes=6,popnames=mysambar$populations,order_on_lo
 	}
 
 # Note: input to poporder should be the same as for runLEA, otherwise output does not make sense.
-LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=NULL,heightfactor=0.75,widthfactor=0.1,focuspop=NULL,colourvector=NULL,export=NULL,exportname=NULL,shortpop=NULL,popnames=mysambar$populations,poporder=NULL,addindnr=TRUE,order_on_longitude=FALSE,dolong3=FALSE,silent=TRUE,axiscex=1.5,labelcex=1.75,yaxiscex=1.25,shortpop_nrchars=3)
+LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=NULL,heightfactor=0.75,widthfactor=0.1,focuspop=NULL,colourvector=NULL,dolabelcol=FALSE,export=NULL,exportname=NULL,shortpop=NULL,popnames=mysambar$populations,poporder=NULL,addindnr=TRUE,order_on_longitude=FALSE,dolong3=FALSE,silent=TRUE,axiscex=1.5,labelcex=1.75,yaxiscex=1.25,shortpop_nrchars=3)
 	{
 	if(is.null(shortpop))
 		{
@@ -13581,6 +13676,10 @@ LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=N
 		mypops		<- myindpops[indstemp$filter]
 		mylocs[i]	<- as.vector(which(mypops==mypop)[1]-1)
 		mypopcols[i]<- mysambar$mycolours2[which(mysambar$populations2==mypop)]
+		}
+	if(!dolabelcol)
+		{
+		mypopcols	<- rep("black",length(mypopcols))
 		}
 	mylocs2		<- mylocs		# I should come up here with a way to omit black line of first population (because not necessary)
 	#mylocs2	<<- mylocs
@@ -13889,8 +13988,9 @@ plotlocations<-function(export=NULL,mygeodf=NULL,mygeofile=NULL,adjustratio=1,ad
 		{
 		coord$longitude	<-  as.numeric(sub(",",".",as.character(coord$longitude)))
 		}
-	cat("Matrix with geographical coordinates has been stored under the name 'mygeocoord'.",sep="\n")
-	mygeocoord		<<- coord
+	cat("Matrix with geographical coordinates has been stored under the name 'mysambar$geocoord'.",sep="\n")
+	mysambar$geocoord		<<- coord
+	mygeocoord				<<- coord	# still needed?
 	if(!is.null(mydeviation))
 		{
 		if(is.null(mygeodf)&is.null(mygeofile))
@@ -13983,7 +14083,7 @@ plotfossils<-function(adjustlong=TRUE)
 	}
 
 # Create map using package Maps. Advantage compared to Rworldmap is that this function allows to centre the map around the Pacific ocean, if needed 
-plotlocations2<-function(export=NULL,longthreshold=15,xmargin=0.05,ymargin=0.15,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=NULL,legendcex=0.75,mycex=1,dolabels=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90")
+plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xmargin=0.05,ymargin=0.15,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=NULL,legendcex=0.75,mycex=1,dolabels=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90")
 	{
 	if("maps" %in% rownames(installed.packages()) == FALSE) {install.packages("maps",repos='http://cran.us.r-project.org')}
 	if("maps" %in% (.packages()) == FALSE)					{library(maps)}
@@ -13995,16 +14095,16 @@ plotlocations2<-function(export=NULL,longthreshold=15,xmargin=0.05,ymargin=0.15,
 			{
 			return(cat("Columns 'longitude' and 'latitude' not present in inds dataframe.",sep="\n"))
 			}
-		if(any(inds$longitude<0,na.rm=TRUE))
+		if(any(inds$longitude<0,na.rm=TRUE)&"longitude3"%in%colnames(inds))
 			{
 			cat("Using inds$longitude3...",sep="\n")
-			coord		<- inds[inds$filter,c("longitude3","latitude")]
+			coord		<- inds[indsfilter,c("longitude3","latitude")]
 			colnames(coord)	<- c("longitude","latitude")
 			}else{
 			cat("Using inds$longitude...",sep="\n")
-			coord		<- inds[inds$filter,c("longitude","latitude")]
+			coord		<- inds[indsfilter,c("longitude","latitude")]
 			}
-		mycols		<- inds$popcol[inds$filter]
+		mycols		<- inds$popcol[indsfilter]
 		}else{
 		if(!is.null(mygeofile))
 			{
@@ -14037,12 +14137,12 @@ plotlocations2<-function(export=NULL,longthreshold=15,xmargin=0.05,ymargin=0.15,
 		{
 		coord$longitude	<-  as.numeric(sub(",",".",as.character(coord$longitude)))
 		}
-	mysamplenrs		<- inds$nr[inds$filter]
+	mysamplenrs		<- inds$nr[indsfilter]
 	if(!is.null(mydeviation))
 		{
 		if(is.null(mygeodf)&is.null(mygeofile))
 			{
-			indstemp	<- inds[inds$filter,]
+			indstemp	<- inds[indsfilter,]
 			if(!"do_coordshuffle"%in%colnames(inds))
 				{
 				cat("WARNING: the flag docoord_shuffle is not NULL, but boolean column called 'do_coordshuffle' absent from inds dataframe. Shuffling all data points.",sep="\n")
@@ -14070,8 +14170,10 @@ plotlocations2<-function(export=NULL,longthreshold=15,xmargin=0.05,ymargin=0.15,
 		}else{
 		cat("Flag 'mydeviation' is set to NULL. Not shuffling.",sep="\n")
 		}
-	mygeocoord		<<- coord
-	mygeocols		<<- mycols
+	mygeocoord			<- coord
+	mygeocols			<- mycols
+	mysambar$geocoord	<- coord
+	mysambar$geocols	<- mycols
 	#
 	# PLOTTING:
 	if(!is.null(export))
@@ -23305,7 +23407,7 @@ multiglPlots<-function(popnames=mysambar$populations,chromosome=1,mycols=as.vect
 ###############################################################################################################
 # Kinship/relatedness calculations
 
-calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=TRUE,overwrite_kindf=TRUE,do_wahlund=TRUE)
+calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=TRUE,overwrite_kindf=TRUE,do_wahlund=TRUE,king_threshold=0.4)
 	{
 	setwd(mysambar$sambardir)
 	kinshipdir	<- paste(mysambar$sambardir,"Kinship",sep="/")
@@ -23388,7 +23490,13 @@ calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=
 		}
 	if(!silent){cat("Calculating kinship...",sep="\n")}
 	calckin(do_overwrite=overwrite_kindf,export="pdf")
-	multi_geno2Dmat(kindf=mysambar$kindf,maxplots=20,mythres=0.4,export_type="pdf")
+	if(!silent){cat("Plotting king-robust score versus kinship coefficient...",sep="\n")}
+	kinscatter(export="eps")
+	kinscatter(export="pdf")
+	kinscatter(export="png")
+	if(mysambar$os=="Windows"){kinscatter(export="wmf")}
+	if(!silent){cat("Plotting 2D genotype frequencies...",sep="\n")}
+	multi_geno2Dmat(kindf=mysambar$kindf,maxplots=20,mythres=king_threshold,export_type="pdf")
 	if(!silent){cat("Creating boxplots...",sep="\n")}
 	kinboxplot(export="pdf",plotname="Relatedness_boxplot_kingrobust",kinshipscore="kingrobust",ylabel="King-robust score",yline=4.5,onlywithin=TRUE)
 	kinboxplot(export="pdf",plotname="Relatedness_boxplot",kinshipscore="kincoef",ylabel="Relatedness coefficient",yline=4.5,onlywithin=TRUE)
@@ -23607,18 +23715,50 @@ calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,
 		}
 	}
 
+kinscatter<-function(kindf=mysambar$kindf,export=NULL,addlegend=TRUE,legendcex=1.5,plotname="Kingrobust_vs_kincoeff",legendpos="topleft",yline=5.5,symbolsize=2)
+	{
+	if(!is.null(export))
+		{
+		legendlabel	<- ifelse(addlegend,"withlegend","NOlegend")
+		if(export=="eps"){postscript(paste(plotname,legendlabel,"eps",sep="."),width=8,height=8)}
+		if(export=="pdf"){pdf(paste(plotname,legendlabel,"pdf",sep="."),width=8,height=8)}
+		if(export=="png"){png(paste(plotname,legendlabel,"png",sep="."),width=720,height=720)}
+		if(export=="wmf"){win.metafile(paste(plotname,legendlabel,"wmf",sep="."),width=8,height=8)} 
+		}
+	par(mar=c(5.5,8.5,2.5,0.5),cex.axis=2.5,cex.lab=3,cex.main=3)
+	plot(kindf$kingrobust,kindf$kincoef,pch=21,col=as.character(kindf$popcol1),bg=as.character(kindf$popcol2),cex=symbolsize,las=1,ylab="",xlab="",lwd=2)
+	mtext(side=2,line=5.5,"Kin coefficient",cex=3)
+	mtext(side=1,line=3.5,"King-robust score",cex=3)
+	if(addlegend)
+		{
+		legend(legendpos,legend=mysambar$populations,bty='n',fill=mysambar$mycolours,border=mysambar$mycolours,cex=legendcex)
+		}
+	if(!is.null(export))
+		{
+		dev.off()
+		#cat("Scatterplot has been exported to the directory:",sep="\n")
+		#cat(getwd(),sep="\n")
+		}
+	}
+
 multi_geno2Dmat<-function(kindf=mysambar$kindf,maxplots=20,mythres=0.4,export_type="pdf",n_bins=5,silent=TRUE)
 	{
 	if(is.null(kindf))
 		{
 		return(cat("ERROR: kindf dataframe not found.",sep="\n"))
 		}
+	kindf		<- kindf[is.finite(kindf$kingrobust),]
+	kindf		<- kindf[!is.na(kindf$kingrobust),]
 	kindf		<- kindf[kindf$ind1_bool&kindf$ind2_bool&kindf$kingrobust>=mythres,]
 	npairs		<- nrow(kindf)
 	cat(paste("Number of sample pairs with King-robust relatedness-score >= ",mythres," equals ",npairs,".",sep=""),sep="\n")
 	if(npairs>maxplots)
 		{
 		return(cat("WARNING: Many related pairs. If you want to plot them anyway, run the multi_geno2Dmat function with a higher value specified to the flag maxplots (default is 20).",sep="\n"))
+		}
+	if(npairs==0)
+		{
+		return(cat("WARNING: Zero sample pairs with a relatedness score above the threshold. You could try to rerun the calckinship function with a different value specified to the king_threshold flag.",sep="\n"))
 		}
 	cat("Creating heatmaps with 2D sample genotypes proportions of sample pairs with high relatedness scores.",sep="\n") 
 	for(i in c(1:npairs))
@@ -23639,14 +23779,23 @@ geno2Dmat<-function(ind1=1,ind2=2,export=NULL,use_currentdir=TRUE,nbins=5,doprop
 	# If no relatedness, there will be hardly any orange colour.
 	#
 	############# get 2D genotype scores:
-	name1		<- as.character(inds$name[ind1])
-	name2		<- as.character(inds$name[ind2])
+	name1				<- as.character(inds$name[ind1])
+	name2				<- as.character(inds$name[ind2])
 	genlightmat			<- as.matrix(mygenlight[,snps$filter])
 	geno1				<- genlightmat[ind1,]
 	geno2				<- genlightmat[ind2,]
 	# To avoid that NA is included when stating geno==0/1/2, we change NA to 3:
 	geno1[is.na(geno1)]	<- 3
 	geno2[is.na(geno2)]	<- 3
+	#
+	if(length(geno1)==length(geno1[geno1==3]))
+		{
+		return(cat("WARNING: Ind1 has missing data only. Not creating heatmap.",sep="\n"))
+		}
+	if(length(geno2)==length(geno2[geno2==3]))
+		{
+		return(cat("WARNING: Ind2 has missing data only. Not creating heatmap.",sep="\n"))
+		}
 	obsmatrix			<- matrix(NA,nrow=3,ncol=3)
 	genos				<- c(0,1,2)
 	colnames(obsmatrix)	<- genos
