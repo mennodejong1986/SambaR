@@ -9,7 +9,7 @@ To start using SambaR, simply download SambaR from this website using the green 
 
 UPDATE 17-03-2021
 
-SambaR version 1.02 (and older versions) generated incorrect SFS vectors by not correcting for missing data. SambaR version 1.03 generates (presumably) more correct SFS vectors by imputing missing data points.    
+SambaR version 1.02 (and older versions) generated incorrect SFS vectors by not correcting for missing data. SambaR version 1.03 generates (presumably) more correct SFS vectors by imputing missing data points. Nevertheless, given the difficulties of SNP data, users are adviced to generate SFS vectors using more established methods (e.g. ANGSD or EasySFS).     
 
 
 CITING SAMBAR
