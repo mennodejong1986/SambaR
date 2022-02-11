@@ -1254,7 +1254,7 @@ getpackages_old<-function(myrepos='http://cran.us.r-project.org',noupdates=TRUE,
 
 
 # import biallelic data from PLINK raw format:
-importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,samplefile=NULL,vcfsamplefile=NULL,allow_edit=FALSE,geofile=NULL,depthfile=FALSE,poolsfile=NULL,nchroms=NULL,namechars=10,colourvector=NULL,popcol_by_alphabetical_order_popname=TRUE,popnchars=10,silent=TRUE,heplot=TRUE,domap=TRUE,qcplot=TRUE,do_citations=TRUE,dosoftwarecheck=FALSE,acceptalleles=FALSE,legend_cex=3,pop_order=NULL)
+importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,samplefile=NULL,vcfsamplefile=NULL,allow_edit=FALSE,geofile=NULL,depthfile=FALSE,poolsfile=NULL,nchroms=NULL,namechars=10,colourvector=NULL,popcol_by_alphabetical_order_popname=TRUE,popnchars=10,silent=TRUE,heplot=TRUE,domap=TRUE,qcplot=TRUE,do_citations=TRUE,dosoftwarecheck=FALSE,acceptalleles=FALSE,legend_cex=3,pop_order=NULL,geomap_thres=-15,geomap_cex=2)
 	{
 	# poolsfile: Name of optional input file (default is NULL) with the names of the sequencing library pool names of the samples. 
 	# Input file should contain two tab-separated columns called ‘sample’ and ‘pool’. Sample names in the poolsfile should be identical to sample names in PED-file. 
@@ -1347,6 +1347,7 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 	if(!file.exists(paste(inputprefix,"raw",sep=".")))
 		{
 		cat(paste("ERROR: SambaR couldn't find a file called '",inputprefix,".raw' in the working directory.",sep=""),sep="\n")
+		cat("Did you specify the correct prefix?",sep="\n")
 		cat("Did you set the right working directory using the setwd() function?",sep="\n")
 		cat("And did you run PLINK to convert PED/MAP to RAW/BIM files?",sep="\n") 
 		return(cat("See manual for further details.",sep="\n"))
@@ -1479,6 +1480,14 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 	# create snps dataframe:
 	cat("Creating snps dataframe...",sep="\n")
 	snps 				<<- read.table((paste(inputprefix,"bim",sep=".",collapse = NULL)))
+	if(ncol(snps)!=6)
+		{
+		cat("ERROR: number of columns in input BIM-file is not equal to 6.",sep="\n")
+		cat("The BIM-file should contain six columns (without header): chrom, snpname, morgan, position, minor allele, and major allele.",sep="\n")  
+		cat("If your BIM-file currently has 5 columns and the first column (chromosome/scaffold name) is missing, this might be because the MAP-file contains at the first column only zero's.",sep="\n")
+		cat("If this is indeed the case, redo the conversion from MAP to BIM using as input a map with non-zero's value in the first column.",sep="\n")
+		return(cat("Make sure that the BIM-file contains all required columns (not more, not less), and only then try importing the data again.",sep="\n")) 
+		}
 	colnames(snps) 		<<- c("chr","name","morgan","pos","minor","major")
 	snps$genlightname	<<- mygenlight@loc.names
 	snps$nr				<<- c(1:nrow(snps))
@@ -2325,7 +2334,7 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		{
 		# pacific or atlantic centred map?
 		inds$longitude2	<<- ifelse(inds$longitude>=0,inds$longitude,abs(inds$longitude)+180)
-		inds$longitude3	<<- ifelse(inds$longitude>=-15,inds$longitude,180+(180-abs(inds$longitude)))
+		inds$longitude3	<<- ifelse(inds$longitude>=geomap_thres,inds$longitude,180+(180-abs(inds$longitude)))
 		}
 	if(length(unique(inds$pop))>length(unique(inds$pop2)))
 		{
@@ -2494,7 +2503,7 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 	if("longitude"%in%colnames(inds)&"latitude"%in%colnames(inds)&domap)
 		{
 		cat("Creating geographical map with sample locations. If you receive an error after this line, so the flag domap to FALSE.",sep="\n")
-		plotlocations2(export="pdf",indsfilter=rep(TRUE,nrow(inds)),addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=2.5,dolabels=FALSE,showborders=TRUE)
+		plotlocations2(export="pdf",indsfilter=rep(TRUE,nrow(inds)),addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=geomap_cex,dolabels=FALSE,showborders=TRUE)
 		plotlocations2(export="pdf",indsfilter=rep(TRUE,nrow(inds)),addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,my_pch=NULL,mycex=1,dolabels=TRUE,showborders=TRUE)
 		}
 	if(qcplot)
@@ -5500,7 +5509,7 @@ exporthighestsd<-function(nsnps=c(10,20,50,100,150,250),silent=TRUE)
 	setwd(mywd)
 	}
 
-exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE)
+exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE,do_silent=TRUE)
 	{
 	setwd(mysambar$inputfilesdir)
 	if(do_immanc)
@@ -5516,7 +5525,7 @@ exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,d
 	#
 	if(do_treemix)
 		{
-		exporttreemix()
+		exporttreemix(silent=do_silent)
 		}
 	if(do_pednumber)
 		{
@@ -5887,6 +5896,57 @@ barplotnsnps<-function(n_chroms=NULL,export=NULL)
 	if(!is.null(export)){dev.off()}
 	}
 
+# function for sex determination based on heterozygosity level at X-chromosome
+# required knowlegde: which chromosome is X-chromosome
+plot_xhe<-function(export=NULL,xchrom=NULL,dofilter=TRUE,labels=TRUE,segsites=FALSE)
+	{
+	if(is.null(xchrom))
+		{
+		return(cat("ERROR: specify name of X-chromosome to xchrom flag.",sep="\n"))
+		}
+	if(!xchrom%in%snps$chr)
+		{
+		return(cat("ERROR: specified chromosome not present in snps$chr column.",sep="\n"))
+		}
+	if(dofilter)
+		{
+		snpsfilter	<-	snps$filter&snps$chr==xchrom
+		}else{
+		snpsfilter	<- 	snps$chr==xchrom
+		}
+	inds$het_Xchrom		<<- NA
+	for (i in c(1:nrow(inds)))
+		{
+		mymatrix 			<- as.matrix(mygenlight[i,snpsfilter])
+		inds$het_Xchrom[i]	<<- apply(mymatrix,1,function(z) (length(z[z==1])-(length(z)-length(z[!is.na(z)])))/length(z[!is.na(z)]))
+		}
+	cat("X-chromosome heterozygosity have been stored in inds$het_chrom column.",sep="\n")
+	if(segsites)
+		{
+		myhetero	<- inds$hetero
+		}else{
+		myhetero	<- inds$hetero_all
+		}
+	if(!is.null(export))
+		{
+		if(export=="eps"){postscript("ChromX_hetero.eps",family=mysambar$myfont,width=10,height=10)}
+		if(export=="pdf"){pdf("ChromX_hetero.pdf",family=mysambar$myfont,width=10,height=10)}
+		if(export=="png"){png("ChromX_hetero.png",family=mysambar$myfont,width=720,height=720)}
+		if(export=="wmf"){win.metafile("ChromX_hetero.wmf",family=mysambar$myfont,width=10,height=10)} # this file is too big
+		}
+	par(mar=c(5,6,5,2),cex.axis=2.5,cex.lab=3,cex.main=3)
+	if(!labels)
+		{
+		plot(myhetero,inds$het_Xchrom,col=as.character(inds$popcol),pch=16,cex=2,xlab="Overall He",ylab="X-chrom He")
+		}else{
+		plot(myhetero,inds$het_Xchrom,col="white",pch=16,cex=2,xlab="Overall He",ylab="X-chrom He")
+		text(myhetero,inds$het_Xchrom,inds$nr,col=as.character(inds$popcol),cex=1)
+		}
+	legend("topleft",legend=mysambar$populations,bty='n',fill=mysambar$mycolours,cex=3)	
+	if(!is.null(export)){dev.off()}
+	}
+
+# function to detect the X-chromosome (difference in heterozygosity between males and females):
 chromhetero<-function(nchroms=NULL,export=NULL)
 	{
 	if("sex" %in% colnames(inds))
@@ -5955,7 +6015,7 @@ chromhetero<-function(nchroms=NULL,export=NULL)
 		}
 	snps 			<<- snps[, !duplicated(colnames(snps), fromLast = TRUE)]
 	inds 			<<- inds[, !duplicated(colnames(inds), fromLast = TRUE)]
-	indstemp			<- inds[inds$filter,]
+	indstemp		<- inds[inds$filter,]
 	#
 	if(!is.null(export))
 		{
@@ -7949,8 +8009,16 @@ plotgenotri<-function(export=NULL,allsites=FALSE)
 	# package: ade4
 	if(allsites)
 		{
+		if(any(!c("n0_meta","n1_meta","n2_meta")%in%colnames(inds)))
+			{
+			return(cat("ERROR: Columns 'n0_meta','n1_meta' and/or 'n2_meta' missing from inds dataframe. Not creating Genocounts triangle plot.",sep="\n"))
+			}
 		mydf			<-inds[,c("n0_meta","n1_meta","n2_meta")]
 		}else{
+		if(any(!c("n0_meta_seg","n1_meta_seg","n2_meta_seg")%in%colnames(inds)))
+			{
+			return(cat("ERROR: Columns 'n0_meta'_seg,'n1_meta_seg' and/or 'n2_meta_seg' missing from inds dataframe. Not creating Genocounts triangle plot.",sep="\n"))
+			}
 		mydf			<-inds[,c("n0_meta_seg","n1_meta_seg","n2_meta_seg")]
 		#plot((inds$n0_meta_seg+inds$n1_meta_seg+inds$n2_meta_seg),inds$n0_meta_seg,col=inds$popcol,pch=16,cex=2)
 		#plot((inds$n0_meta_seg+inds$n1_meta_seg+inds$n2_meta_seg),inds$n1_meta_seg/(inds$n0_meta_seg+inds$n1_meta_seg+inds$n2_meta_seg),col=inds$popcol,pch=16,cex=2)
@@ -8977,7 +9045,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,do_nei=TRUE,do_tree=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
+findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,Kmin=2,Kmax=6,pop_order=NULL,short_pop=NULL,print_name=inds$name,do_nei=TRUE,do_tree=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -9093,6 +9161,7 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 			{
 			cat("Creating pcoa plot based on Nei's genetic distance using StAMPP and Ape...",sep="\n")
 			ape_pcoa(labels=FALSE,method="hamming",export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=FALSE)
+			ape_pcoa(labels=TRUE,printname=print_name,method="hamming",export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=FALSE)
 			multiplot_pcoa_axes(exporttype="pdf",mymethod="hamming",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
 			multiplot_pcoa_axes(exporttype="pdf",mymethod="hamming",dolabels=TRUE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
 			multiplot_pcoa_axes(exporttype="pdf",mymethod="hamming",dolabels=TRUE,print_miss=TRUE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
@@ -9101,6 +9170,7 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 				cat("Creating pca plot using snprelate...",sep="\n")
 				cat("If you receive an error shortly after this line, rerun the findstructure function with the flag do_pca set to FALSE.",sep="\n")
 				snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=FALSE)
+				snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,labels=TRUE,printname=print_name,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=FALSE)
 				file.remove("my.gds")
 				}else{
 				cat("Package 'SNPrelate' not installed and/or loaded. Not creating snprelate-based PCA plots.",sep="\n")
@@ -11394,7 +11464,7 @@ multisnprelate_pca<-function(dolabels=FALSE,exporttype=NULL,dolegend=TRUE,posleg
 	if(!is.null(exporttype)){dev.off()}
 	}
 
-snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,do_mirror=c(FALSE,FALSE),indsfilter=inds$filter,snpsfilter=snps$filter,export=NULL,exportname="pca.snprelate",plottitle=NULL,symbolsize=5,labels=FALSE,addaxislabel=TRUE,addlegend=TRUE,legendpos="right",popnames=mysambar$populations,popcolours=mysambar$colorder,symboltype=16,legendcex=3,dodc=TRUE)
+snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,do_mirror=c(FALSE,FALSE),indsfilter=inds$filter,snpsfilter=snps$filter,export=NULL,exportname="pca.snprelate",plottitle=NULL,symbolsize=5,labels=FALSE,printname=NULL,addaxislabel=TRUE,addlegend=TRUE,legendpos="right",popnames=mysambar$populations,popcolours=mysambar$colorder,symboltype=16,legendcex=3,dodc=TRUE)
 	{
 	mymatrix	<- as.matrix(mygenlight[indsfilter,snpsfilter])
 	mypops		<- as.factor(inds$pop[indsfilter]) 
@@ -11427,7 +11497,7 @@ snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,do_mirror
 			exportname		<- paste(exportname,paste(axis1,"vs",axis2,sep=""),sep=".")
 			if(labels)
 				{
-				exportname	<- paste(exportname,"labels",sep=".")
+				exportname	<- ifelse(is.null(printname),paste(exportname,"sample_nrs",sep="."),paste(exportname,"labels",sep="."))
 				if(export=="eps"){postscript(paste(exportname,"eps",sep="."),family=mysambar$myfont,width=10.5,height=10.5)}	# 10.5 instead of 10 because otherwise some labels are missing
 				if(export=="pdf"){pdf(paste(exportname,"pdf",sep="."),family=mysambar$myfont,width=10.5,height=10.5)}
 				if(export=="png"){png(paste(exportname,"png",sep="."),family=mysambar$myfont,width=720,height=720)}
@@ -11470,7 +11540,12 @@ snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,do_mirror
 		}
 	if(labels)
 		{
-		text(myp1,myp2,inds$nr[inds$filter],pch=16,col=pcadata$col,cex=0.75)
+		if(is.null(printname))
+			{
+			text(myp1,myp2,inds$nr[inds$filter],pch=16,col=pcadata$col,cex=0.75)
+			}else{
+			text(myp1,myp2,printname[inds$filter],pch=16,col=pcadata$col,cex=0.75)
+			}
 		}else{
 		if(length(symboltype)>1)
 			{
@@ -18911,7 +18986,7 @@ plotmigration<-function(myinputmatrix="bayesassmatrix.txt",mycolours=NULL,export
 # I decided not to include calcLD, because it only calculates LD for adjacent snps (otherwise it takes too long).
 # What's more, SambaR provides excellent plotting function for PLINK output. 
 
-calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,silent=TRUE,u_g=1.0*10^-8,dohwe=TRUE,do_sfs=TRUE,redo_tajd=TRUE)
+calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,silent=TRUE,u_g=1.0*10^-8,dohwe=TRUE,do_sfs=FALSE,do_continue=FALSE,redo_tajd=TRUE)
 	{
 	# nrsites must be a vector of length of either 1 or length of vector mysambar$populations
 	# nrsegsites must be vector of length of either 1 or length of vector mysambar$populations
@@ -18950,6 +19025,18 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 			{
 			dev.off(k)
 			}
+		}
+	if(do_sfs)
+		{
+		cat("WARNING: Because the flag 'do_SFS' is set to TRUE, SambaR will attempt to extract SFS vectors from the SNP data.",sep="\n")
+		cat("However, experience shows that the generated SFS-vectors can look different from expected, and/or different from SFS-vectors generated by more specialized software.",sep="\n")
+		cat("You are therefore advised to construct SFS-vectors using other software (e.g., ANGSD, easySFS or Popgen Pipeline Platform).",sep="\n")
+		if(!do_continue)
+			{
+			return(cat("To continue generating SFS-vectors, set the flag do_continue to TRUE.",sep="\n"))
+			}
+		}else{
+		cat("Because the flag do_SFS is set to FALSE (default), SambaR will not generate SFS-vectors.",sep="\n")
 		}
 	cat("REMINDER: if you receive an error stating 'cannot open file' (without the addition 'No such file or directory') this is likely because the file is opened in another file viewer.",sep="\n")
 	cat("If so, close the relevant file in the file viewer and try again.",sep="\n")		
@@ -19063,7 +19150,7 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 	#
 	if(!do_sfs)
 		{
-		cat("Skipping site frequency spectra analyses because the flag do_sfs is set to TRUE.",sep="\n")
+		cat("Skipping site frequency spectra analyses because the flag do_sfs is set to FALSE.",sep="\n")
 		}else{
 		cat("Generating site frequency spectra...",sep="\n")
 		cat("If you run into an error soon after this line, rerun the calcdiversity() function with the flag do_sfs set to FALSE.",sep="\n")
@@ -20972,7 +21059,7 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 	# Observed uncorrected pi minus corrected Watterson's estimate:
 	# Tajima's D: 0.75 - 0.96 = -0.21 
 	#
-	# I first tried by the way to calculate sliding window with snpR, using the following steps, but that resulted in an ERROR: 
+	# I first tried to calculate sliding window with snpR, using the following steps, but that resulted in an ERROR: 
 	# options(repos=c(CRAN='http://cran.us.r-project.org'))
 	# install_github("hemstrow/snpR")
 	# library(snpR)
@@ -21813,6 +21900,8 @@ plotstats<-function(myfilter=inds$filter,popnames=mysambar$populations)
 
 multirunsfs<-function(do_silent=TRUE,number_sites=NULL,number_segsites=NULL)
 	{
+	# For more information on SFS:
+	# Hudson, 2015, A new proof of the expected frequency spectrum under the standard neutral model
 	myrunnames	<- c("allsnps_NOTimputed","allsnps_imputed","snpfilter_NOTimputed","snpfilter_imputed")
 	for(mysfsrun in c(1:4))
 		{
@@ -23868,7 +23957,7 @@ geno2Dmat<-function(ind1=1,ind2=2,export=NULL,use_currentdir=TRUE,nbins=5,doprop
 	obsmatrix	<- obsmatrix
 	expnmat		<- round(expmatrix*ntotal)
 	ndiffmat	<- expnmat-obsmatrix
-	propdiffmat	<<- abs(ndiffmat/sum(obsmatrix))
+	propdiffmat	<- abs(ndiffmat/sum(obsmatrix))
 	#
 	### PLOTTING
 	# balloonplot(as.table(mymatrix),xlab=name1,ylab=name2,main="")
@@ -23878,26 +23967,16 @@ geno2Dmat<-function(ind1=1,ind2=2,export=NULL,use_currentdir=TRUE,nbins=5,doprop
 	colnames(propdiffmat)	<- paste(myvec,genoprop2,sep=": ")
 	if(is.null(myBreaks))
 		{
-		#if(doprop)
-		#	{
-		#	floor_dec 	<- function(x, level=1) round(x - 5*10^(-level-1), level)
-		#	ceiling_dec <- function(x, level=1) round(x + 5*10^(-level-1), level)
-		#	mymin		<- floor_dec(min(mymatrix,na.rm=TRUE),1)
-		#	mymax		<- ceiling_dec(max(mymatrix,na.rm=TRUE),1)
-		#	}else{
-		#	mymin		<- min(mymatrix,na.rm=TRUE)
-		#	mymax		<- max(mymatrix,na.rm=TRUE)
-		#	}
 		mymin		<- min(propdiffmat,na.rm=TRUE)
 		mymax		<- max(propdiffmat,na.rm=TRUE)
 		binsize		<- ifelse(is.null(nbins),(mymax-mymin)/10,(mymax-mymin)/nbins)
 		myBreaks	<- seq(mymin,mymax,binsize)
 		}
-	myBreaks	<<- myBreaks
-	mycolfunc 	<<- colorRampPalette(c("white","darkorange"))
-	myColours	<<- c(mycolfunc(length(myBreaks)-1))
+	myBreaks		<- myBreaks
+	mycolfunc 		<- colorRampPalette(c("white","darkorange"))
+	myColours		<- c(mycolfunc(length(myBreaks)-1))
 	#
-	my_wd		<- getwd()
+	my_wd			<- getwd()
 	if(!use_currentdir)
 		{
 		setwd(kinshipdir)
@@ -30566,18 +30645,31 @@ exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysa
 	}
 
 # Export to Treemix input:
-exporttreemix<-function(snpsfilter=snps$filter,exportname="Treemixinput.snpsfilter.txt")
+exporttreemix<-function(snpsfilter=snps$filter,exportname="Treemixinput.snpsfilter.txt",silent=TRUE)
 	{
 	cat("Creating input for Treemix...",sep="\n")
+	mycolumns			<- grep("ac_", colnames(snps))
+	if(length(mycolumns)==0)
+		{
+		return(cat("ERROR: columns with allele counts (starting with 'ac_' and 'mac_') missing from SNPs dataframe. These columns are normally generated by the snp_maf function, invoked by filterdata function."))
+		}
 	mydf				<- snps[snpsfilter, grep("ac_", colnames(snps))]
-	alldf				<- mydf[,c(TRUE,FALSE)]
-	minordf				<- mydf[,c(FALSE,TRUE)]
+	alldf				<- mydf[,c(TRUE,FALSE),drop=FALSE]
+	minordf				<- mydf[,c(FALSE,TRUE),drop=FALSE]
+	if(ncol(alldf)!=ncol(minordf))
+		{
+		alldf	<<- alldf
+		minordf	<<- minordf
+		return(cat("ERROR: number of columns of alldf and minordf do not correspond.",sep="\n"))
+		}
 	majordf				<- alldf-minordf
 	#
+	if(!silent){cat("Ordering dataframes...",sep="\n")}
 	alldf				<- alldf[,order(colnames(alldf))]
 	minordf				<- minordf[,order(colnames(minordf))]
 	majordf				<- majordf[,order(colnames(majordf))]	
 	#
+	if(!silent){cat("Adding column names...",sep="\n")}
 	popnames			<- mysambar$populations2
 	npops				<- length(popnames)
 	colnames(alldf)		<- popnames
@@ -30585,11 +30677,14 @@ exporttreemix<-function(snpsfilter=snps$filter,exportname="Treemixinput.snpsfilt
 	colnames(majordf)	<- popnames
 	alldf2				<- alldf
 	#
+	if(!silent){cat("Generating final output file...",sep="\n")}
 	for(k in c(1:npops))
 		{
 		alldf2[,k]		<- paste(majordf[,k],minordf[,k],sep=",")	
 		}
+	if(!silent){cat("Selecting populations...",sep="\n")}
 	alldf2				<- alldf2[,colnames(alldf2)%in%mysambar$populations]
+	if(!silent){cat("Writing output...",sep="\n")}
 	write.table(alldf2,exportname,sep=" ",quote=FALSE,row.names=FALSE)
 	cat("Treemix input file (unzipped) has been exported to the directory:...",sep="\n")
 	cat(getwd(),sep="\n")
@@ -32056,77 +32151,10 @@ fpratio<-function(fpratio=0.01,nloci=1000,sigma=0.05,cum=FALSE,bonf=FALSE,addnfp
 		}
 	}
 	
-# Execute by typing:
-# outliersim()
-# outliersim(nloc=10,ngen=14,nesourcepop=1000,nefounderpop1=rep(50,14),nefounderpop2=rep(60,14),nfounders=5,samplesize=30,testgeno=FALSE)
-
-#realmean 	<- mean(snps$rfisherlogp_pheno[snps$filter2&!(snps$rfisherout_pheno)])
-#realsd		<- sd(snps$rfisherlogp_pheno[snps$filter2&!(snps$rfisherout_pheno)])
-
-
-# install.packages('vcd')
-# library(vcd)
-# install.packages('MASS')
-# library(MASS)
-# mylogp		<- snps$rfisherlogp_pheno[snps$filter2]
-# ks.test(mylogp, "pexp",mean(mylogp))
-# hist(mylogp, freq = FALSE, breaks = 100, xlim = c(0, quantile(mylogp, 0.99)))
-# curve(dexp(mylogp, rate = mylogp), col = "red", add = TRUE)	# unfortunately it doesn't work
-
-# Table with expected p-value frequencies:
-# logpfreq
-
-# To plot simulated Fisher exact test p-values:
-# plot(logp[4,])
-
-# One thing you could do is to compare the number of outliers (loci with pass a certain pvalue threshold) to the expected number.
-# For this you can use another Fisher exact test, for example.
-# However, this is about the expected number of outliers.
-# What we want to know is: how confident can we be that our single outlier is not a false positive?
-
-# Better therefore is to calculate the expected number of outliers per pairwise comparison.
-# Then you can use this number to calculate the change it would occur in both populations at same locus.
-# For example, if the outlier snp has this expected frequency in our two pairwise comparisons:
-#		logp-value	freq
-# Busen-Norway	18		0.02945
-# Barff_Norway	12		0.00010
-# Could we argue that the chance of observing this combination at least once is: 20000*0.02945*0.00010?.
-# This chance by the way is 0.0589. 
-
-# Maybe a better way forward is to look at how the signal stands out.
-# e.g. if the signal wouldn't be there, what would be the next max logpvalue?
-# Or: in terms of standard deviations? 
-# Can we mimic a similar signal by simulating selection?
-# To see what happens if every generation in both Busen and Barff the maf is multiplied by 1.1 (after random shuffling):
-# outliersim(s=1.1)
-# plot(logp[4,])
-# logp[1:5,1990:2000]
-
-
-
 
 
 ###### User-defined function:
 
-# These are mostly census sizes:
-setsizes<-function()
-	{
-	popsize1	<<-c(7,10,15,25,30,35,40,80,100,200)
-	popsize2	<<-rep(500,10)
-	popsizeBusen<<-c(popsize1,popsize2)
-	popsize1	<<-c(10,20,60,100,140,280,360,400,450,500)
-	popsize2	<<-rep(500,10)
-	popsizeBarff<<-c(popsize1,popsize2)
-	popsizeNorway<<-rep(1000,ngen)
-	# Bottlenecks should be more severe
-	popsize1	<<-c(3,3,4,4,6,6,10,20,40,200)
-	popsize2	<<-rep(500,10)
-	popsizeBusen	<<-c(popsize1,popsize2)
-	popsize1	<<-c(5,5,6,6,8,8,15,30,80,400)
-	popsize2	<<-rep(500,10)
-	popsizeBarff	<<-c(popsize1,popsize2)
-	popsizeNorway<<-rep(1000,ngen)
-	}
 
 getsimdata<-function(n_loci=50000,n_selectedloci=1000,which_comparison=3,get_power=TRUE)
 	{
@@ -35920,7 +35948,7 @@ cat("SambaR is meant to free its users from the disproportionate time investment
 cat("SambaR is NOT meant for superficial data analyses without critical thinking and understanding of the theoretical underpinnings of these analyses.",sep="\n")
 cat("SambaR users are expected to use the freed up time for critical evaluation of analyses outcomes as well as for the study of the algorithms behind population-genetic analyses.",sep="\n") 
 cat("The file 'SambaR_methods2.txt' (included in download from Github) provides an overview of the SambaR commands which call functions of other R packages.",sep="\n")
-cat("The section 10.3 in the SambaR manual contains detailed explanations of calculations performed by SambaR functions.",sep="\n") 
+cat("The section 10.3 in the SambaR manual contains detailed explanations of calculations performed by SambaR functions.",sep="\n")
 
 if(getRversion()<'4.0.0')
 	{
@@ -35949,8 +35977,12 @@ if(getRversion()<'4.0.0')
 	#	}
 	}
 
-#cat(" ",sep="\n")
+cat(" ",sep="\n")
 cat("Update 25-04-2021 (SambaR version 1.04 and newer): inbreeding and relatedness calculations are no longer part of the filterdata function, but instead included in the new function 'calckinship'.",sep="\n")
+cat(" ",sep="\n")
+cat("Update 08-02-2022 (SambaR version 1.07 and newer): the calcdiversity does (by default) no longer generate SFS-vectors.",sep="\n") 
+cat("You are advised to construct SFS-vectors using other software (e.g., ANGSD, easySFS or Popgen Pipeline Platform).",sep="\n")
+
 
 #my_os<-as.vector(Sys.info()["sysname"])
 #if(my_os=="Linux")
