@@ -18210,15 +18210,15 @@ df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filt
 	{
 	if(is.null(mydf))
 		{
-		return(cat("ERROR: specify an existing input dataframe.",sep="\n")
+		return(cat("ERROR: specify an existing input dataframe.",sep="\n"))
 		}
 	if(is.null(myscore))
 		{
-		return(cat("ERROR: specify a column within the dataframe.",sep="\n")
+		return(cat("ERROR: specify a column within the dataframe.",sep="\n"))
 		}
 	if(!myscore%in%colnames(mydf))
 		{
-		return(cat("ERROR: specified column does not occur within the specified dataframe.",sep="\n")
+		return(cat("ERROR: specified column does not occur within the specified dataframe.",sep="\n"))
 		}	
 	#
 	mydf1	<- mydf[mydf$name1==mydf$name2,]
