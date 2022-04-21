@@ -10218,7 +10218,7 @@ ind_neimatrix<-function(export=NULL,doplot=FALSE)
 		}
 
 # Function to convert a dataframe with pairwise sample scores into a 2D matrix, and optionally create heatmap using plotindmatrix function.
-df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filter],myscore=NULL,doheatmap=TRUE)
+df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filter],myscore=NULL,doheatmap=TRUE,twosided=FALSE)
 	{
 	if(is.null(mydf))
 		{
@@ -10233,42 +10233,59 @@ df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filt
 		return(cat("ERROR: specified column does not occur within the specified dataframe.",sep="\n"))
 		}	
 	#
-	mydf1	<- mydf[mydf$name1==mydf$name2,]
-	mydf2	<- mydf[mydf$name1!=mydf$name2,]
-	#
 	ninds	<- length(myinds)
-	if(nrow(mydf1)!=ninds&nrow(mydf1)>0)
+	if(twosided)
 		{
-		return(cat("ERROR: Number of individuals in input dataframe does not correspond with number of specified individuals at myinds flag.",sep="\n")) 
-		}
-	npairs	<- (ninds*(ninds-1))/2
-	if(nrow(mydf2)!=npairs)
-		{
-		return(cat("ERROR: Number of individual pairs in input dataframe does not correspond with expected number (n*(n-1))/2.",sep="\n")) 
-		}
-	cat("Reordering data frames...",sep="\n")
-	mydf1	<- mydf1[order(mydf1$name1),]
-	mydf2	<- mydf2[order(mydf2$name1,mydf2$name2),]
-	#
-	cat("Converting sample pair dataframe column to matrix...",sep="\n")
-	m2					<- matrix(NA,nrow=ninds,ncol=ninds)
-	colnames(m2)		<- myinds
-	rownames(m2)		<- myinds
-	m2[lower.tri(m2)]	<- mydf2[,myscore,drop=TRUE]
-	mymatrix			<- t(m2)
-	#
-	if(nrow(mydf1)>0)
-		{
-		cat("Adding within-individual scores to diagonal...",sep="\n")
-		diag(mymatrix)	<- mydf1[,myscore,drop=TRUE]
+		cat("Flag twosided is set to TRUE. Expects all sample pairs are listed twice (i.e., ind1-ind2 and ind2-ind1).",sep="\n")
+		npairs	<- ninds*ninds
+		if(nrow(mydf)!=npairs)
+			{
+			return(cat("ERROR: Number of individuals in input dataframe does not correspond with number of specified individuals at myinds flag.",sep="\n")) 
+			}
+		cat("Converting sample pair dataframe column to matrix...",sep="\n")
+		mydf		<- mydf[order(mydf$name1,mydf$name2),]
+		myscorevec	<- mydf[,myscore,drop=TRUE]	
+		mymatrix	<- matrix(myscorevec,nrow=ninds,ncol=ninds,byrow=TRUE)
+		mymatrix[lower.tri(mymatrix)]	<- NA
 		}else{
-		cat("No within-individu scores detected.",sep="\n")
+		mydf1	<- mydf[mydf$name1==mydf$name2,]
+		mydf2	<- mydf[mydf$name1!=mydf$name2,]
+		#
+		if(nrow(mydf1)!=ninds&nrow(mydf1)>0)
+			{
+			return(cat("ERROR: Number of individuals in input dataframe does not correspond with number of specified individuals at myinds flag.",sep="\n")) 
+			}
+		npairs	<- (ninds*(ninds-1))/2
+		if(nrow(mydf2)!=npairs)
+			{
+			return(cat("ERROR: Number of individual pairs in input dataframe does not correspond with expected number (n*(n-1))/2.",sep="\n")) 
+			}
+		cat("Reordering data frames...",sep="\n")
+		mydf1	<- mydf1[order(mydf1$name1),]
+		mydf2	<- mydf2[order(mydf2$name1,mydf2$name2),]
+		#
+		cat("Converting sample pair dataframe column to matrix...",sep="\n")
+		m2					<- matrix(NA,nrow=ninds,ncol=ninds)
+		colnames(m2)		<- myinds
+		rownames(m2)		<- myinds
+		m2[lower.tri(m2)]	<- mydf2[,myscore,drop=TRUE]
+		mymatrix			<- t(m2)
+		if(nrow(mydf1)>0)
+			{
+			cat("Adding within-individual scores to diagonal...",sep="\n")
+			diag(mymatrix)	<- mydf1[,myscore,drop=TRUE]
+			}else{
+			cat("No within-individu scores detected.",sep="\n")
+			}
 		}
+	#
 	if(doheatmap)
 		{
 		# expects as input a MATRIX, with number of columns and rows equalling number of RETAINED individuals, in alphabetical order of sample names (similar as in inds dataframe).
 		cat("Running plotindmatrix function...",sep="\n")
-		plotindmatrix(ind_matrix=mymatrix,export_name="Rawdistance_matrix.ind",plottitle="Raw genetic distance",n_bins=5,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE)
+		mymatrix2					<- mymatrix
+		mymatrix2[diag(mymatrix2)]	<- NA
+		plotindmatrix(ind_matrix=mymatrix2,export_name="Rawdistance_matrix.ind",plottitle="Raw genetic distance",n_bins=5,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE)
 		}
 	return(mymatrix)
 	}
