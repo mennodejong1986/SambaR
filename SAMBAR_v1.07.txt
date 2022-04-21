@@ -10218,7 +10218,7 @@ ind_neimatrix<-function(export=NULL,doplot=FALSE)
 		}
 
 # Function to convert a dataframe with pairwise sample scores into a 2D matrix, and optionally create heatmap using plotindmatrix function.
-df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filter],myscore=NULL,doheatmap=TRUE,twosided=FALSE)
+df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filter],myscore=NULL,doheatmap=TRUE,twosided=FALSE,exportprefix="Rawdistance_matrix.ind",plot_title="Raw genetic distance (%)")
 	{
 	if(is.null(mydf))
 		{
@@ -10236,7 +10236,7 @@ df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filt
 	ninds	<- length(myinds)
 	if(twosided)
 		{
-		cat("Flag twosided is set to TRUE. Expects all sample pairs are listed twice (i.e., ind1-ind2 and ind2-ind1).",sep="\n")
+		cat("Flag twosided is set to TRUE. Expects all sample pairs are listed twice in input dataframe (i.e., ind1-ind2 and ind2-ind1).",sep="\n")
 		npairs	<- ninds*ninds
 		if(nrow(mydf)!=npairs)
 			{
@@ -10285,14 +10285,15 @@ df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filt
 		cat("Running plotindmatrix function...",sep="\n")
 		mymatrix2					<- mymatrix
 		mymatrix2[diag(mymatrix2)]	<- NA
-		plotindmatrix(ind_matrix=mymatrix2,export_name="Rawdistance_matrix.ind",plottitle="Raw genetic distance",n_bins=5,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE)
+		plotindmatrix(ind_matrix=mymatrix2,export_name=paste(exportprefix,"nr",sep="."),plottitle=plot_title,n_bins=8,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE,add_lab=TRUE,print_name=FALSE)
+		plotindmatrix(ind_matrix=mymatrix2,export_name=paste(exportprefix,"name",sep="."),plottitle=plot_title,n_bins=8,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE,add_lab=TRUE,print_name=TRUE)
 		}
 	return(mymatrix)
 	}
 
 # expects as input a MATRIX, with number of columns and rows equalling number of RETAINED individuals, in alphabetical order of sample names (similar as in inds dataframe).
 # for example: mysambar$indneimatrix (generated with ind_neimatrix function) and mysambar$pimatrix (generated with calcpi and subsequently pidf2matrix function)  
-plotindmatrix<-function(n_bins=5,export=NULL,alphabet_order=FALSE,my_Breaks=NULL,bincol1="orange",bincol2="white",midbincol=NULL,add_lab=FALSE,legendcex=2.5,ind_matrix=mysambar$indneimatrix,export_name="Neimatrix.ind",plottitle="Nei's genetic distance",silent=TRUE)
+plotindmatrix<-function(n_bins=5,export=NULL,alphabet_order=FALSE,my_Breaks=NULL,bincol1="orange",bincol2="white",midbincol=NULL,add_lab=FALSE,legendcex=2.5,ind_matrix=mysambar$indneimatrix,export_name="Neimatrix.ind",plottitle="Nei's genetic distance",silent=TRUE,print_name=FALSE)
 		{
 		if(is.null(ind_matrix)){return(cat("ERROR: Please specify an existing matrix using the 'ind_matrix'-flag. In case you specified 'mysambar$indneimatrix', did you run the ind_neimatrix function?",sep="\n"))}
 		if(is.null(export_name)){return(cat("ERROR: Please specify the name of the plot using the 'plotname'-flag.",sep="\n"))}
@@ -10310,7 +10311,7 @@ plotindmatrix<-function(n_bins=5,export=NULL,alphabet_order=FALSE,my_Breaks=NULL
 			}
 		export_name	<- paste(export_name,paste(n_bins,"bins",sep=""),sep=".")
 		if(!silent){cat("Running do_heatmap function...",sep="\n")}
-		do_heatmap(export_type=export,nbins=n_bins,mymatrix=inputmat,my_inds=indstemp,my_snps=snps,addlab=add_lab,legcex=legendcex,myBreaks=my_Breaks,my_col=bincol1,my_col2=bincol2,my_midcol=midbincol,exportname=export_name,mytitle=plottitle)							 
+		do_heatmap(export_type=export,nbins=n_bins,mymatrix=inputmat,my_inds=indstemp,my_snps=snps,addlab=add_lab,legcex=legendcex,myBreaks=my_Breaks,my_col=bincol1,my_col2=bincol2,my_midcol=midbincol,exportname=export_name,mytitle=plottitle,printname=print_name)							 
 		}
 
 # expects as input a VECTOR for all pairwise comparisons between ALL individuals
@@ -31696,7 +31697,7 @@ runRDA<-function(export="pdf",legendpos="topleft",envfile="ENVDATAr5noBSCLEAN_MJ
 ###############################################################################################################
 # Data management and generally used functions
 
-do_heatmap<-function(export_type=NULL,masklower=TRUE,nbins=NULL,roundlevel=2,shownegative=FALSE,mymatrix=nei,my_inds=inds,my_snps=snps,my_col="orange",my_col2="white",my_midcol=NULL,exportname="mymatrix",mytitle=NULL,addlegend=TRUE,myBreaks=NULL,addlab=TRUE,misslabels=FALSE,legposx=0.1,legposy=0.52,legcex=2.5,subtitle=NULL)
+do_heatmap<-function(export_type=NULL,masklower=TRUE,nbins=NULL,roundlevel=2,shownegative=FALSE,mymatrix=nei,my_inds=inds,my_snps=snps,my_col="orange",my_col2="white",my_midcol=NULL,exportname="mymatrix",mytitle=NULL,addlegend=TRUE,myBreaks=NULL,addlab=TRUE,misslabels=FALSE,printname=FALSE,legposx=0.1,legposy=0.52,legcex=2.5,subtitle=NULL)
 		{
 		# This plot will use all data in mymatrix input.
 		# It assumes that nrow(mymatrix) and ncol(mymatrix) corresponds with nrow(my_inds[my_inds$filter,])
@@ -31787,7 +31788,12 @@ do_heatmap<-function(export_type=NULL,masklower=TRUE,nbins=NULL,roundlevel=2,sho
 				{
 				axislabels	<- round(my_inds$miss[my_inds$filter],3)
 				}else{
-				axislabels	<- my_inds$nr[my_inds$filter]
+				if(printname)
+					{
+					axislabels	<- my_inds$name[my_inds$filter]
+					}else{
+					axislabels	<- my_inds$nr[my_inds$filter]
+					}
 				}
 			if(ninds<100)
 				{
@@ -31807,8 +31813,11 @@ do_heatmap<-function(export_type=NULL,masklower=TRUE,nbins=NULL,roundlevel=2,sho
 				}else{
 				if(ninds<100)
 					{
-					mtext("sample nr", side = 1, cex = 1.5, line = 4)
-					mtext("sample nr", side = 4, cex = 1.5, line = 1)
+					if(!printname)
+						{
+						mtext("sample nr", side = 1, cex = 1.5, line = 4)
+						mtext("sample nr", side = 4, cex = 1.5, line = 1)
+						}
 					}
 				}
 			}else{
