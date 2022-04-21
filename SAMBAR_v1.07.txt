@@ -18205,6 +18205,62 @@ pidf2matrix_old<-function(pidf=pidf_meta[[1]],myinds=inds$nr[inds$filter],do_col
 	return(pimatrix)
 	}	
 
+# Function to convert a dataframe with pairwise sample scores into a 2D matrix, and optionally create heatmap.
+df2mat<-function(mydf=NULL,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filter],myscore=NULL,doheatmap=TRUE)
+	{
+	if(is.null(mydf))
+		{
+		return(cat("ERROR: specify an existing input dataframe.",sep="\n")
+		}
+	if(is.null(myscore))
+		{
+		return(cat("ERROR: specify a column within the dataframe.",sep="\n")
+		}
+	if(!myscore%in%colnames(mydf))
+		{
+		return(cat("ERROR: specified column does not occur within the specified dataframe.",sep="\n")
+		}	
+	#
+	mydf1	<- mydf[mydf$name1==mydf$name2,]
+	mydf2	<- mydf2[mydf$name1!=mydf$name2,]
+	#
+	ninds	<- length(myinds)
+	if(nrow(mydf1)!=ninds&nrow(mydf1)>0)
+		{
+		return(cat("ERROR: Number of individuals in input dataframe does not correspond with number of specified individuals at myinds flag.",sep="\n")) 
+		}
+	npairs	<- (ninds*(ninds-1))/2
+	if(nrow(mydf2)!=npairs)
+		{
+		return(cat("ERROR: Number of individual pairs in input dataframe does not correspond with expected number (n*(n-1))/2.",sep="\n")) 
+		}
+	cat("Reordering data frames...",sep="\n")
+	mydf1	<- mydf1[order(mydf1$name1),]
+	mydf2	<- mydf2[order(mydf2$name1,mydf2$name2),]
+	#
+	cat("Converting sample pair dataframe column to matrix...",sep="\n")
+	m2					<- matrix(NA,nrow=ninds,ncol=ninds)
+	colnames(m2)		<- myinds
+	rownames(m2)		<- myinds
+	m2[lower.tri(m2)]	<- mydf2[,myscore,drop=TRUE]
+	mymatrix			<- t(m2)
+	#
+	if(nrow(mydf1)>0)
+		{
+		cat("Adding within-individual scores to diagonal...",sep="\n")
+		diag(mymatrix)	<- mydf1[,myscore,drop=TRUE]
+		}else{
+		cat("No within-individu scores detected.",sep="\n")
+		}
+	if(doheatmap)
+		{
+		# expects as input a MATRIX, with number of columns and rows equalling number of RETAINED individuals, in alphabetical order of sample names (similar as in inds dataframe).
+		cat("Running plotindmatrix function...",sep="\n")
+		plotindmatrix(ind_matrix=mymatrix,export_name="Rawdistance_matrix.ind",plottitle="Raw genetic distance",n_bins=5,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE)
+		}
+	return(mymatrix)
+	}
+
 pidf2matrix<-function(pidf=pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filter],do_colour=FALSE,onlybetweenpop=FALSE,onlywithinpop=FALSE)
 	{
 	ninds									<- length(myinds)
@@ -37597,8 +37653,11 @@ if(getRversion()<'4.0.0')
 cat(" ",sep="\n")
 cat("Update 25-04-2021 (SambaR version 1.04 and newer): inbreeding and relatedness calculations are no longer part of the filterdata function, but instead included in the new function 'calckinship'.",sep="\n")
 cat(" ",sep="\n")
-cat("Update 08-02-2022 (SambaR version 1.07 and newer): the calcdiversity does (by default) no longer generate SFS-vectors.",sep="\n") 
+cat("Update 08-02-2022 (SambaR version 1.06 and newer): the calcdiversity does (by default) no longer generate SFS-vectors.",sep="\n") 
 cat("You are advised to construct SFS-vectors using other software (e.g., ANGSD, easySFS or Popgen Pipeline Platform).",sep="\n")
+cat(" ",sep="\n")
+cat("Update 21-04-2022 (SambaR version 1.07 and newer): gene flow analyses are no longer part of the calcdistance() function, but instead included in the new function 'inferdemography'.",sep="\n")
+
 
 
 #my_os<-as.vector(Sys.info()["sysname"])
