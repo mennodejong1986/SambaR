@@ -22270,6 +22270,14 @@ cladedxy<-function(export=NULL,excludepops=NULL,plotlabel=NULL,ymax=NULL,pairord
 
 importdxydata<-function(myfile="allvcfdist.noheaders.txt",haploid=FALSE,error_rate=0.0001,mut_rate=1.2*10^-8,gen_time=8)
 	{
+	# Input file contains counts of the four scenarios when comparing two diploid genotypes: 
+	# n0	=	AA	AA					
+	# n1	=	AT	AA			
+	# n2he	=	AT	AT			
+	# n2ho	=	AA	TT	
+	# Raw genetic distance is calculated as:
+	# d		<- (n1*0.5+n2he*0.5+n2ho)/(n0+n1+n2he+n2ho)*100
+	
 	# mut_rate and gen_time are used only if flag haploid is set to TRUE.
 	# Expects to find in the working directory the file 'vcfdist.txt' file generated with the 'VCF_calcdist.sh' script.
 	# Error rate for y chromosome: 1*10^-4
@@ -31824,10 +31832,13 @@ do_heatmap<-function(export_type=NULL,masklower=TRUE,nbins=NULL,roundlevel=2,sho
 			heatpos	<- heatmap.2(mymatrix,lwid=c(0.5,4),lhei=c(0.5,4),labRow=NA,labCol=NA,key=FALSE,Rowv=NA,
 			Colv=NA,scale="none",RowSideColors=mypopcols,ColSideColors=mypopcols,col=myColours,breaks=myBreaks,dendrogram="none",trace="none")
 			}
-		if(!is.null(mytitle)&!addlab){mtext(mytitle, side = 3, line = 1, cex = 3)}
-		if(!is.null(subtitle)&!addlab){mtext(subtitle, side = 3, line = 0, cex = 2)}
+		#if(!is.null(mytitle)&!addlab){mtext(mytitle, side = 3, line = 1, cex = 3)}
+		#if(!is.null(subtitle)&!addlab){mtext(subtitle, side = 3, line = 0, cex = 2)}
+		if(!is.null(mytitle)){mtext(mytitle, side = 3, line = 1, cex = 3)}
+		if(!is.null(subtitle)){mtext(subtitle, side = 3, line = 0, cex = 2)}
 		# legend:
-		if(addlegend&!addlab)
+		# if(addlegend&!addlab)
+		if(addlegend)	
 			{
 			mylimits	<- paste("[",round(heatpos$colorTable$low,3),",",round(heatpos$colorTable$high,3),")",sep="")
 			legend(x=legposx,y=legposy,legend=mylimits,fill=myColours,bty='n',cex=legcex)
