@@ -10702,7 +10702,7 @@ mltree<-function(starttree=NULL,starttree_distance=NULL,starttree_method=NULL,do
 		}
 	}
 
-popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysambar$mytree,mydistance="bitwise.dist",mytype="phylogram",nbootstrap=0,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=80,showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE)
+popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysambar$mytree,mydistance="bitwise.dist",mytype="phylogram",mybg="white",nbootstrap=0,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=80,showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE)
 	{
 	# type can be: "phylogram" (default), "cladogram", "fan", "unrooted", "radial"
 	# distance can be 'bitwise.dist' (default, which is Hamming's distance), 'euclidean', 'allele sharing distance', 'pi', 'nei.dist', 'rogers.dist', 'edwards.dist', 'reynolds.dist'
@@ -11167,6 +11167,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysa
 		}else{
 		plotname2	<- paste(plotname,mytype,labelstr,labelstr2,colorstr,sep=".")
 		}
+	plotname2		<- ifelse(mybg=="white",plotname2,paste(plotname2,mybg,sep="."))
 	#cat(plotname,sep="\n")
 	if(!is.null(export))
 		{
@@ -11176,9 +11177,9 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysa
 		if(export=="png"){png(paste(plotname2,"png",sep="."),width=720,height=720)}
 		if(export=="wmf"){win.metafile(paste(plotname2,"wmf",sep="."),width=14,height=myheight)}
 		}
-	par(cex.axis=2)
+	par(cex.axis=2,bg=mybg)
 	if(!silent){cat("Running plot.phylo function of the ape package...",sep="\n")}
-	if(is.null(nshorten))
+	if(nshorten==0)
 		{
 		ape::plot.phylo(mytree,cex=labelcex,font=myfont,adj=0,show.tip.label=tiplabels,tip.color=my_colours,type=mytype,lab4ut=labelangle,edge.width=mylwd,node.pos=1,edge.color=mycolors2,rotate.tree=tree_angle,direction=mydirection)
 		}else{
@@ -11207,16 +11208,19 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysa
 	if(!is.null(plottitle)){mtext(plottitle,side=3,line=titleline,cex=titlecex)}
 	if(calc_parsimony&calc_likelihood)
 		{
+		if(silent){cat("Adding tree scores...",sep="\n")}
 		mytext	<- paste("parsimony score per site: ",round(parsimony_persite,3),"; -log(likelihood): ",round(myloglik),sep="")
 		mtext(mytext,side=3,cex=labelcex)
 		}
 	if(calc_parsimony&!calc_likelihood)
 		{
+		if(silent){cat("Adding tree scores...",sep="\n")}
 		mytext	<- paste("parsimony score per site: ",round(parsimony_persite,3),sep="")
 		mtext(mytext,side=3,cex=labelcex)
 		}
 	if(!calc_parsimony&calc_likelihood)
 		{
+		if(silent){cat("Adding tree scores...",sep="\n")}
 		mytext	<- paste("-log(likelihood): ",round(myloglik),sep="")
 		mtext(mytext,side=3,cex=labelcex)
 		}
@@ -11709,7 +11713,7 @@ ape_pcoa_pop<-function(popnames=mysambar$populations,exporttype="pdf",my_method=
 
 # PCoA: Principal Coordinates Analysis (NOTE: this is different from principal component analysis or PCA). Depends on StAMPP (Nei's genetic distance) and Ape (pcoa):
 # ape_pcoa(method="hamming",symbolkey="sex",legendpos="topleft")
-ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=NULL,mylegendcol=NULL,mylegendtitle=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,shuffle_par=NULL,addxy=FALSE)
+ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="white",axiscol="black",dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=NULL,mylegendcol=NULL,mylegendtitle=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,boxlwd=1,shuffle_par=NULL,addxy=FALSE)
 	{
 	# method can be "nei" (Nei's genetic distance D), "hamming" (Hamming's genetic distance), "euclidean", "pi", "reynolds", or "edwards", although the latter two produces NA and are therefore not useful.
 	# Note: snpselection and indselection can not be applied when running method 'pi'. You should use calcpi() function to recalculate pi on different snp dataset.
@@ -11953,24 +11957,25 @@ ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,dodc=TR
 				}else{
 				myplotname	<- paste("pcoa",exportname,method,paste("PC",axis1,"vs",axis2,sep=""),my_symbol,sep=".")
 				}
+			myplotname		<- ifelse(mybg=="white",myplotname,paste(myplotname,mybg,sep="."))
 			if(export=="eps"){postscript(paste(myplotname,"eps",sep="."),family=mysambar$myfont,width=10,height=10)}
 			if(export=="pdf"){pdf(paste(myplotname,"pdf",sep="."),family=mysambar$myfont,width=10,height=10)}
 			if(export=="png"){png(paste(myplotname,"png",sep="."),family=mysambar$myfont,width=720,height=720)}
 			if(export=="wmf"){win.metafile(paste(myplotname,"wmf",sep="."),family=mysambar$myfont,width=10,height=10)}
 			}
 		# First create outline of the plot. The argument 'col="white"' hides the datapoints, so we can edit them in the next commands. 
-		par(mar=c(mar1,mar2,mar3,1),cex.axis=axiscex,cex.main=3.5)
+		par(mar=c(mar1,mar2,mar3,1),cex.axis=axiscex,cex.main=3.5,bg=mybg,col=axiscol,col.axis=axiscol,col.lab=axiscol,col.main=axiscol)
 		#plot(myp1,myp2,xlab=paste("PC",axis1," (",round(p$values$Relative_eig[axis1]*100,1),"%)",sep=""),ylab=paste("PC",axis2," (",round(p$values$Relative_eig[axis2]*100,1),"%)",sep=""),col="white",frame=FALSE)
 		if(is.null(axisdistance))
 			{
-			plot(myp1,myp2,xlab="",ylab="",col="white",frame=FALSE)
+			plot(myp1,myp2,xlab="",ylab="",col=mybg,frame=FALSE)
 			}else{
 			if(axisdistance>=0)
 				{
-				plot(myp1,myp2,xlab="",ylab="",col="white",frame=FALSE,xaxt='n')
+				plot(myp1,myp2,xlab="",ylab="",col=mybg,frame=FALSE,xaxt='n')
 				axis(side=1,mgp=c(0,axisdistance,0),cex=axiscex)
 				}else{
-				plot(myp1,myp2,xlab="",ylab="",col="white",frame=FALSE,xaxt='n',yaxt='n')
+				plot(myp1,myp2,xlab="",ylab="",col=mybg,frame=FALSE,xaxt='n',yaxt='n')
 				box(which="plot")
 				}
 			}
@@ -11982,14 +11987,14 @@ ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,dodc=TR
 			}
 		myxlab	<- paste("PC",axis1," (",round(p$values$Relative_eig[axis1]*100,1),"%)",sep="")
 		myylab	<- paste("PC",axis2," (",round(p$values$Relative_eig[axis2]*100,1),"%)",sep="")
-		mtext(myxlab,side=1,line=labeldistance,cex=labcex)
-		mtext(myylab,side=2,line=ylabeldistance,cex=labcex)
+		mtext(myxlab,side=1,line=labeldistance,cex=labcex,col=axiscol)
+		mtext(myylab,side=2,line=ylabeldistance,cex=labcex,col=axiscol)
 		if(addxy)
 			{
 			abline(h=0,col="grey95")
 			abline(v=0,col="grey95")
 			}
-		if(labels==TRUE)
+		if(labels)
 			{
 			if(!is.null(missvector))
 				{
@@ -12019,7 +12024,7 @@ ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,dodc=TR
 			}
 		if(!is.null(mylegend)&!is.null(mylegendcol))
 			{
-			legend(legendpos,mylegend,fill=mylegendcol,bty="n",border=mylegendcol,cex=legendcex,title=mylegendtitle)
+			legend(legendpos,mylegend,fill=mylegendcol,bty="n",border=mylegendcol,cex=legendcex,title=mylegendtitle,text.col=axiscol)
 			}
 		if(addlegend==TRUE&npops>1&is.null(mylegend))
 			{
@@ -12051,16 +12056,16 @@ ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,dodc=TR
 			if(is.null(title_cex))
 				{
 				#cat("No titlecex.",sep="\n")
-				title(main=addtitle,line=titledistance)
+				title(main=addtitle,line=titledistance,col.main=axiscol)
 				}else{
 				#cat("Title cex specified.")
-				title(main=addtitle,line=titledistance,cex.main=title_cex)
+				title(main=addtitle,line=titledistance,cex.main=title_cex,col.main=axiscol)
 				#mtext(addtitle,side=3,line=titledistance,cex=title_cex)
 				}
 			}
 		if(addbox)
 			{
-			box(which="plot")
+			box(which="plot",col=axiscol,lwd=boxlwd)
 			}
 		if(!is.null(export))
 			{
@@ -14714,7 +14719,7 @@ LEAce<-function(min_demes=2,max_demes=12,nruns=50,runanalysis=TRUE,plottitle=NUL
 	}
 
 # Note: input to poporder should be the same as for runLEA, otherwise output does not make sense.
-LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=NULL,ylabel=NULL,heightfactor=0.75,widthfactor=0.1,focuspop=NULL,colourvector=NULL,dolabelcol=FALSE,export=NULL,exportname=NULL,shortpop=NULL,popnames=mysambar$populations,poporder=NULL,addindnr=TRUE,addindname=FALSE,order_on_longitude=FALSE,dolong3=FALSE,silent=TRUE,axiscex=1.5,axis4cex=1.5,labelcex=1.75,yaxiscex=1.25,shortpop_nrchars=3)
+LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=NULL,ylabel=NULL,mybg="white",axiscol="black",borderlwd=1,bordercol="white",heightfactor=0.75,widthfactor=0.1,focuspop=NULL,colourvector=NULL,dolabelcol=FALSE,export=NULL,exportname=NULL,shortpop=NULL,popnames=mysambar$populations,poporder=NULL,addindnr=TRUE,addindname=FALSE,order_on_longitude=FALSE,dolong3=FALSE,silent=TRUE,axiscex=1.5,axis4cex=1.5,labelcex=1.75,yaxiscex=1.25,shortpop_nrchars=3)
 	{
 	if(is.null(shortpop))
 		{
@@ -14887,7 +14892,7 @@ LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=N
 	#
 	mydemes		<- c(mindemes:maxdemes)
 	totalnr		<- length(mydemes)
-	par(mfrow=c(length(mydemes),1),mar=c(0.5,5,0.5,0.5),oma=c(4,1,6,1),cex.axis=yaxiscex,cex.lab=2.5,cex.main=2.5)
+	par(mfrow=c(length(mydemes),1),mar=c(0.5,5,0.5,0.5),oma=c(4,1,6,1),cex.axis=yaxiscex,cex.lab=2.5,cex.main=2.5,bg=mybg,col=axiscol,col.axis=axiscol,col.lab=axiscol,col.main=axiscol)
 	#for(ndemes in mydemes)
 	for(mynr in c(1:totalnr))
 		{
@@ -14908,10 +14913,10 @@ LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=N
 				}else{
 				barplot(t(qmatrix),col=mycolours,border=NA,space=0,xlab="",ylab ="",names.arg=indstemp$nr[indstemp$filter],cex.names=mycex,las=2)
 				}
-			if(length(popnames>1)){abline(v=mylocs2,lwd=2)}
+			if(length(popnames>1)){abline(v=mylocs2,lwd=borderlwd,col=bordercol)}
 			}else{
 			barplot(t(qmatrix),col=mycolours,border=NA,space=0,xlab="",ylab ="",las=2)
-			if(length(popnames>1)){abline(v=mylocs2,lwd=2)}
+			if(length(popnames>1)){abline(v=mylocs2,lwd=borderlwd,col=bordercol)}
 			#if(ndemes==mindemes)
 			if(mynr==1)
 				{
@@ -15293,7 +15298,7 @@ plotfossils<-function(adjustlong=TRUE)
 	}
 
 # Create map using package Maps. Advantage compared to Rworldmap is that this function allows to centre the map around the Pacific ocean, if needed 
-plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xmargin=0.05,ymargin=0.15,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=NULL,legendcex=0.75,mycex=1,dolabels=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90")
+plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xmargin=0.05,ymargin=0.15,mybg="white",addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=NULL,legendcex=0.75,mycex=1,dolabels=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90")
 	{
 	if("maps" %in% rownames(installed.packages()) == FALSE) {install.packages("maps",repos='http://cran.us.r-project.org')}
 	if("maps" %in% (.packages()) == FALSE)					{library(maps)}
@@ -15380,11 +15385,9 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xma
 		}else{
 		cat("Flag 'mydeviation' is set to NULL. Not shuffling.",sep="\n")
 		}
+	#
 	mygeocoord			<- coord
 	mygeocols			<- mycols
-	mysambar$geocoord	<- coord
-	mysambar$geocols	<- mycols
-	#
 	# PLOTTING:
 	if(!is.null(export))
 		{
@@ -15392,8 +15395,8 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xma
 		deviationlabel	<- ifelse(is.null(mydeviation),"exactlocation","withdeviation")
 		pointslabel		<- ifelse(dolabels,"labels","points")
 		borderlabel		<- ifelse(showborders,"withborders","withoutborders")
-		if(export=="pdf"){pdf(paste(plotname,pointslabel,borderlabel,deviationlabel,"Rmaps.pdf",sep="."))}
-		if(export=="wmf"){win.metafile(paste(plotname,pointslabel,borderlabel,deviationlabel,"Rmaps.wmf",sep="."))}
+		if(export=="pdf"){pdf(paste(plotname,pointslabel,borderlabel,deviationlabel,mybg,"Rmaps.pdf",sep="."))}
+		if(export=="wmf"){win.metafile(paste(plotname,pointslabel,borderlabel,mybg,deviationlabel,"Rmaps.wmf",sep="."))}
 		if(!silent){cat(paste("Writing out file called:", exportname,sep=" "),sep="\n")}
 		}
 	ww2 <- map('world', wrap=c(0-longthreshold,360-longthreshold), plot=FALSE, fill=TRUE)
@@ -15404,6 +15407,7 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xma
 	myyrange	<- myylim[2]-myylim[1]
 	myxlim		<- c(myxlim[1]-xmargin*myxrange,myxlim[2]+xmargin*myxrange)
 	myylim		<- c(myylim[1]-ymargin*myyrange,myylim[2]+ymargin*myyrange)
+	par(bg=mybg)
 	map(ww2,ylim=myylim,xlim=myxlim,col="grey90",border=bordercol,fill=TRUE)
 	#map(ww2,ylim=c(30,80),xlim=c(-10,280),col="grey90",border=bordercol,fill=TRUE)	# for bears
 	if(dolabels)
@@ -15424,6 +15428,10 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xma
 		}
 	box(col=boxcol)
 	if(!is.null(export)){dev.off()}
+	#
+	mysambar$geocoord	<<- coord
+	mysambar$geocols	<<- mycols
+	cat("Geographical coordinates stored at mysambar$geocoord.",sep="\n")
 	}
 	
 	
@@ -19053,7 +19061,7 @@ getgenomef3<-function(mywd=NULL,reorder=TRUE,popcolours=NULL,popnames=NULL)
 	admixpropdf		<<- admixpropdf
 	}
 
-plotgenomef3<-function(propdf=admixpropdf,admixpop=NULL,popnames=NULL,popcolours=NULL,export=NULL,plotname="Genome_f3",fullrange=TRUE)
+plotgenomef3<-function(propdf=admixpropdf,admixpop=NULL,popnames=NULL,popcolours=NULL,mybg="white",axiscol="black",export=NULL,plotname="Genome_f3",fullrange=TRUE,addlegend=TRUE)
 	{
 	if(is.null(propdf))
 		{
@@ -19071,17 +19079,19 @@ plotgenomef3<-function(propdf=admixpropdf,admixpop=NULL,popnames=NULL,popcolours
 		{
 		poplabel	<- ifelse(is.null(admixpop),"allpops",admixpop)
 		rangelabel	<- ifelse(fullrange,"fullrange","smallrange")
+		rangelabel	<- ifelse(mybg=="white",rangelabel,paste(rangelabel,mybg,sep="."))
 		if(export=="eps"){postscript(paste(plotname,poplabel,rangelabel,"eps",sep="."),width=8,height=8)}
 		if(export=="pdf"){pdf(paste(plotname,poplabel,rangelabel,"pdf",sep="."),width=8,height=8)}
 		if(export=="png"){png(paste(plotname,poplabel,rangelabel,"png",sep="."),width=720,height=720)}
 		if(export=="wmf"){win.metafile(paste(plotname,poplabel,rangelabel,"wmf",sep="."),width=8,height=8)} 
 		}
-	par(mar=c(4,5,2.5,1.5),cex.axis=2,cex.lab=2.5,cex.main=3)
+	par(mar=c(4,5,2.5,1.5),cex.axis=2,cex.lab=2.5,cex.main=3,bg=mybg,col=axiscol,col.axis=axiscol,col.lab=axiscol,col.main=axiscol)
 	sdmax		<- max(propdf$sd,na.rm=TRUE)
 	if(is.null(admixpop))
 		{
-		plot(propdf$mean,propdf$sd,col=propdf$admixcol,pch=16,cex=1.25,xlim=c(0,1),ylim=c(0,sdmax),xlab="Proportion f3<0",ylab="SD (Proportion f3<0)")
-		legend("topright",legend=popnames,fill=popcolours,border=popcolours,cex=1.25,bty='n')
+		plot(propdf$mean,propdf$sd,col=propdf$admixcol,pch=16,cex=1.25,xlim=c(0,1),ylim=c(0,sdmax),xlab="Genome-wide mean",ylab="Standard deviation across chromosomes")
+		if(addlegend){legend("topright",legend=popnames,fill=popcolours,border=popcolours,cex=1.25,bty='n',title="Admixed population:")}
+		mtext("Proportion windows with f3<0",side=3,line=0.5,cex=2)
 		}else{
 		propdf	<- propdf[propdf$admixpop==admixpop,]
 		if(nrow(propdf)==0)
@@ -19091,7 +19101,7 @@ plotgenomef3<-function(propdf=admixpropdf,admixpop=NULL,popnames=NULL,popcolours
 		if(fullrange)
 			{
 			plot(propdf$mean,propdf$sd,bg=propdf$anc1col,col=propdf$anc2col,pch=21,cex=2,xlim=c(0,1),ylim=c(0,sdmax),lwd=3,xlab="Proportion f3<0",ylab="SD (Proportion f3<0)")
-			legend("topright",legend=popnames,fill=popcolours,border=popcolours,cex=1.25,bty='n')
+			if(addlegend){legend("topright",legend=popnames,fill=popcolours,border=popcolours,cex=1.25,bty='n',title="Admixed population:")}
 			}else{
 			plot(propdf$mean,propdf$sd,bg=propdf$anc1col,col=propdf$anc2col,pch=21,cex=2,lwd=3,xlab="Proportion f3<0",ylab="SD (Proportion f3<0)")
 			}
@@ -19247,15 +19257,19 @@ genomef3heatmap<-function(mythres=0.5,exporttype=NULL)
 		}
 	}
 
-f3heatmap<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heatmap",f3df=mysambar$f3df,plottitle="f3-score",subtitle=NULL)
+f3heatmap<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heatmap",f3df=mysambar$f3df,plottitle="f3-score",mybg="white",subtitle=NULL,NAcolour=NULL,addlegend=TRUE)
 	{
+	if(is.null(f3df))
+		{
+		return(cat("ERROR: specified f3 dataframe (default: mysambar$f3df) does not exist. Did you run the runadmixtools function?",sep="\n"))
+		}
 	popnames<- unique(f3df$pop1)
 	npop	<- length(popnames)
 	poporder<- mysambar$poporder
 	popcols	<- mysambar$colorder
 	if(length(poporder)!=npop)
 		{
-		return(cat("ERROR: number of populations in mysambar$f3df does not correspond with number of populations in the mysambar$poporder vector. Rerun the runadmixtools function with the new filter settings.",sep="\n"))
+		return(cat("ERROR: number of populations in specified f3 dataframe (default: mysambar$f3df) does not correspond with number of populations in the mysambar$poporder vector. Rerun the runadmixtools function with the new filter settings.",sep="\n"))
 		}
 	if(creatematrix)
 		{
@@ -19306,6 +19320,7 @@ f3heatmap<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heat
 	graphics.off()
 	if(!is.null(export))
 		{
+		exportname	<- ifelse(mybg=="white",exportname,paste(exportname,mybg,sep="."))
 		mysize	<- 10
 		mysize2	<- 720
 		if(export=="eps"){postscript(paste(exportname,"eps",sep="."),family=mysambar$myfont,width=mysize,height=mysize)}
@@ -19313,8 +19328,10 @@ f3heatmap<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heat
 		if(export=="png"){png(paste(exportname,"png",sep="."),family=mysambar$myfont,width=mysize2,height=mysize2)}
 		if(export=="wmf"){win.metafile(paste(exportname,"wmf",sep="."),family=mysambar$myfont,width=mysize,height=mysize)}
 		}
-	myBreaks	<- seq(-0.5,npop+0.5,1) 
-	myColours	<- c("grey98",popcols)
+	par(bg=mybg)
+	myBreaks	<- seq(-0.5,npop+0.5,1)
+	NAcolour	<- ifelse(is.null(NAcolour),"white",NAcolour)
+	myColours	<- c(NAcolour,popcols)
 	heatmap.2(mysambar$f3mat2,lhei=c(0.5,4),lwid=c(0.5,4),labRow=NA,labCol=NA,Rowv=NA,Colv=NA,scale="none",col=myColours,breaks=myBreaks,RowSideColors=rep(popcols,each=npop),ColSideColors=popcols,
 	dendrogram="none",trace="none",cexCol=1.5,cexRow=1.5,ylab="",xlab="",srtRow=0,key=FALSE,adjCol=c(1,0.5),adjRow=c(0,NA),offsetRow=-0.5,offsetCol=-0.5)
 	#heatmap.2(mysambar$f3mat,lhei=c(0.5,4),lwid=c(0.5,4),labRow=NA,labCol=NA,Rowv=NA,Colv=NA,scale="none",col=myColours,breaks=myBreaks,dendrogram="none",trace="none",cexCol=1.5,cexRow=1.5,ylab="",xlab="",srtRow=0,srtCol=90,key=FALSE,margins=my_margins,adjCol=c(1,0.5),adjRow=c(0,NA),offsetRow = -0.5,offsetCol=-0.5)
@@ -19326,7 +19343,10 @@ f3heatmap<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heat
 		{
 		mtext(subtitle,side=3,line=-0.5,cex=2)
 		}
-	legend(x=0.1,y=0.7,legend=mysambar$poporder,fill=mysambar$colorder,border=mysambar$colorder,bty='n',cex=1)
+	if(addlegend)
+		{
+		legend(x=0.1,y=0.7,legend=mysambar$poporder,fill=mysambar$colorder,border=mysambar$colorder,bty='n',cex=1)
+		}
 	if(!is.null(export))
 		{
 		dev.off()
@@ -22277,7 +22297,7 @@ importdxydata<-function(myfile="allvcfdist.noheaders.txt",haploid=FALSE,error_ra
 	# n2ho	=	AA	TT	
 	# Raw genetic distance is calculated as:
 	# d		<- (n1*0.5+n2he*0.5+n2ho)/(n0+n1+n2he+n2ho)*100
-	
+	#
 	# mut_rate and gen_time are used only if flag haploid is set to TRUE.
 	# Expects to find in the working directory the file 'vcfdist.txt' file generated with the 'VCF_calcdist.sh' script.
 	# Error rate for y chromosome: 1*10^-4
