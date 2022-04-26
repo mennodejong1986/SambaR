@@ -1382,7 +1382,9 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		if(any(myalleles!=1&myalleles!=2&myalleles!=3&myalleles!=4))
 			{
 			myalleles	<<- myalleles
-			return(cat("ERROR: encountered unexpected allele in bim file. Alleles should be either 1,2,3,4 (integer) or A,C,T,G. You can observe the alleles by typing 'myalleles'.",sep="\n")) 
+			cat("ERROR: encountered unexpected allele in bim file. Alleles should be either 1,2,3,4 (integer) or A,C,T,G. You can observe the alleles by typing 'myalleles'.",sep="\n")
+			cat("Did you filter out indels? If not, you can use, for example, bcftools (outside of R environment) to do so, using the following command:",sep="\n")	
+			return(cat("BCFTOOLS view --threads 2 --min-alleles 2 --max-alleles 2 --exclude-types indels -O z input.vcf.gz -o input.biallelicSNPs.vcf.gz.",sep="\n"))
 			}
 		snps$minor2										<<- NA
 		snps$minor2[snps$minor==1&!is.na(snps$minor)]	<<- "A"
@@ -1396,6 +1398,8 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 				{
 				myalleles	<<- myalleles
 				return(cat("ERROR: encountered unexpected allele in bim file. Alleles should be either 1,2,3,4 or A,C,T,G (character). You can observe the alleles by typing 'myalleles'.",sep="\n")) 
+				cat("Did you filter out indels? If not, you can use, for example, bcftools (outside of R environment) to do so, using the following command:",sep="\n")	
+				return(cat("BCFTOOLS view --threads 2 --min-alleles 2 --max-alleles 2 --exclude-types indels -O z input.vcf.gz -o input.biallelicSNPs.vcf.gz.",sep="\n"))
 				}
 			snps$minor2										<<- snps$minor
 			snps$minor										<<- NA
@@ -8753,7 +8757,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,my_legend=NULL,my_legendcol=NULL,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,do_tree=TRUE,dogenindtrees=TRUE,do_MPtree=TRUE,do_MLtree=FALSE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
+findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,my_legend=NULL,my_legendcol=NULL,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,do_tree=TRUE,dogenindtrees=TRUE,do_MPtree=TRUE,do_MLtree=FALSE,do_pathlength=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -8903,18 +8907,18 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 				# Euclidean distance:
 				cat("Hierarchical structuring of individuals based on Euclidean genetic distance (i.e. using bitwise.dist function of poppr package)...",sep="\n")
 				cat("If you receive an error after this line (for example about 'ploidy' issues), rerun the findstructure function with the 'do_tree' flag set to false (i.e. findstructure(do_tree=FALSE)).",sep="\n")
-				popprtree(export="pdf",do_analysis=TRUE,nbootstrap=0,mymethod="NJ",mydistance="euclidean",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
-				popprtree(export="pdf",do_analysis=TRUE,nbootstrap=0,mymethod="bionj",mydistance="euclidean",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
-				popprtree(export="pdf",do_analysis=TRUE,nbootstrap=0,mymethod="OLS",mydistance="euclidean",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+				popprtree(export="pdf",do_analysis=TRUE,nbootstrap=0,mymethod="NJ",mydistance="euclidean",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
+				popprtree(export="pdf",do_analysis=TRUE,nbootstrap=0,mymethod="bionj",mydistance="euclidean",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
+				popprtree(export="pdf",do_analysis=TRUE,nbootstrap=0,mymethod="OLS",mydistance="euclidean",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
 				#				
 				# Allele sharing distance (generated with SambaR's calcpi function):
-				# popprtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="ASD",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+				# popprtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="ASD",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
 				#
 				# sequence dissimilarity (generated with SambaR's calcpi function):
 				cat("Hierarchical structuring of individuals based on sequence dissimilarity score (i.e. using calcpi function of SambaR package)...",sep="\n")
-				popprtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="pi",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
-				popprtree(export="pdf",do_analysis=TRUE,mymethod="bionj",mydistance="pi",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
-				popprtree(export="pdf",do_analysis=TRUE,mymethod="OLS",mydistance="pi",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
+				popprtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="pi",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
+				popprtree(export="pdf",do_analysis=TRUE,mymethod="bionj",mydistance="pi",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
+				popprtree(export="pdf",do_analysis=TRUE,mymethod="OLS",mydistance="pi",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
 				pi_OLS_tree		<- mysambar$mytree
 				#
 				plotindmatrix(n_bins=6,export="pdf",add_lab=FALSE,ind_matrix=mysambar$pimatrix,export_name="Pimatrix.ind",plottitle="Sequence dissimilarity (pi)")
@@ -10702,7 +10706,9 @@ mltree<-function(starttree=NULL,starttree_distance=NULL,starttree_method=NULL,do
 		}
 	}
 
-popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysambar$mytree,mydistance="bitwise.dist",mytype="phylogram",mybg="white",nbootstrap=0,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=80,showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE)
+
+
+popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",mytype="phylogram",mybg="white",nbootstrap=0,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=80,showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE,dopathlength=FALSE,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL)
 	{
 	# type can be: "phylogram" (default), "cladogram", "fan", "unrooted", "radial"
 	# distance can be 'bitwise.dist' (default, which is Hamming's distance), 'euclidean', 'allele sharing distance', 'pi', 'nei.dist', 'rogers.dist', 'edwards.dist', 'reynolds.dist'
@@ -10767,22 +10773,25 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysa
 		}
 	#
 	### SPECIFIED METHOD AND DISTANCE SUPPORTED? ###
-	if(is.null(mymethod))
+	if(do_analysis)
 		{
-		return(cat("ERROR: please specify clustering method to 'mymethod' flag.",sep="\n"))
-		}
-	if(!(mymethod=="BME"|mymethod=="OLS"|mymethod=="upgma"|mymethod=="NJ"|mymethod=="bionj"|mymethod=="ward.D"|mymethod=="ward.D2"|mymethod=="complete"|mymethod=="single"|mymethod=="mcquitty"|mymethod=="average"|mymethod=="median"|mymethod=="centroid"))
-		{
-		return(cat("ERROR: mymethod has to be either 'upgma', 'NJ', 'bionj', 'OLS', 'BME', 'ward.D', 'ward.D2', 'complete', 'single', 'mcquitty', 'average', 'median', or 'centroid'.",sep="\n"))
-		}
-	if(is.null(mydistance))
-		{
-		return(cat("ERROR: please specify clustering method to 'mymethod' flag.",sep="\n"))
-		}
-	# distance measure can be pi, hamming (bitwise.dist) nei, rogers, edwards or reynolds: 
-	if(!(mydistance=="ASD"|mydistance=="pi"|mydistance=="bitwise.dist"|mydistance=="euclidean"|mydistance=="nei.dist"|mydistance=="rogers.dist"|mydistance=="edwards.dist"|mydistance=="reynolds.dist"))
-		{
-		return(cat("ERROR: mydistance has to be either 'ASD', 'pi', 'bitwise.dist', 'euclidean', 'nei.dist', 'rogers.dist', 'edwards.dist' or 'reynolds.dist'.",sep="\n"))
+		if(is.null(mymethod))
+			{
+			return(cat("ERROR: please specify clustering method to 'mymethod' flag.",sep="\n"))
+			}
+		if(!(mymethod=="BME"|mymethod=="OLS"|mymethod=="upgma"|mymethod=="NJ"|mymethod=="bionj"|mymethod=="ward.D"|mymethod=="ward.D2"|mymethod=="complete"|mymethod=="single"|mymethod=="mcquitty"|mymethod=="average"|mymethod=="median"|mymethod=="centroid"))
+			{
+			return(cat("ERROR: mymethod has to be either 'upgma', 'NJ', 'bionj', 'OLS', 'BME', 'ward.D', 'ward.D2', 'complete', 'single', 'mcquitty', 'average', 'median', or 'centroid'.",sep="\n"))
+			}
+		if(is.null(mydistance))
+			{
+			return(cat("ERROR: please specify clustering method to 'mymethod' flag.",sep="\n"))
+			}
+		# distance measure can be pi, hamming (bitwise.dist) nei, rogers, edwards or reynolds: 
+		if(!(mydistance=="ASD"|mydistance=="pi"|mydistance=="bitwise.dist"|mydistance=="euclidean"|mydistance=="nei.dist"|mydistance=="rogers.dist"|mydistance=="edwards.dist"|mydistance=="reynolds.dist"))
+			{
+			return(cat("ERROR: mydistance has to be either 'ASD', 'pi', 'bitwise.dist', 'euclidean', 'nei.dist', 'rogers.dist', 'edwards.dist' or 'reynolds.dist'.",sep="\n"))
+			}
 		}
 	#
 	### CHECK SAMPLE FILTER SETTINGS ###
@@ -10821,25 +10830,30 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysa
 			}
 		}
 	#
-	### INPUT GENLIGHT OR GENIND? ### 
-	if(mydistance=="bitwise.dist"|mydistance=="euclidean"|mydistance=="pi"|mydistance=="ASD")
+	### INPUT GENLIGHT OR GENIND? ###
+	if(do_analysis)
 		{
-		my_gl		<- mygenlight[myindsfilter,snps$filter]
-		}else{
-		# other distances require genind object rather than genlight object
-		if(is.null(mysambar$genind))
+		if(mydistance=="bitwise.dist"|mydistance=="euclidean"|mydistance=="pi"|mydistance=="ASD")
 			{
-			genlight2genind(input=mygenlight,add2sambar=TRUE)
+			my_gl		<- mygenlight[myindsfilter,snps$filter]
 			}else{
-			if(length(pop(mysambar$genind))!=length(inds$name[inds$filter]))
+			# other distances require genind object rather than genlight object
+			if(is.null(mysambar$genind))
 				{
-				cat("WARNING: number of individuals in mysambar$genind object does not correspond with number of retained individuals in inds dataframe. Creating new genind object...",sep="\n") 
 				genlight2genind(input=mygenlight,add2sambar=TRUE)
 				}else{
-				cat("Using available genind object at mysambar$genind.",sep="\n")
+				if(length(pop(mysambar$genind))!=length(inds$name[inds$filter]))
+					{
+					cat("WARNING: number of individuals in mysambar$genind object does not correspond with number of retained individuals in inds dataframe. Creating new genind object...",sep="\n") 
+					genlight2genind(input=mygenlight,add2sambar=TRUE)
+					}else{
+					cat("Using available genind object at mysambar$genind.",sep="\n")
+					}
 				}
+			my_gl	<- mysambar$genind
 			}
-		my_gl	<- mysambar$genind
+		}else{
+		my_gl		<- mygenlight[myindsfilter,snps$filter]
 		}
 	#
 	### DEFINE POPULATION (COLOURS) ###
@@ -11043,22 +11057,58 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysa
 			#mytree 		<- poppr::aboot(my_gl,tree=mytreefunction,distance=mydistance,sample=100,showtree=F,cutoff=50,quiet=F)
 			}
 		mysambar$mytree	<<- mytree
-		if(!is.null(mysambar$mytree)&!is.null(mysambar$mytree_distmat))
+		if(!is.null(mysambar$mytree)&!is.null(mysambar$mytree_distmat)&dopathlength)
 			{
 			cat("Calculating difference between path length and genetic distance...",sep="\n")
+			cat("If you receive an error after this line, set the flag do_pathlength to FALSE.",sep="\n") 
 			pathlength(mytree=mysambar$mytree,exporttype="pdf",plot_name=paste("Pathlengths",mydistance,mymethod,sep="."),distancemat=mysambar$mytree_distmat)
 			}
 		}else{
 		cat("The flag 'do_analysis' is set to FALSE. Plotting tree stored specified to inputtree flag (default: mysambar$mytree).",sep="\n")
-		if(is.null(inputtree))
+		if(is.null(inputtree)&is.null(inputnewickfile)&is.null(inputnexusfile))
 			{
-			return(cat("ERROR: inputtree is NULL.",sep="\n"))
+			return(cat("ERROR: inputtree, inputnewickfile and inputnexusfile are all NULL.",sep="\n"))
 			}
-		mytree			<- inputtree
+		if(!is.null(inputtree))
+			{
+			cat("Using tree specified to inputtree flag.",sep="\n")
+			mytree			<- inputtree
+			}
+		if(!is.null(inputnewickfile))
+			{
+			cat("Importing tree in newick format...",sep="\n")
+			if(!file.exists(inputnewickfile))
+				{
+				cat("ERROR: Specified tree file not found in directory:",sep="\n")
+				return(cat(getwd(),sep="\n"))
+				}
+			mytree		<- ape::read.tree(inputnewickfile)
+			mytree		<<- mytree
+			}
+		if(!is.null(inputnexusfile))
+			{
+			cat("Importing tree in nexus format...",sep="\n")
+			if(!file.exists(inputnexusfile))
+				{
+				cat("ERROR: Specified tree file not found in directory:",sep="\n")
+				return(cat(getwd(),sep="\n"))
+				}
+			mytree		<- ape::read.nexus(inputnewickfile)
+			mytree		<<- mytree
+			}
 		}
 	#
 	# to observe structure of tree object:
 	# str(mysambar$mytree)
+	if(!is.null(drop_ind))
+		{
+		cat("Dropping individual(s):...",sep="\n")
+		for(k in c(1:length(drop_ind)))
+			{
+			cat(drop_ind[k],sep="\n")
+			mytree		<- drop.tip(phy=mytree,tip=drop_ind[k])
+			}
+		}
 	if(length(mytree$tip.label)!=length(inds$name[inds$filter]))
 		{
 		mytree				<<- mytree
@@ -11232,10 +11282,14 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",inputtree=mysa
 		}
 	#
 	# export in Nexus format:
-	nexusname	<- paste(plotname,mydistance,mymethod,"numbers.txt",sep=".")
-	write.nexus(mytree,file=nexusname,translate=TRUE)
-	nexusname	<- paste(plotname,mydistance,mymethod,"labels.txt",sep=".")
-	write.nexus(mytree,file=nexusname,translate=FALSE)
+	if(fullplotname)
+		{
+		nexusname	<- paste(plotname,mydistance,mymethod,"numbers.txt",sep=".")
+		}else{
+		nexusname	<- plotname
+		}
+	write.nexus(mytree,file=paste(nexusname,"numbers.txt",sep="."),translate=TRUE)
+	write.nexus(mytree,file=paste(nexusname,"labels.txt",sep="."),translate=TRUE)
 	}
 
 # 31-03-2022: extract genetic distance in between nodes 
@@ -11312,6 +11366,10 @@ pathlength<-function(mytree=mysambar$mytree,exporttype=NULL,plot_name="Pathlengt
 	if(!is.null(distancemat))
 		{
 		cat("Calculating and plotting difference between distance and path length...",sep="\n")
+		if(is.null(dim(mymatrix)))
+			{
+			return(cat("ERROR: expected a matrix, but encountered object with less than 2 dimensions.",sep="\n"))
+			}
 		if(nrow(distancemat)!=nrow(mymatrix))
 			{
 			return(cat("ERROR: matrices do not correspond.",sep="\n"))
