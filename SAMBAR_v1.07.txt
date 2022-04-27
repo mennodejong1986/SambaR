@@ -8757,7 +8757,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 # This webpage has tips:
 # https://www.molecularecologist.com/2016/02/quick-and-dirty-tree-building-in-r/
 
-findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,my_legend=NULL,my_legendcol=NULL,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,do_tree=TRUE,dogenindtrees=TRUE,do_MPtree=TRUE,do_MLtree=FALSE,do_pathlength=TRUE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
+findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",legend_cex=3,my_legend=NULL,my_legendcol=NULL,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,do_tree=TRUE,dogenindtrees=FALSE,do_MPtree=TRUE,do_MLtree=FALSE,do_pathlength=FALSE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=TRUE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
 	{
 	if(!"filter"%in%colnames(inds))
 		{
@@ -8927,7 +8927,7 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 				if(do_MPtree)
 					{
 					mptree(starttree=pi_OLS_tree,starttree_distance="pi",starttree_method="OLS",mpsearch="NNI")
-					mptree(mpsearch="ratchet")
+					#mptree(mpsearch="ratchet")
 					}
 				if(do_MLtree)
 					{
@@ -18421,7 +18421,7 @@ pidf2matrix<-function(pidf=pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filte
 # Demographic analyses
 # 03-04-2022: Originally part of calcdistance function. Stand-alone function since SambaR_v2.01.
 
-inferdemography<-function(nchroms=NULL,do_hybridindex=FALSE,do_hybridcheck=FALSE,do_binaryD=FALSE,do_f3=FALSE,my_triplets=NULL,do_Dfst=FALSE,max_ntriplets=60,do_jackknife=TRUE,jk_blocksize=1000000,minjkblocks=50,bayesassmatrix=NULL)
+inferdemography<-function(nchroms=NULL,do_Dstats=TRUE,D_triplets=NULL,do_hybridindex=FALSE,do_hybridcheck=FALSE,do_binaryD=FALSE,do_f3=TRUE,f3_triplets=NULL,do_Dfst=FALSE,max_ntriplets=60,do_jackknife=TRUE,jk_blocksize=1000000,minjkblocks=50,bayesassmatrix=NULL)
 	{
 	### GENE FLOW ANALYSES
 	# many options:
@@ -18474,57 +18474,76 @@ inferdemography<-function(nchroms=NULL,do_hybridindex=FALSE,do_hybridcheck=FALSE
 		{
 		return(cat("ERROR: less than 3 populations. Not possible to perform gene flow analyses.",sep="\n"))
 		}
-	if(is.null(my_triplets))
+	if(do_f3)
 		{
-		# find all possible triplets:
-		mypops				<- mysambar$populations
-		my_triplets			<- as.data.frame(permutations(n=length(mypops),r=3,v=mypops,repeats.allowed=F))
-		colnames(my_triplets)<- c("p1","p2","p3")
-		# for our analysis no difference between (((A,B),C),D) and (((B,A),C),D). Delete (((B,A),C),D):
-		my_triplets$myorder	<- as.character(my_triplets$p2)>as.character(my_triplets$p1)
-		my_triplets$ingroup	<- ifelse(my_triplets$myorder,paste(my_triplets$p1,my_triplets$p2,my_triplets$p3,sep="_"),paste(my_triplets$p2,my_triplets$p1,my_triplets$p3,sep="_"))
-		my_triplets			<- my_triplets[(!duplicated(my_triplets$ingroup)),c(1:3)]
+		# first create ped-file:
+		runadmixtools(silent=FALSE,tripletdf=f3_triplets,myprefix="metapop.retainedinds.filter.number",overwriteped=TRUE)
+		# next on command line prompt convert into bed-file using plink:
+		# plink --file metapop.retainedinds.filter.number --allow-extra-chr --make-bed --recode A --out metapop.retainedinds.filter.number
+		# Note, after reset of filter settings, all admixtools folders need to be deleted, and the PED and BED-file should be recreated, to avoid downstream errors.
+		runadmixtools(silent=FALSE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE)
+		f3heatmap(creatematrix=TRUE,pthres=0.05,export="pdf",exportname="f3heatmap")
+		#
+		# search for optimal optimal admixture graph:
+		# findgraph(do_analyses=TRUE,out_group="Black",nadmixture=0)
+		# findgraph(do_analyses=TRUE,out_group="Black",nadmixture=1)
 		}
-	ntriplets		<- nrow(my_triplets)
-	if(ntriplets>max_ntriplets)
+	if(do_Dstats)
 		{
-		cat(paste("More than ",max_ntriplets," population triplets. Omitting ABBA-BABA statistics.",sep=""),sep="\n")
-		cat("Provide a different value to the flag 'max_ntriplets' if you want to run ABBA-BABA analyses anyway.",sep="\n")
-		cat("Alternatively, and preferably, define a shorter set of triplets to the my_triplets flag.",sep="\n")
-		cat("The input to the my_triplets should be a dataframe with three columns called 'p1','p2', and 'p3', listing for each triplet the ingroup1, ingroup2, and the introgressor species.",sep="\n") 
-		}else{
-		cat("Calculating ABBA-BABA statistics...",sep="\n")
-		calcD(popnames=mysambar$populations,snpfilter=snps$filter,silent=TRUE,mytriplets=my_triplets,dojackknife=do_jackknife,minblocks=minjkblocks,jkblocksize=jk_blocksize)
-		plotD(export="eps")
-		plotD(export="png")
-		plotD(export="pdf")
-		#if(mysambar$os=="Windows"){plotD(export="wmf")}	# file too big
-		plotD(export="eps",shortpop=TRUE)
-		plotD(export="png",shortpop=TRUE)
-		plotD(export="pdf",shortpop=TRUE)
-		#if(mysambar$os=="Windows"){plotD(export="wmf",shortpop=TRUE)}	# file too big
-		plotD(export="eps",doboxplot=TRUE)
-		plotD(export="png",doboxplot=TRUE)
-		plotD(export="pdf",doboxplot=TRUE)
-		#if(mysambar$os=="Windows"){plotD(export="wmf",doboxplot=TRUE)}	# file too big
-		plotD(export="eps",shortpop=TRUE,doboxplot=TRUE)
-		plotD(export="png",shortpop=TRUE,doboxplot=TRUE)
-		plotD(export="pdf",shortpop=TRUE,doboxplot=TRUE)
-		#if(mysambar$os=="Windows"){plotD(export="wmf",shortpop=TRUE,doboxplot=TRUE)}	# file too big		
-		#
-		barplotD(mydf=mysambar$dscores,export="pdf",silent=TRUE,plottitle=NULL,allcombi=FALSE,addnsnps=TRUE)
-		barplotD(mydf=mysambar$dscores,export="pdf",silent=TRUE,plottitle=NULL,allcombi=TRUE,addnsnps=TRUE)
-		#
-		if(do_Dfst)
+		if(is.null(D_triplets))
 			{
-			plotD(export="eps",plotDfst=TRUE)
-			plotD(export="pdf",plotDfst=TRUE)
-			plotD(export="png",plotDfst=TRUE)
-			#if(mysambar$os=="Windows"){plotD(export="wmf",plotDfst=TRUE)}	# file too big
-			plotD(export="eps",plotDfst=TRUE,shortpop=TRUE)
-			plotD(export="pdf",plotDfst=TRUE,shortpop=TRUE)
-			plotD(export="png",plotDfst=TRUE,shortpop=TRUE)
-			#if(mysambar$os=="Windows"){plotD(export="wmf",plotDfst=TRUE,shortpop=TRUE)}	# file too big
+			# find all possible triplets:
+			mypops				<- mysambar$populations
+			my_triplets			<- as.data.frame(permutations(n=length(mypops),r=3,v=mypops,repeats.allowed=F))
+			colnames(my_triplets)<- c("p1","p2","p3")
+			# for our analysis no difference between (((A,B),C),D) and (((B,A),C),D). Delete (((B,A),C),D):
+			my_triplets$myorder	<- as.character(my_triplets$p2)>as.character(my_triplets$p1)
+			my_triplets$ingroup	<- ifelse(my_triplets$myorder,paste(my_triplets$p1,my_triplets$p2,my_triplets$p3,sep="_"),paste(my_triplets$p2,my_triplets$p1,my_triplets$p3,sep="_"))
+			my_triplets			<- my_triplets[(!duplicated(my_triplets$ingroup)),c(1:3)]
+			}else{
+			my_triplets			<- D_triplets
+			}
+		ntriplets		<- nrow(my_triplets)
+		if(ntriplets>max_ntriplets)
+			{
+			cat(paste("More than ",max_ntriplets," population triplets. Omitting ABBA-BABA statistics.",sep=""),sep="\n")
+			cat("Provide a different value to the flag 'max_ntriplets' if you want to run ABBA-BABA analyses anyway.",sep="\n")
+			cat("Alternatively, and preferably, define a shorter set of triplets to the my_triplets flag.",sep="\n")
+			cat("The input to the my_triplets should be a dataframe with three columns called 'p1','p2', and 'p3', listing for each triplet the ingroup1, ingroup2, and the introgressor species.",sep="\n") 
+			}else{
+			cat("Calculating ABBA-BABA statistics...",sep="\n")
+			calcD(popnames=mysambar$populations,snpfilter=snps$filter,silent=TRUE,mytriplets=my_triplets,dojackknife=do_jackknife,minblocks=minjkblocks,jkblocksize=jk_blocksize)
+			plotD(export="eps")
+			plotD(export="png")
+			plotD(export="pdf")
+			#if(mysambar$os=="Windows"){plotD(export="wmf")}	# file too big
+			plotD(export="eps",shortpop=TRUE)
+			plotD(export="png",shortpop=TRUE)
+			plotD(export="pdf",shortpop=TRUE)
+			#if(mysambar$os=="Windows"){plotD(export="wmf",shortpop=TRUE)}	# file too big
+			plotD(export="eps",doboxplot=TRUE)
+			plotD(export="png",doboxplot=TRUE)
+			plotD(export="pdf",doboxplot=TRUE)
+			#if(mysambar$os=="Windows"){plotD(export="wmf",doboxplot=TRUE)}	# file too big
+			plotD(export="eps",shortpop=TRUE,doboxplot=TRUE)
+			plotD(export="png",shortpop=TRUE,doboxplot=TRUE)
+			plotD(export="pdf",shortpop=TRUE,doboxplot=TRUE)
+			#if(mysambar$os=="Windows"){plotD(export="wmf",shortpop=TRUE,doboxplot=TRUE)}	# file too big		
+			#
+			barplotD(mydf=mysambar$dscores,export="pdf",silent=TRUE,plottitle=NULL,allcombi=FALSE,addnsnps=TRUE)
+			barplotD(mydf=mysambar$dscores,export="pdf",silent=TRUE,plottitle=NULL,allcombi=TRUE,addnsnps=TRUE)
+			#
+			if(do_Dfst)
+				{
+				plotD(export="eps",plotDfst=TRUE)
+				plotD(export="pdf",plotDfst=TRUE)
+				plotD(export="png",plotDfst=TRUE)
+				#if(mysambar$os=="Windows"){plotD(export="wmf",plotDfst=TRUE)}	# file too big
+				plotD(export="eps",plotDfst=TRUE,shortpop=TRUE)
+				plotD(export="pdf",plotDfst=TRUE,shortpop=TRUE)
+				plotD(export="png",plotDfst=TRUE,shortpop=TRUE)
+				#if(mysambar$os=="Windows"){plotD(export="wmf",plotDfst=TRUE,shortpop=TRUE)}	# file too big
+				}
 			}
 		}
 	if(do_hybridindex)
@@ -18544,20 +18563,6 @@ inferdemography<-function(nchroms=NULL,do_hybridindex=FALSE,do_hybridcheck=FALSE
 		plotD(mydf=hbdf,export="png",shortpop=TRUE,methodname="HybridCheck")
 		plotD(mydf=hbdf,export="pdf",shortpop=TRUE,methodname="HybridCheck")
 		if(mysambar$os=="Windows"){plotD(mydf=hbdf,export="wmf",shortpop=TRUE,methodname="HybridCheck")}
-		}
-	if(do_f3)
-		{
-		# first create ped-file:
-		runadmixtools(silent=FALSE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=TRUE)
-		# next on command line prompt convert into bed-file using plink:
-		# plink --file metapop.retainedinds.filter.number --allow-extra-chr --make-bed --recode A --out metapop.retainedinds.filter.number
-		# Note, after reset of filter settings, all admixtools folders need to be deleted, and the PED and BED-file should be recreated, to avoid downstream errors.
-		runadmixtools(silent=FALSE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE)
-		f3heatmap(creatematrix=TRUE,pthres=0.05,export="pdf",exportname="f3heatmap")
-		#
-		# search for optimal optimal admixture graph:
-		# findgraph(do_analyses=TRUE,out_group="Black",nadmixture=0)
-		# findgraph(do_analyses=TRUE,out_group="Black",nadmixture=1)
 		}
 	if(do_binaryD)
 		{
@@ -19119,7 +19124,7 @@ getgenomef3<-function(mywd=NULL,reorder=TRUE,popcolours=NULL,popnames=NULL)
 	admixpropdf		<<- admixpropdf
 	}
 
-plotgenomef3<-function(propdf=admixpropdf,admixpop=NULL,popnames=NULL,popcolours=NULL,mybg="white",axiscol="black",export=NULL,plotname="Genome_f3",fullrange=TRUE,addlegend=TRUE)
+plotgenomef3<-function(propdf=admixpropdf,admixpop=NULL,popnames=NULL,popcolours=NULL,mybg="white",ymax=NULL,axiscol="black",export=NULL,plotname="Genome_f3",fullrange=TRUE,addlegend=TRUE)
 	{
 	if(is.null(propdf))
 		{
@@ -19144,10 +19149,12 @@ plotgenomef3<-function(propdf=admixpropdf,admixpop=NULL,popnames=NULL,popcolours
 		if(export=="wmf"){win.metafile(paste(plotname,poplabel,rangelabel,"wmf",sep="."),width=8,height=8)} 
 		}
 	par(mar=c(4,5,2.5,1.5),cex.axis=2,cex.lab=2.5,cex.main=3,bg=mybg,col=axiscol,col.axis=axiscol,col.lab=axiscol,col.main=axiscol)
-	sdmax		<- max(propdf$sd,na.rm=TRUE)
+	myscore		<- propdf$sd/propdf$mean
+	sdmax		<- max(myscore,na.rm=TRUE)
+	ymax		<- ifelse(is.null(ymax),sdmax,ymax)	
 	if(is.null(admixpop))
 		{
-		plot(propdf$mean,propdf$sd,col=propdf$admixcol,pch=16,cex=1.25,xlim=c(0,1),ylim=c(0,sdmax),xlab="Genome-wide mean",ylab="Standard deviation across chromosomes")
+		plot(propdf$mean,myscore,col=propdf$admixcol,pch=16,cex=1.25,xlim=c(0,1),ylim=c(0,ymax),xlab="Genome-wide mean",ylab="SD/mean")
 		if(addlegend){legend("topright",legend=popnames,fill=popcolours,border=popcolours,cex=1.25,bty='n',title="Admixed population:")}
 		mtext("Proportion windows with f3<0",side=3,line=0.5,cex=2)
 		}else{
@@ -19158,10 +19165,10 @@ plotgenomef3<-function(propdf=admixpropdf,admixpop=NULL,popnames=NULL,popcolours
 			}
 		if(fullrange)
 			{
-			plot(propdf$mean,propdf$sd,bg=propdf$anc1col,col=propdf$anc2col,pch=21,cex=2,xlim=c(0,1),ylim=c(0,sdmax),lwd=3,xlab="Proportion f3<0",ylab="SD (Proportion f3<0)")
+			plot(propdf$mean,myscore,bg=propdf$anc1col,col=propdf$anc2col,pch=21,cex=2,xlim=c(0,1),ylim=c(0,ymax),lwd=3,xlab="Proportion f3<0",ylab="SD/mean")
 			if(addlegend){legend("topright",legend=popnames,fill=popcolours,border=popcolours,cex=1.25,bty='n',title="Admixed population:")}
 			}else{
-			plot(propdf$mean,propdf$sd,bg=propdf$anc1col,col=propdf$anc2col,pch=21,cex=2,lwd=3,xlab="Proportion f3<0",ylab="SD (Proportion f3<0)")
+			plot(propdf$mean,propdf$sd/propdf$mean,bg=propdf$anc1col,col=propdf$anc2col,pch=21,cex=2,lwd=3,xlab="Proportion f3<0",ylab="SD (Proportion f3<0)")
 			}
 		mtext(admixpop,side=3,line=0.5,cex=2)
 		}
