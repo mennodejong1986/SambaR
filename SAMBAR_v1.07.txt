@@ -13769,6 +13769,9 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 	cat("Observe the screeplot in the 'dapc.summarystatistics'-plot to find the optimal K value (lowest point or flattening of decline).",sep="\n")
 	myoverlap		<- list()
 	dapcqmatrixlist	<- list()
+	dapcld_poplist	<- list()
+	dapcld_inflist	<- list()
+	# scatter plots for different number of clusters:
 	for (i in myclusters)
 		{
 		cat(paste("K =",i,sep=" "),sep="\n")
@@ -13780,19 +13783,23 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 		#
 		for (myindex in c(1:2))
 			{
-			# we are going to create scatter plots both for simulated and for real data.
-			showsimulated	<- ifelse(myindex==1,TRUE,FALSE)
-			if(showsimulated)
+			# we are going to create scatter plots both a priori information (clusters inferred by find.clusters function) and without a priori information.
+			showinferred	<- ifelse(myindex==1,TRUE,FALSE)
+			if(!showinferred)
 				{
-				# 18-01-2020: note: if you exclude mygrp$grp then you get very nice structured plots, but that doesn't mean it is meaningful. 
-				# Without grp$grp you dapc will use a priori defined population assignment as input.
+				# Without grp$grp dapc will use a priori defined population assignment as input.
 				# 13-02-2020: I include the option within grp$grp now, so users can compare the output.
-				dapc.out 			<- dapc(mygeno,pop=NULL,n.pca=mynpca,n.da=20)
-				datatype			<- "WITH_prior_popinfo"
+				#dapc.out 			<- dapc(mygeno,pop=NULL,n.pca=mynpca,n.da=20)		# 09-06-2022: if pop=NULL, defaults to pop=mygeno@pop
+				dapc.out 			<- dapc(mygeno,pop=mygeno@pop,n.pca=mynpca,n.da=20)
+				#datatype			<- "WITH_prior_popinfo"		# renamed for clarity on 09-06-2022
+				datatype			<- "PRIOR_POPINFO"
+				dapcld_poplist[[i-1]]<- as.data.frame(dapc.out$ind.coord)			
 				}else{
 				# sambarfunction_findstructure:
 				dapc.out 			<- dapc(mygeno,pop=mygrp$grp,n.pca=mynpca,n.da=20)	 
-				datatype			<- "WITHOUT_prior_popinfo"
+				#datatype			<- "WITHOUT_prior_popinfo"	# renamed for clarity on 09-06-2022
+				datatype			<- "INFERRED_CLUSTERS"
+				dapcld_inflist[[i-1]]<- as.data.frame(dapc.out$ind.coord)
 				}
 			mydapc					<- as.data.frame(dapc.out$ind.coord)
 			mysambar$mydapc			<<- mydapc
@@ -13800,7 +13807,7 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 			# matrix with population membership probabilities:
 			myqmatrix				<- round(dapc.out$posterior,3)
 			myqmatrix				<- myqmatrix[order(rownames(myqmatrix)),]
-			if(!showsimulated)
+			if(showinferred)
 				{
 				dapcqmatrixlist[[i-1]]	<- myqmatrix
 				mytable					<- as.matrix(table(pop(mygeno),mygrp$grp))	
@@ -14021,23 +14028,29 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 						abline(v=0,col="grey")
 						abline(h=0,col="grey")
 						mtext("DAs: 2 vs 3",side=3,line=0,cex=2.5)
-						#scatter(dapc.out, grp=mypops, xax=1, yax=4, col=mycols, scree.da=TRUE, posi.da="bottomright",scree.pca=TRUE,posi.pca="bottomleft",cell=3, cex=1, bg="white", cstar=0,solid=0.6,cex.lab=2.5,clabel=2.5,label=NULL,legend=addlegend)
-						if(myrun<3)
+						#
+						if(!"LD4"%in%colnames(mydapc))
 							{
-							plot(mydapc$LD1,mydapc$LD4,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							if(addellipse)
-								{
-								#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
-								if("car"%in%(.packages()) == FALSE) {library(car)}
-								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD4,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
-								}
+							cat("WARNING: no column 'LD4' in mydapc dataframe. Not plotting LD1 vs LD4.",sep="\n")
 							}else{
-							plot(mydapc$LD1,mydapc$LD4,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							text(mydapc$LD1,mydapc$LD4,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
+							#scatter(dapc.out, grp=mypops, xax=1, yax=4, col=mycols, scree.da=TRUE, posi.da="bottomright",scree.pca=TRUE,posi.pca="bottomleft",cell=3, cex=1, bg="white", cstar=0,solid=0.6,cex.lab=2.5,clabel=2.5,label=NULL,legend=addlegend)
+							if(myrun<3)
+								{
+								plot(mydapc$LD1,mydapc$LD4,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								if(addellipse)
+									{
+									#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
+									if("car"%in%(.packages()) == FALSE) {library(car)}
+									car::dataEllipse(x=mydapc$LD1,y=mydapc$LD4,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+									}
+								}else{
+								plot(mydapc$LD1,mydapc$LD4,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								text(mydapc$LD1,mydapc$LD4,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
+								}
+							abline(v=0,col="grey")
+							abline(h=0,col="grey")
+							mtext("DAs: 1 vs 4",side=3,line=0,cex=2.5)
 							}
-						abline(v=0,col="grey")
-						abline(h=0,col="grey")
-						mtext("DAs: 1 vs 4",side=3,line=0,cex=2.5)
 						if(!is.null(export)){dev.off()}
 						}
 					}
@@ -14049,20 +14062,20 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 				}
 			}
 		}
-	if(!showsimulated)
+	#
+	names(dapcqmatrixlist)		<- paste("K",myclusters,sep="")
+	mysambar$dapcqmatrixlist	<<- dapcqmatrixlist
+	#mysambar$dapcld_poplist	<<- dapcld_poplist
+	#mysambar$dapcld_inflist	<<- dapcld_inflist
+	#
+	# lastly, create heatmaps showing overlap between dapc inferred clusters and your a priori defined populations:
+	if(plotheatmap)
 		{
-		names(dapcqmatrixlist)	<- paste("K",myclusters,sep="")
-		mysambar$dapcqmatrixlist<<- dapcqmatrixlist
-		#
-		# lastly, create heatmaps showing overlap between dapc inferred clusters and your a priori defined populations:
-		if(plotheatmap)
-			{
-			cat("Plotting correspondence between expected and inferred clusters...",sep="\n")
-			cat("If you receive an error after this line, rerun the findstructure function with the flag 'dapc_heatmap' set to FALSE.",sep="\n") 
-			dapc_heatmap(export_type=export,myoverlap=mysambar$dapcoverlaplist)
-			}else{
-			cat("Not plotting correspondence between expected and inferred clusters because the flag 'plotheatmap' is set to FALSE.",sep="\n")
-			}
+		cat("Plotting correspondence between expected and inferred clusters...",sep="\n")
+		cat("If you receive an error after this line, rerun the findstructure function with the flag 'dapc_heatmap' set to FALSE.",sep="\n") 
+		dapc_heatmap(export_type=export,myoverlap=mysambar$dapcoverlaplist)
+		}else{
+		cat("Not plotting correspondence between expected and inferred clusters because the flag 'plotheatmap' is set to FALSE.",sep="\n")
 		}
 	}
 
@@ -14766,7 +14779,7 @@ multiplotassign<-function(mymatrixlist=mysambar$popassignlist,export=NULL,shortp
 	if(!is.null(export)){dev.off()}
 	}
 
-plotassign2pop<-function(export=NULL,bayesian=TRUE,popnames=mysambar$populations,shortpop=NULL,addsamplenr=TRUE,myinset=-0.15,mycol=mysambar$popassigncol)
+plotassign2pop<-function(export=NULL,bayesian=TRUE,popnames=mysambar$populations,shortpop=NULL,addsamplenr=TRUE,myinset=-0.15,mycol=mysambar$popassigncol,linecol="white",mylwd=3.5)
 	{
 	# count number of datapoints used in analysis:
 	popmafs <- snps[,grep("maf_",colnames(snps))]
@@ -14831,7 +14844,7 @@ plotassign2pop<-function(export=NULL,bayesian=TRUE,popnames=mysambar$populations
 			{
 			mylocs		<- xpos[mylocs]
 			mylocs		<- mylocs-mylocs[which(mylocs==min(mylocs))]		# because xpos gives midpoint of bars.
-			abline(v=mylocs,lwd=3.5)
+			abline(v=mylocs,lwd=mylwd,col=linecol)
 			mylas		<- ifelse(any(table(indstemp$pop[indstemp$filter])<3),3,1)
 			if(mylas==1)
 				{
@@ -14843,7 +14856,7 @@ plotassign2pop<-function(export=NULL,bayesian=TRUE,popnames=mysambar$populations
 			mylocs		<- xpos[mylocs]
 			mylocs		<- mylocs-mylocs[which(mylocs==min(mylocs))]		# because xpos gives midpoint of bars.
 			if(length(popnames>1)){mtext(text=popnames,side=3,line=0.5,at=mylocs,adj=0,cex=3.5)}
-			if(length(popnames>1)){abline(v=mylocs,lwd=3.5)}
+			if(length(popnames>1)){abline(v=mylocs,lwd=mylwd,col=linecol)}
 			}
 		}else{
 		# plot counts: how many times a locus most likely to be drawn from population k:
