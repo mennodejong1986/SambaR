@@ -13921,39 +13921,44 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 							}
 						mtext("DAs: 1 vs 2",side=3,line=0,cex=2.5)
 						#scatter(dapc.out, grp=mypops, xax=1, yax=3, col=mycols, scree.da=TRUE, posi.da="bottomright",scree.pca=TRUE,posi.pca="bottomleft",cell=3, cex=1, bg="white", cstar=0,solid=0.6,cex.lab=2.5,clabel=2.5,label=NULL,legend=addlegend)
-						if(myrun<3)
+						if(!"LD3"%in%colnames(mydapc))
 							{
-							plot(mydapc$LD1,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							if(addellipse)
-								{
-								#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
-								if("car"%in%(.packages()) == FALSE) {library(car)}
-								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
-								}
+							cat("WARNING: no column 'LD3' in mydapc dataframe. Not plotting LD1 vs LD3 or LD2 vs LD3.",sep="\n")
 							}else{
-							plot(mydapc$LD1,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							text(mydapc$LD1,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
-							}
-						abline(v=0,col="grey")
-						abline(h=0,col="grey")
-						mtext("DAs: 1 vs 3",side=3,line=0,cex=2.5)
-						#scatter(dapc.out, grp=mypops, xax=2, yax=3, col=mycols, scree.da=TRUE, posi.da="bottomright",scree.pca=TRUE,posi.pca="bottomleft",cell=3, cex=1, bg="white", cstar=0,solid=0.6,cex.lab=2.5,clabel=2.5,label=NULL,legend=addlegend)
-						if(myrun<3)
-							{
-							plot(mydapc$LD2,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							if(addellipse)
+							if(myrun<3)
 								{
-								#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
-								if("car"%in%(.packages()) == FALSE) {library(car)}
-								car::dataEllipse(x=mydapc$LD2,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								plot(mydapc$LD1,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								if(addellipse)
+									{
+									#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
+									if("car"%in%(.packages()) == FALSE) {library(car)}
+									car::dataEllipse(x=mydapc$LD1,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+									}
+								}else{
+								plot(mydapc$LD1,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								text(mydapc$LD1,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
 								}
-							}else{
-							plot(mydapc$LD2,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							text(mydapc$LD2,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
+							abline(v=0,col="grey")
+							abline(h=0,col="grey")
+							mtext("DAs: 1 vs 3",side=3,line=0,cex=2.5)
+							#scatter(dapc.out, grp=mypops, xax=2, yax=3, col=mycols, scree.da=TRUE, posi.da="bottomright",scree.pca=TRUE,posi.pca="bottomleft",cell=3, cex=1, bg="white", cstar=0,solid=0.6,cex.lab=2.5,clabel=2.5,label=NULL,legend=addlegend)
+							if(myrun<3)
+								{
+								plot(mydapc$LD2,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								if(addellipse)
+									{
+									#cat("Adding ellipse. If you receive an error after this line, set the flag addellipse to FALSE.",sep="\n")
+									if("car"%in%(.packages()) == FALSE) {library(car)}
+									car::dataEllipse(x=mydapc$LD2,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+									}
+								}else{
+								plot(mydapc$LD2,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								text(mydapc$LD2,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
+								}
+							abline(v=0,col="grey")
+							abline(h=0,col="grey")
+							mtext("DAs: 2 vs 3",side=3,line=0,cex=2.5)
 							}
-						abline(v=0,col="grey")
-						abline(h=0,col="grey")
-						mtext("DAs: 2 vs 3",side=3,line=0,cex=2.5)
 						if(!is.null(export)){dev.off()}
 						}
 					}
@@ -13995,39 +14000,44 @@ adegenet_dapc<-function(export=NULL,use_genind=FALSE,min_explainedvariance=NULL,
 							}
 						mtext("DAs: 1 vs 2",side=3,line=0,cex=2.5)
 						#scatter(dapc.out, grp=mypops, xax=1, yax=3, col=mycols, scree.da=TRUE, posi.da="bottomright",scree.pca=TRUE,posi.pca="bottomleft",cell=3, cex=1, bg="white", cstar=0,solid=0.6,cex.lab=2.5,clabel=2.5,label=NULL,legend=addlegend)
-						if(myrun<3)
+						if(!"LD3"%in%colnames(mydapc))
 							{
-							plot(mydapc$LD1,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							if(addellipse)
-								{
-								#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
-								if("car"%in%(.packages()) == FALSE) {library(car)}
-								car::dataEllipse(x=mydapc$LD1,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
-								}
+							cat("WARNING: no column 'LD3' in mydapc dataframe. Not plotting LD1 vs LD3 or LD2 vs LD3.",sep="\n")
 							}else{
-							plot(mydapc$LD1,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							text(mydapc$LD1,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
-							}
-						abline(v=0,col="grey")
-						abline(h=0,col="grey")
-						mtext("DAs: 1 vs 3",side=3,line=0,cex=2.5)
-						#scatter(dapc.out, grp=mypops, xax=2, yax=3, col=mycols, scree.da=TRUE, posi.da="bottomright",scree.pca=TRUE,posi.pca="bottomleft",cell=3, cex=1, bg="white", cstar=0,solid=0.6,cex.lab=2.5,clabel=2.5,label=NULL,legend=addlegend)
-						if(myrun<3)
-							{
-							plot(mydapc$LD2,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							if(addellipse)
+							if(myrun<3)
 								{
-								#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
-								if("car"%in%(.packages()) == FALSE) {library(car)}
-								car::dataEllipse(x=mydapc$LD2,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+								plot(mydapc$LD1,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								if(addellipse)
+									{
+									#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
+									if("car"%in%(.packages()) == FALSE) {library(car)}
+									car::dataEllipse(x=mydapc$LD1,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+									}
+								}else{
+								plot(mydapc$LD1,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								text(mydapc$LD1,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
 								}
-							}else{
-							plot(mydapc$LD2,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
-							text(mydapc$LD2,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
+							abline(v=0,col="grey")
+							abline(h=0,col="grey")
+							mtext("DAs: 1 vs 3",side=3,line=0,cex=2.5)
+							#scatter(dapc.out, grp=mypops, xax=2, yax=3, col=mycols, scree.da=TRUE, posi.da="bottomright",scree.pca=TRUE,posi.pca="bottomleft",cell=3, cex=1, bg="white", cstar=0,solid=0.6,cex.lab=2.5,clabel=2.5,label=NULL,legend=addlegend)
+							if(myrun<3)
+								{
+								plot(mydapc$LD2,mydapc$LD3,col=indstemp$popcol[indstemp$filter],pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								if(addellipse)
+									{
+									#cat("Adding ellipse. If you receive an error after this line, set the flag addellips to FALSE.",sep="\n")
+									if("car"%in%(.packages()) == FALSE) {library(car)}
+									car::dataEllipse(x=mydapc$LD2,y=mydapc$LD3,add=TRUE,groups=as.factor(indstemp$pop[indstemp$filter]),col=mysambar$mycolours[1:npops],levels=ellipselevel,grid=FALSE,lwd=2,group.labels=NULL,center.pch=NULL,plot.points=FALSE,xlab="",ylab="")	
+									}
+								}else{
+								plot(mydapc$LD2,mydapc$LD3,col="white",pch=16,xaxt='n',yaxt='n',xlab="",ylab="",cex=symbolsize)
+								text(mydapc$LD2,mydapc$LD3,indstemp$nr[inds$filter],col=indstemp$popcol[indstemp$filter],cex=0.25)
+								}
+							abline(v=0,col="grey")
+							abline(h=0,col="grey")
+							mtext("DAs: 2 vs 3",side=3,line=0,cex=2.5)
 							}
-						abline(v=0,col="grey")
-						abline(h=0,col="grey")
-						mtext("DAs: 2 vs 3",side=3,line=0,cex=2.5)
 						#
 						if(!"LD4"%in%colnames(mydapc))
 							{
