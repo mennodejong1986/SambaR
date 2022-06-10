@@ -9212,8 +9212,8 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 				LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",poporder=pop_order,shortpop=short_pop,addindnr=TRUE,ylabel=LEAylabel,dolabelcol=FALSE,addindname=TRUE,colourvector=colour_vector,heightfactor=LEAheightfactor,widthfactor=LEAwidthfactor,axiscex=LEAaxiscex,labelcex=LEAlabelcex,yaxiscex=LEAyaxiscex,shortpop_nrchars=shortpop_nr_chars)
 				#
 				# full population name (axiscex and shortpop_nrchars):
-				LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",poporder=pop_order,shortpop=short_pop,addindnr=TRUE,ylabel=LEAylabel,dolabelcol=TRUE,addindname=FALSE,colourvector=colour_vector,heightfactor=LEAheightfactor,widthfactor=LEAwidthfactor,axiscex=0.75,labelcex=LEAlabelcex,yaxiscex=LEAyaxiscex,shortpop_nrchars=15)
-				LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",poporder=pop_order,shortpop=short_pop,addindnr=TRUE,ylabel=LEAylabel,dolabelcol=FALSE,addindname=FALSE,colourvector=colour_vector,heightfactor=LEAheightfactor,widthfactor=LEAwidthfactor,axiscex=0.75,labelcex=LEAlabelcex,yaxiscex=LEAyaxiscex,shortpop_nrchars=15)
+				LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",borderlwd=1,bordercol="white",dolabelcol=TRUE,popnames=mysambar$populations,poporder=mysambar$poporder,addindname=FALSE,order_on_longitude=FALSE,shortpop_nrchars=12,heightfactor=LEAheightfactor,addindnr=FALSE,axiscex=0.75)
+				LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",borderlwd=1,bordercol="white",dolabelcol=FALSE,popnames=mysambar$populations,poporder=mysambar$poporder,addindname=FALSE,order_on_longitude=FALSE,shortpop_nrchars=12,heightfactor=LEAheightfactor,addindnr=FALSE,axiscex=0.75)
 				if(("latitude" %in% colnames(inds)&"longitude" %in% colnames(inds)))
 					{
 					if(any(is.na(inds$longitude))|any(is.na(inds$latitude)))
@@ -9233,6 +9233,7 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 			setwd(mysambar$inputdatadir)
 			cat("Finished structure analyses. Because the flag quickrun is set to TRUE, only a subset of analyses were run (namely PCoA, phylogeny, admixture).",sep="\n")
 			return(cat("For additional analyses (e.g. DAPC, MDS, CA, BAPT) and to run PCoA, phylogenetic and admixture analyses with various settings and for multiple data subsets, set the flag quickrun to FALSE.",sep="\n"))
+			# END OF QUICK RUN
 			}
 		if(do_pi)
 			{
@@ -9241,19 +9242,19 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 			calcpi(pi_per_pop=FALSE)
 			calcpi(pi_per_pop=TRUE)
 			if(!silent){cat("ape_pcoa",sep="\n")}
-			cat("If you receive an error after this line, rerun findstructure with the flag 'do_pi' set to FALSE (i.e., findstructure(do_pi=FALSE)).",sep="\n")  
-			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)}
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			cat("If you receive an error after this line, rerun findstructure with the flag 'do_pi' set to FALSE (i.e., findstructure(do_pi=FALSE)).",sep="\n") 
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="pi",export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size)}
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,missvector=inds$miss,method="pi",export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
 			#
 			#multiplot_pcoa_axes(exporttype="eps",mymethod="pi",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
 			#multiplot_pcoa_axes(exporttype="pdf",mymethod="pi",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
@@ -9271,18 +9272,18 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 			if(mysambar$os=="Windows"){plotindmatrix(export="wmf")}
 			cat("Creating pcoa plot based on Nei's genetic distance using StAMPP and Ape...",sep="\n")
 			cat("If you receive an error after this line, rerun findstructure with the flag 'do_nei' set to FALSE (i.e., findstructure(do_nei=FALSE)).",sep="\n")  
-			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="nei",missvector=inds$miss,export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
 			#
 			multiplot_pcoa_axes(exporttype="eps",mymethod="nei",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
 			multiplot_pcoa_axes(exporttype="pdf",mymethod="nei",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
@@ -9330,18 +9331,18 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 				}
 			}
 		cat("Creating pcoa plot based on Hamming's genetic distance using poppr and Ape...",sep="\n")
-		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="eps",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="pdf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="png",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-		if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="wmf",addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		if(mysambar$os=="Windows"){ape_pcoa(labels=FALSE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="eps",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="pdf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="png",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+		if(mysambar$os=="Windows"){ape_pcoa(labels=TRUE,axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,method="hamming",missvector=inds$miss,export="wmf",mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
 		#
 		multiplot_pcoa_axes(exporttype="eps",mymethod="hamming",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
 		multiplot_pcoa_axes(exporttype="pdf",mymethod="hamming",dolabels=FALSE,print_miss=FALSE,dolegend=add_legend,poslegend=legend_pos,cex_legend=legend_cex,mirroraxis=rep(FALSE,6))
@@ -9526,14 +9527,15 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 			{
 			cat("Creating pca plot using snprelate...",sep="\n")
 			cat("If you receive an error shortly after this line, rerun the findstructure function with the flag do_pca set to FALSE.",sep="\n")
-			snprelate_pca(export="eps",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)	
-			snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			snprelate_pca(export="png",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){snprelate_pca(export="wmf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
-			snprelate_pca(export="eps",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)	
-			snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			snprelate_pca(export="png",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
-			if(mysambar$os=="Windows"){snprelate_pca(export="wmf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=FALSE)
+			snprelate_pca(export="eps",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)	
+			snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			snprelate_pca(export="png",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){snprelate_pca(export="wmf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
+			snprelate_pca(export="eps",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)	
+			snprelate_pca(export="pdf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			snprelate_pca(export="png",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)
+			if(mysambar$os=="Windows"){snprelate_pca(export="wmf",axis1=axis_1,axis2=axis_2,do_mirror=domirroraxis,mylegend=my_legend,mylegendcol=my_legendcol,addlegend=add_legend,labels=TRUE,legendpos=legend_pos,legendcex=legend_cex,symbolsize=symbol_size,dodc=do_dc)}
 			if(do_subsets)
 				{
 				cat("Creating pca plot using snprelate using various SNP filter settings...",sep="\n")
@@ -9660,6 +9662,11 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,legend_pos="bottomright",l
 		if(!silent){cat("wmf",sep="\n")}
 		if(mysambar$os=="Windows"){LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="wmf",poporder=pop_order,shortpop=short_pop,addindnr=TRUE,ylabel=LEAylabel,colourvector=colour_vector,heightfactor=LEAheightfactor,widthfactor=LEAwidthfactor,axiscex=LEAaxiscex,labelcex=LEAlabelcex,yaxiscex=LEAyaxiscex,shortpop_nrchars=shortpop_nr_chars)}
 		if(mysambar$os=="Windows"){LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="wmf",poporder=pop_order,shortpop=short_pop,addindnr=FALSE,ylabel=LEAylabel,colourvector=colour_vector,heightfactor=LEAheightfactor,widthfactor=LEAwidthfactor,axiscex=LEAaxiscex,labelcex=LEAlabelcex,yaxiscex=LEAyaxiscex,shortpop_nrchars=shortpop_nr_chars)}
+		#
+		# full population name (axiscex and shortpop_nrchars):
+		LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",borderlwd=1,bordercol="white",dolabelcol=TRUE,popnames=mysambar$populations,poporder=mysambar$poporder,addindname=FALSE,order_on_longitude=FALSE,shortpop_nrchars=12,heightfactor=LEAheightfactor,addindnr=FALSE,axiscex=0.75)
+		LEAstructureplot(mindemes=Kmin,maxdemes=Kmax,export="pdf",borderlwd=1,bordercol="white",dolabelcol=FALSE,popnames=mysambar$populations,poporder=mysambar$poporder,addindname=FALSE,order_on_longitude=FALSE,shortpop_nrchars=12,heightfactor=LEAheightfactor,addindnr=FALSE,axiscex=0.75)
+		#
 		# optionally order by longitude:
 		if(("latitude" %in% colnames(inds)&"longitude" %in% colnames(inds)))
 			{
@@ -15522,11 +15529,13 @@ LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=N
 		}
 	if(is.null(shortpop))
 		{
-		shortpop		<- substr(popnames,1,2)
-		if(length(as.vector(unique(shortpop)))<length(shortpop))	# if two more populations with same first two letters
-			{
-			shortpop	<- substr(popnames,1,shortpop_nrchars)
-			}
+		# originally: only 2 characters, unless more needed to discriminate
+		#shortpop		<- substr(popnames,1,2)
+		#if(length(as.vector(unique(shortpop)))<length(shortpop))	# if two more populations with same first two letters
+		#	{
+		#	shortpop	<- substr(popnames,1,shortpop_nrchars)
+		#	}
+		shortpop	<- substr(popnames,1,shortpop_nrchars)
 		}
 	nsamples		<- nrow(indstemp[indstemp$filter,])
 	# get info needed for plot:
