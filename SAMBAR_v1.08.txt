@@ -2427,6 +2427,9 @@ reorderpop<-function(poporder=NULL)
 	# population order in numbers (relative to alphabetical order):
 	mysambar$popordernr		<<- myordernr
 	mysambar$popordernr2	<<- myordernr
+	#
+	inds2$poporder1			<<- factor(inds2$pop1,levels=mysambar$poporder)
+	inds2$poporder2			<<- factor(inds2$pop2,levels=mysambar$poporder)
 	cat("Finished reordering. Type mysambar$poporder2 to observe the new population order.",sep="\n")
 	}
 
@@ -26640,9 +26643,14 @@ getinds2<-function()
 	inds2$poppair		<- ifelse(as.character(inds2$pop1)<as.character(inds2$pop2),paste(inds2$pop1,inds2$pop2,sep="_"),paste(inds2$pop1,inds2$pop2,sep="_"))
 	inds2$sameind		<- inds2$name1==inds2$name2
 	inds2$samepop		<- inds2$pop1==inds2$pop2
-	inds2$poporder1		<- factor(inds2$pop1,levels=mysambar$poporder)
-	inds2$poporder2		<- factor(inds2$pop2,levels=mysambar$poporder)
-	#
+	if(exists("mysambar"))
+		{
+		inds2$poporder1	<- factor(inds2$pop1,levels=mysambar$poporder)
+		inds2$poporder2	<- factor(inds2$pop2,levels=mysambar$poporder)
+		}else{
+		inds2$poporder1	<- inds2$pop1
+		inds2$poporder2	<- inds2$pop2
+		}
 	if(geobool)
 		{
 		cat("Adding geographical distances to inds2 dataframe...",sep="\n")
