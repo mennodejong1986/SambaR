@@ -11074,7 +11074,7 @@ mltree<-function(starttree=NULL,starttree_distance=NULL,starttree_method=NULL,do
 		}
 	}
 
-popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",makelinear=FALSE,mutrate=NULL,genomeprop=1,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=80,showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE,dopathlength=FALSE,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE)
+popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,makelinear=FALSE,mutrate=NULL,genomeprop=1,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,edgecolors=TRUE,maxnodelabel=80,showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE,dopathlength=FALSE,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE)
 	{
 	# type can be: "phylogram" (default), "cladogram", "fan", "unrooted", "radial"
 	# distance can be 'bitwise.dist' (default, which is Hamming's distance), 'euclidean', 'allele sharing distance', 'pi', 'nei.dist', 'rogers.dist', 'edwards.dist', 'reynolds.dist'
@@ -11734,7 +11734,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 		nodelabels(myplottree$node.label,adj=c(1.3,-0.5),frame="n",cex=nodelabelcex,font=3,xpd=TRUE,col="grey50")
 		}
 	#nodelabels(myplottree$node.label,adj=c(1.3,-0.5),frame="n",cex=1,font=3,xpd=TRUE)
-	#legend('topleft',legend=mysambar$populations,fill=mysambar$mycolours,bty="n",cex = 2.5)
+	if(!is.null(legendpos)){legend(legendpos,legend=mysambar$poporder,fill=mysambar$colorder,border=mysambar$colorder,bty="n",cex=2)}
 	if(makelinear)
 		{
 		if(mytype=="phylogram")
@@ -26677,8 +26677,14 @@ getpops2<-function()
 	{
 	cat("Creating pops2 dataframe...",sep="\n")
 	popnames		<- unique(inds$pop)
-	combitable		<- combn(popnames,m=2)
-	pops2			<- data.frame("pop1"=c(popnames,combitable[1,]),"pop2"=c(popnames,combitable[2,]),"samepop"=TRUE,"filter1"=TRUE,"filter2"=TRUE,"filter"=TRUE,"poppair"=NA,"popcol1"=NA,"popcol2"=NA,"ninds1"=NA,"ninds2"=NA,"long1"=NA,"lat1"=NA,"long2"=NA,"lat2"=NA,"chorddist"=NA,"geodist"=NA)
+	npops			<- length(popnames)
+	if(npops>1)
+		{
+		combitable		<- combn(popnames,m=2)
+		pops2			<- data.frame("pop1"=c(popnames,combitable[1,]),"pop2"=c(popnames,combitable[2,]),"samepop"=TRUE,"filter1"=TRUE,"filter2"=TRUE,"filter"=TRUE,"poppair"=NA,"popcol1"=NA,"popcol2"=NA,"ninds1"=NA,"ninds2"=NA,"long1"=NA,"lat1"=NA,"long2"=NA,"lat2"=NA,"chorddist"=NA,"geodist"=NA)
+		}else{
+		pops2			<- data.frame("pop1"=popnames,"pop2"=popnames,"samepop"=TRUE,"filter1"=TRUE,"filter2"=TRUE,"filter"=TRUE,"poppair"=NA,"popcol1"=NA,"popcol2"=NA,"ninds1"=NA,"ninds2"=NA,"long1"=NA,"lat1"=NA,"long2"=NA,"lat2"=NA,"chorddist"=NA,"geodist"=NA)
+		}
 	pops2$poppair	<- ifelse(as.character(pops2$pop1)<as.character(pops2$pop2),paste(pops2$pop1,pops2$pop2,sep="_"),paste(pops2$pop1,pops2$pop2,sep="_"))
 	geobool			<- "longitude3"%in%colnames(inds)
 	#
