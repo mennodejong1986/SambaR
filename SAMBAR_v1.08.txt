@@ -20303,12 +20303,11 @@ pidf2matrix<-function(pidf=pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filte
 
 
 
-
 ###############################################################################################################
 # Demographic analyses
 # 03-04-2022: Originally part of calcdistance function. Stand-alone function since SambaR_v1.07.
 
-inferdemography<-function(Kmin=2,Kmax=6,my_bg="white",axis_col="black",nchroms=NULL,do_LEA=TRUE,do_Dstats=TRUE,D_triplets=NULL,do_hybridindex=FALSE,do_hybridcheck=FALSE,do_binaryD=FALSE,do_f3=TRUE,f3_triplets=NULL,f3_preparefiles=TRUE,do_Dfst=FALSE,my_root=NULL,max_ntriplets=60,do_jackknife=TRUE,jk_blocksize=1000000,minjkblocks=50,bayesassmatrix=NULL,pop_order=mysambar$poporder,short_pop=NULL,colour_vector=NULL,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3)
+inferdemography<-function(Kmin=2,Kmax=6,my_bg="white",axis_col="black",nchroms=NULL,silent=TRUE,do_LEA=TRUE,do_Dstats=TRUE,D_triplets=NULL,do_hybridindex=FALSE,do_hybridcheck=FALSE,do_binaryD=FALSE,do_f3=TRUE,f3_triplets=NULL,f3_preparefiles=TRUE,f3_maxmiss=0.1,do_Dfst=FALSE,my_root=NULL,max_ntriplets=60,do_jackknife=TRUE,jk_blocksize=1000000,minjkblocks=50,bayesassmatrix=NULL,pop_order=mysambar$poporder,short_pop=NULL,colour_vector=NULL,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3)
 	{
 	### GENE FLOW ANALYSES
 	# many options:
@@ -20441,13 +20440,13 @@ inferdemography<-function(Kmin=2,Kmax=6,my_bg="white",axis_col="black",nchroms=N
 		if(f3_preparefiles)
 			{
 			# first create ped-file:
-			runadmixtools(silent=FALSE,tripletdf=f3_triplets,myprefix="metapop.retainedinds.filter.number",overwriteped=TRUE)
+			runadmixtools(silent=FALSE,tripletdf=f3_triplets,myprefix="metapop.retainedinds.filter.number",overwriteped=TRUE,max_miss=f3_maxmiss)
 			# next on command line prompt convert into bed-file using plink:
 			# plink --file metapop.retainedinds.filter.number --allow-extra-chr --make-bed --recode A --out metapop.retainedinds.filter.number
 			# Note, after reset of filter settings, all admixtools folders need to be deleted, and the PED and BED-file should be recreated, to avoid downstream errors.
 			return(cat("After having created the bed-file with plink, rerun the inferdemography function as follows: inferdemography(do_f3=TRUE,f3_preparefiles=FALSE).",sep="\n"))
 			}else{
-			runadmixtools(silent=FALSE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE)
+			runadmixtools(silent=FALSE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE,max_miss=f3_maxmiss)
 			cat("Creating heatmap highlighting negative f3 scores...",sep="\n")
 			f3heatmap(creatematrix=TRUE,pthres=0.05,export="pdf",exportname="f3heatmap",fillsquare=FALSE)
 			f3heatmap(creatematrix=TRUE,pthres=0.05,export="pdf",exportname="f3heatmap",fillsquare=TRUE)
@@ -21008,13 +21007,17 @@ calcwindowDfst<-function(popnames=mysambar$populations,mytriplets=NULL)
 		}
 	}
 
-findgraph<-function(do_analyses=TRUE,out_group="Black",nadmixture=0)
+findgraph<-function(do_analyses=TRUE,out_group=NULL,nadmixture=0)
 	{
 	# produces a tibble with many graphs:
 	if(do_analyses)
 		{
+		if(is.null(mysambar$f2_blocks))
+			{
+			return(cat("ERROR: object 'mysambar$f2_blocks' not found. First run the runadmixtools() function.",sep="\n"))
+			}
 		admixgraph			<- find_graphs(data=mysambar$f2_blocks,numadmix=nadmixture,outpop=out_group)
-		# also possible to specifiy an input tree as startpoint, but in that case how does output differ from input?
+		# also possible to specify an input tree as startpoint, but in that case how does output differ from input?
 		# admixgraph		<- find_graphs(data=mysambar$f2_blocks,numadmix=2,outpop="Black",initgraphs=mysambar$admixgraph$edges[[79]])
 		mysambar$admixgraph	<<- admixgraph
 		}
@@ -21181,7 +21184,7 @@ f3mean_vs_sd<-function(mydf=admixdf2,admixpop=NULL,popnames=NULL,popcolours=NULL
 		}
 	}
 
-runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE)
+runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE,max_miss=0.1)
 	{
 	# f3 statistics as implemented in admixtools and admixtools2
 	# see: 
@@ -21253,7 +21256,9 @@ runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedind
 			{
 			cat("Overwriting existing ped file because the flag 'overwriteped' is set to TRUE.",sep="\n")
 			genlight2ped(snpsfilter=snps$filter,indsfilter=inds$filter,exportname=myprefix,quiet=TRUE)
-			return(cat("Now first recreate the bed-file. Use 'plink --make-bed --recode A' to convert the newly created ped-file to bed and afterwards rerun the function. Also delete existing admixtools subdirectories.",sep="\n"))
+			cat("PED and MAP files have been exported to the directory:",sep="\n")
+			cat(getwd(),sep="\n")
+			return(cat("Now first (re)create the bed-file. Use 'plink --make-bed --recode A' to convert the newly created ped-file to bed and afterwards rerun the function. Also delete existing admixtools subdirectories.",sep="\n"))
 			}else{
 			cat("WARNING: using existing ped file. If you want to generate a new ped file, set the flag 'overwriteped' to TRUE.",sep="\n")
 			}
@@ -21269,12 +21274,12 @@ runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedind
 	#
 	if(!silent){cat("Calculating f2-statistics...",sep="\n")}
 	# option 1: first write to file:
-	extract_f2(pref=myprefix,admixtools2folder,maxmiss=0.1,overwrite=TRUE,auto_only=FALSE)
+	extract_f2(pref=myprefix,admixtools2folder,maxmiss=max_miss,overwrite=TRUE,auto_only=FALSE)
 	f2_blocks 		<- f2_from_precomp(admixtools2folder)
 	mysambar$f2_blocks<<- f2_blocks
 	#
 	# option 2: store directly as R object without saving first as file:	
-	#f2_blocks		<- f2_from_geno(pref=myprefix,admixtools2folder,maxmiss=0.1)
+	# f2_blocks		<- f2_from_geno(pref=myprefix,admixtools2folder,maxmiss=max_miss)
 	f2means			<- apply(f2_blocks,1:2,mean)
 	#
 	if(!silent){cat("Calculating f3-statistics...",sep="\n")}
@@ -40289,7 +40294,7 @@ outliersim_old<-function(nloc=1000,ngen=20,nesourcepop=1000,nefounderpop1=20,nef
 # Functions copy pasted from 'Treemix_plotting_funcs.R' on Treemix page (expect for plottreemix function).
 # I added the option of specifying population colours.
 
-plottreemix<-function(export=NULL,prefix=NULL,plotname="Treemixout",myxmin=0)
+plottreemix<-function(export=NULL,prefix=NULL,plotname="Treemixout",myxmin=0,labelcex=1.5)
 	{
 	if(is.null(prefix))
 		{
@@ -40311,7 +40316,7 @@ plottreemix<-function(export=NULL,prefix=NULL,plotname="Treemixout",myxmin=0)
 		if(export=="png"){png(paste(plotname,"png",sep="."),family=mysambar$myfont,width=mywidth2,height=720)}
 		if(export=="wmf"){win.metafile(paste(plotname,"wmf",sep="."),family=mysambar$myfont,width=mywidth,height=8)}
 		}
-	plot_tree(stem=prefix,labelcolours=mypopcolours,cex=2,disp=0.001,plus=0.05,arrow=0.2,scale=T,ybar=0.1,mbar=T,plotmig=T,plotnames=T,xmin=myxmin,lwd=2,font=1)
+	plot_tree(stem=prefix,labelcolours=mypopcolours,cex=labelcex,disp=0.001,plus=0.05,arrow=0.2,scale=T,ybar=0.1,mbar=T,plotmig=T,plotnames=T,xmin=myxmin,lwd=2,font=1)
 	mtext(side=1,"Drift parameter",line=3,cex=2.25)
 	if(!is.null(export))
 		{
