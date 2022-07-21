@@ -18373,6 +18373,13 @@ popdistances<-function(silent=TRUE,popnames=mysambar$populations,do_overwrite=TR
 		}else{
 		mygenpop			<- mysambar$genpop 
 		}
+	locusnames	<- names(genpop@all.names)
+	if(any(duplicated))
+		{
+		# 21-07-2022: attempt to prevent 'ERROR: please name column as [LOCUS].[ALLELE]'
+		locusnames	<<- locusnames
+		return(cat("ERROR: duplicated locus names in genpop object. To find out which, type: 'locusnames[duplicated(locusnames)]'.",sep="\n"))
+		}
 	#
 	if(!silent){cat("combinames",sep="\n")}
 	combitable				<- combn(popnames,m=2)
@@ -20307,7 +20314,7 @@ pidf2matrix<-function(pidf=pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filte
 # Demographic analyses
 # 03-04-2022: Originally part of calcdistance function. Stand-alone function since SambaR_v1.07.
 
-inferdemography<-function(Kmin=2,Kmax=6,my_bg="white",axis_col="black",nchroms=NULL,silent=TRUE,do_LEA=TRUE,do_Dstats=TRUE,D_triplets=NULL,do_hybridindex=FALSE,do_hybridcheck=FALSE,do_binaryD=FALSE,do_f3=TRUE,f3_triplets=NULL,f3_preparefiles=TRUE,f3_maxmiss=0.1,do_Dfst=FALSE,my_root=NULL,max_ntriplets=60,do_jackknife=TRUE,jk_blocksize=1000000,minjkblocks=50,bayesassmatrix=NULL,pop_order=mysambar$poporder,short_pop=NULL,colour_vector=NULL,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3)
+inferdemography<-function(Kmin=2,Kmax=6,my_bg="white",axis_col="black",nchroms=NULL,silent=TRUE,do_LEA=TRUE,do_Dstats=TRUE,D_triplets=NULL,do_hybridindex=FALSE,do_hybridcheck=FALSE,do_binaryD=FALSE,do_f4=FALSE,do_f3=TRUE,f3_triplets=NULL,f3_preparefiles=TRUE,f3_maxmiss=0.1,do_Dfst=FALSE,my_root=NULL,max_ntriplets=60,do_jackknife=TRUE,jk_blocksize=1000000,minjkblocks=50,bayesassmatrix=NULL,pop_order=mysambar$poporder,short_pop=NULL,colour_vector=NULL,LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3)
 	{
 	### GENE FLOW ANALYSES
 	# many options:
@@ -20446,7 +20453,7 @@ inferdemography<-function(Kmin=2,Kmax=6,my_bg="white",axis_col="black",nchroms=N
 			# Note, after reset of filter settings, all admixtools folders need to be deleted, and the PED and BED-file should be recreated, to avoid downstream errors.
 			return(cat("After having created the bed-file with plink, rerun the inferdemography function as follows: inferdemography(do_f3=TRUE,f3_preparefiles=FALSE).",sep="\n"))
 			}else{
-			runadmixtools(silent=FALSE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE,max_miss=f3_maxmiss)
+			runadmixtools(silent=FALSE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE,max_miss=f3_maxmiss,calcf4=do_f4)
 			cat("Creating heatmap highlighting negative f3 scores...",sep="\n")
 			f3heatmap(creatematrix=TRUE,pthres=0.05,export="pdf",exportname="f3heatmap",fillsquare=FALSE)
 			f3heatmap(creatematrix=TRUE,pthres=0.05,export="pdf",exportname="f3heatmap",fillsquare=TRUE)
@@ -21184,7 +21191,7 @@ f3mean_vs_sd<-function(mydf=admixdf2,admixpop=NULL,popnames=NULL,popcolours=NULL
 		}
 	}
 
-runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE,max_miss=0.1)
+runadmixtools<-function(calcf3=TRUE,calcf4=TRUE,silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedinds.filter.number",overwriteped=FALSE,max_miss=0.1)
 	{
 	# f3 statistics as implemented in admixtools and admixtools2
 	# see: 
@@ -21282,46 +21289,65 @@ runadmixtools<-function(silent=TRUE,tripletdf=NULL,myprefix="metapop.retainedind
 	# f2_blocks		<- f2_from_geno(pref=myprefix,admixtools2folder,maxmiss=max_miss)
 	f2means			<- apply(f2_blocks,1:2,mean)
 	#
-	if(!silent){cat("Calculating f3-statistics...",sep="\n")}
-	if(!is.null(tripletdf))
+	if(calcf3)
 		{
-		cat("For predefined set of populations...",sep="\n")
-		mytriplets				<- tripletdf
-		colnames(mytriplets)	<- c("pop1","pop2","pop3")
-		popvec					<- unique(c(mytriplets$pop1,mytriplets$pop2,mytriplets$pop3))
-		if(any(!popvec%in%mysambar$populations))
+		if(!silent){cat("Calculating f3-statistics...",sep="\n")}
+		if(!is.null(tripletdf))
 			{
-			return(cat("ERROR: One or more population defined in f3 triplets dataframe not found in retained dataset (mysambar$populations). Please edit the triplets dataframe.",sep="\n"))
+			cat("For predefined set of populations...",sep="\n")
+			mytriplets				<- tripletdf
+			colnames(mytriplets)	<- c("pop1","pop2","pop3")
+			popvec					<- unique(c(mytriplets$pop1,mytriplets$pop2,mytriplets$pop3))
+			if(any(!popvec%in%mysambar$populations))
+				{
+				return(cat("ERROR: One or more population defined in f3 triplets dataframe not found in retained dataset (mysambar$populations). Please edit the triplets dataframe.",sep="\n"))
+				}
+			f3df			<- qp3pop(f2_blocks,pop1=as.matrix(tripletdf))
+			}else{
+			cat("For all population triplets...",sep="\n")
+			f3df			<- qp3pop(f2_blocks)
 			}
-		f3df			<- qp3pop(f2_blocks,pop1=as.matrix(tripletdf))
-		}else{
-		cat("For all population triplets...",sep="\n")
-		f3df			<- qp3pop(f2_blocks)
+		myf3df				<- as.data.frame(f3df)
+		myf3df				<<- myf3df
+		write.table(myf3df,"f3scores.txt",quote=FALSE,col.names=TRUE,row.names=FALSE)
+		if(!is.null(tripletdf))
+			{
+			if(!silent){cat("Reorder and combining ...",sep="\n")}
+			myf3df$p			<- round(myf3df$p,8)
+			myf3df$label		<- paste(myf3df$pop1,myf3df$pop2,myf3df$pop3,sep="_")
+			tripletdf$label		<- paste(tripletdf$target,tripletdf$source1,tripletdf$source2,sep="_")
+			tripletdf$nr		<- c(1:nrow(tripletdf))
+			myf3df				<- merge(tripletdf,myf3df,by="label")
+			myf3df				<- myf3df[order(myf3df$nr),]
+			myf3df$mylabels		<- paste("(",myf3df$pop1,"; ",myf3df$pop2,",",myf3df$pop3,")",sep="")
+			mysambar$f3df		<<- myf3df
+			}else{
+			myf3df				<- myf3df
+			myf3df$mylabels		<- paste("(",myf3df$pop1,"; ",myf3df$pop2,",",myf3df$pop3,")",sep="")
+			mysambar$f3df_all	<<- myf3df
+			mysambar$f3df		<<- myf3df
+			}
+		if(!silent){cat("Results stored in dataframe 'mysambar$f3df'.",sep="\n")}
 		}
-	myf3df				<- as.data.frame(f3df)
-	myf3df				<<- myf3df
-	write.table(myf3df,"f3scores.txt",quote=FALSE,col.names=TRUE,row.names=FALSE)
-	if(!is.null(tripletdf))
+	if(calcf4)
 		{
-		if(!silent){cat("Reorder and combining ...",sep="\n")}
-		myf3df$p			<- round(myf3df$p,8)
-		myf3df$label		<- paste(myf3df$pop1,myf3df$pop2,myf3df$pop3,sep="_")
-		tripletdf$label		<- paste(tripletdf$target,tripletdf$source1,tripletdf$source2,sep="_")
-		tripletdf$nr		<- c(1:nrow(tripletdf))
-		myf3df				<- merge(tripletdf,myf3df,by="label")
-		myf3df				<- myf3df[order(myf3df$nr),]
-		myf3df$mylabels		<- paste("(",myf3df$pop1,"; ",myf3df$pop2,",",myf3df$pop3,")",sep="")
-		mysambar$f3df		<<- myf3df
-		}else{
-		myf3df				<- myf3df
-		myf3df$mylabels		<- paste("(",myf3df$pop1,"; ",myf3df$pop2,",",myf3df$pop3,")",sep="")
-		mysambar$f3df_all	<<- myf3df
-		mysambar$f3df		<<- myf3df
+		cat("Calculating f4-statistics...",sep="\n")
+		# f4-statistics: 
+		# f4 = (a-b)*(c-d)
+		f4df					<- qpdstat(data=f2_blocks,f4mode=TRUE)
+		f4df					<- as.data.frame(f4df)
+		f4df$quartet			<- paste(f4df$pop1,f4df$pop2,f4df$pop3,f4df$pop4,sep="_")
+		mysambar$f4df			<<- f4df
+		# D-statistics:
+		# D = (a-b)*(c-d) / ((a + b - 2*a*b) * (c + d - 2*c*d)), which is the same as (P(ABBA) - P(BABA)) / (P(ABBA) + P(BABA))
+		cat("Calculating ABBA-BABA score using f4-statistics...",sep="\n")
+		f4df2					<- qpdstat(data=myprefix)
+		f4df2$quartet			<- paste(f4df2$pop1,f4df2$pop2,f4df2$pop3,f4df2$pop4,sep="_")
+		mysambar$f4df_D			<<- as.data.frame(f4df2)
 		}
-	if(!silent){cat("Results stored in dataframe 'mysambar$f3df'.",sep="\n")}
 	}
 
-genomef3heatmap<-function(exporttype=NULL,myscore="f3",thresvec=c(0.55,0.56,0.57,0.58,0.59,0.6),fill_square=FALSE,add_legend=TRUE,legend_cex=1.25)
+genomef3heatmap<-function(exporttype=NULL,myscore="f3",thresvec=c(0.55,0.56,0.57,0.58,0.59,0.6),fill_square=FALSE,f3_thres=0.01,f3_thres2=0.57,add_labels=TRUE,add_legend=TRUE,legend_cex=1.25)
 	{
 	myf3df			<- admixdf2[,c("admixpop","anc1pop","anc2pop",myscore)]
 	colnames(myf3df)<- c("pop1","pop2","pop3","score")
@@ -21331,7 +21357,21 @@ genomef3heatmap<-function(exporttype=NULL,myscore="f3",thresvec=c(0.55,0.56,0.57
 		myf3df$est		<- myf3df$score
 		sub_title		<- NULL
 		myf3df			<<- myf3df
-		f3heatmap(f3df=myf3df,export=exporttype,exportname="f3heatmap_window_f3",subtitle=sub_title,fillsquare=fill_square,addlegend=add_legend,legendcex=legend_cex)
+		#
+		cat("Plotting above diagonal: f3<0",sep="\n")
+		f3heatmap(f3df=myf3df,export=exporttype,exportname="f3heatmap_window_f3",subtitle=sub_title,fillsquare=fill_square,addlabels=add_labels,addlegend=add_legend,legendcex=legend_cex)
+		#
+		cat("Plotting above diagonal: f3<0; and below diagonal: f3<f3_thres.",sep="\n")
+		f3heatmap2(f3df=myf3df,export=exporttype,exportname="f3heatmap_window_f3",subtitle=sub_title,fillsquare=fill_square,addlabels=add_labels,addlegend=add_legend,legendcex=legend_cex,f3thres=f3_thres)
+		#
+		cat("Plotting above diagonal: f3<0; and below diagonal: prop(f3<0)>f3_thres2.",sep="\n")
+		myf3df2			<- admixdf2[,c("admixpop","anc1pop","anc2pop","prop")]
+		colnames(myf3df2)<- c("pop1","pop2","pop3","score")
+		myf3df2$est		<- f3_thres2-myf3df2$score
+		myf3df2$p		<- 0.01
+		myf3df2			<<- myf3df2
+		mysubtitle		<- "above diagonal: mean(f3)<0; below diagonal: prop(f3<0)>0.57"
+		f3heatmap2(f3df=myf3df,f3df2=myf3df2,export=exporttype,exportname=paste("f3heatmap_propVSwindow",f3_thres2,sep="_"),subtitle=mysubtitle,subtitlecex=1.75,fillsquare=fill_square,addlabels=add_labels,addlegend=add_legend,legendcex=legend_cex,f3thres=0)
 		}else{
 		#for(mythres in c(0.6,0.575,0.55,0.525,0.5,0.475,0.45,0.425))
 		#for(mythres in c(0.555,0.56,0.565,0.57))
@@ -21346,7 +21386,225 @@ genomef3heatmap<-function(exporttype=NULL,myscore="f3",thresvec=c(0.55,0.56,0.57
 		}
 	}
 
-f3heatmap<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heatmap",f3df=mysambar$f3df,plottitle="f3-score",mybg="white",subtitle=NULL,NAcolour=NULL,addlegend=TRUE,fillsquare=FALSE,legendcex=1.25)
+# 13-07-2022: like f3_heatmap, but adds below diagonal-values using different threshold.
+# above diagonal: f3<0 (always)
+# below diagonal: f3<0.01 (value specified to f3thres argument)
+# Or, alternatively, if a second dataframe is specified to f3df2 flag, different test-scores (e.g. prop) below diagonal.
+f3heatmap2<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heatmap",f3thres=0.001,f3df=mysambar$f3df,f3df2=NULL,addlabels=TRUE,plottitle="f3-score",mybg="white",subtitle=NULL,subtitlecex=2,NAcolour=NULL,addlegend=TRUE,fillsquare=FALSE,legendcex=1.25)
+	{
+	if(is.null(f3df))
+		{
+		return(cat("ERROR: specified f3 dataframe (default: mysambar$f3df) does not exist. Did you run the runadmixtools function?",sep="\n"))
+		}
+	if(!is.null(f3df2))
+		{
+		cat("Input dataframe specified to f3df2 flag. Attempting to plot these scores below diagonal...",sep="\n")
+		}else{
+		f3df2		<- f3df
+		}
+	popnames<- unique(f3df$pop1)
+	npop	<- length(popnames)
+	poporder<- mysambar$poporder
+	popcols	<- mysambar$colorder
+	if(length(poporder)!=npop)
+		{
+		return(cat("ERROR: number of populations in specified f3 dataframe (default: mysambar$f3df) does not correspond with number of populations in the mysambar$poporder vector. Rerun the runadmixtools function with the new filter settings.",sep="\n"))
+		}
+	if(creatematrix)
+		{
+		cat("Converting dataframe to matrix...",sep="\n")
+		f3mat			<- matrix(NA,ncol=npop,nrow=npop*npop)
+		colnames(f3mat)	<- popnames
+		rownames(f3mat)	<- rep(popnames,npop)
+		f3mat2			<- f3mat
+		# columns:
+		for(j in c(1:npop))
+			{
+			out1	<- poporder[j]	
+			# rows (field):
+			for(i in c(1:npop))
+				{
+				out2	<- poporder[i]
+				# ABOVE DIAGONAL:
+				if(i<j)
+					{
+					# rows (data entry within field):
+					for(k in c(1:npop))
+						{
+						admixpop	<- poporder[k]
+						rownr		<- which(f3df$pop1==admixpop&((f3df$pop2==out1&f3df$pop3==out2)|(f3df$pop2==out2&f3df$pop3==out1)))
+						if(length(rownr)>1)
+							{
+							rownr	<<- rownr
+							return(cat("ERROR: more than 1 row.",sep="\n"))
+							}
+						if(length(rownr)!=0)
+							{
+							myf3score				<- f3df$est[rownr]
+							mypvalue				<- f3df$p[rownr]
+							if(is.null(myf3score))
+								{
+								rownr				<<- rownr
+								cat("WARNING: NULL-value.",sep="\n")
+								}else{
+								f3mat[(i-1)*npop+k,j] 	<- myf3score
+								if(myf3score<0&mypvalue<=pthres)
+									{
+									f3mat2[(i-1)*npop+k,j]	<- k
+									}else{
+									f3mat2[(i-1)*npop+k,j]	<- 0
+									}
+								}
+							}
+						}
+					}
+				# BELOW DIAGONAL:
+				if(i>j)
+					{
+					# rows (data entry within field):
+					for(k in c(1:npop))
+						{
+						admixpop	<- poporder[k]
+						rownr		<- which(f3df2$pop1==admixpop&((f3df2$pop2==out1&f3df2$pop3==out2)|(f3df2$pop2==out2&f3df2$pop3==out1)))
+						if(length(rownr)>1)
+							{
+							rownr	<<- rownr
+							return(cat("ERROR: more than 1 row.",sep="\n"))
+							}
+						if(length(rownr)!=0)
+							{
+							myf3score				<- f3df2$est[rownr]
+							mypvalue				<- f3df2$p[rownr]
+							if(is.null(myf3score))
+								{
+								rownr				<<- rownr
+								cat("WARNING: NULL-value.",sep="\n")
+								}else{
+								f3mat[(i-1)*npop+k,j] 	<- myf3score
+								if(myf3score<f3thres&mypvalue<=pthres)
+									{
+									f3mat2[(i-1)*npop+k,j]	<- k
+									}else{
+									f3mat2[(i-1)*npop+k,j]	<- 0
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		mysambar$f3mat	<<- f3mat
+		mysambar$f3mat2	<<- f3mat2	# contains population number of admixed population, needed for plotting 
+		cat("Matrix with f3-scores stored at mysambar$f3mat.",sep="\n")
+		}else{
+		cat("WARNING: using existing matrix with f3-scores, stored at mysambar$f3mat.",sep="\n")
+		f3mat			<- mysambar$f3mat
+		f3mat2			<- mysambar$f3mat2
+		}
+	#
+	if(fillsquare)
+		{
+		cat("Filling square to make admixed population better visible...",sep="\n")
+		f3mat3			<- f3mat2
+		# columns:
+		for(j in c(1:npop))
+			{
+			out1	<- poporder[j]	
+			# rows (field):
+			for(i in c(1:npop))
+				{
+				out2	<- poporder[i]
+				#if(i<j)
+				#	{
+					squarevec					<- f3mat2[c(((i-1)*npop):(i*npop-1)),j]
+					squarevec[is.na(squarevec)]	<- 0
+					nadmix						<- length(squarevec[squarevec>0])
+					if(nadmix>0)
+						{
+						mystart		<- (i-1)*npop+1
+						myend		<- i*npop
+						mymid1		<- floor((mystart+myend)/2)
+						mymid2		<- mymid1+1
+						if(nadmix==1)
+							{
+							admixpopnr				<- max(squarevec)
+							f3mat3[mystart:myend,j]	<- rep(admixpopnr,npop)
+							}
+						if(nadmix==2)
+							{
+							squarevec				<- squarevec[order(squarevec,decreasing=2)]
+							admixpopnr				<- head(squarevec,2)
+							f3mat3[mystart:mymid1,j]<- admixpopnr[1]
+							f3mat3[mymid2:myend,j]	<- admixpopnr[2]
+							}
+						if(nadmix>2)
+							{
+							# 18-05-2022: currently not yet option to display more than two colours per field:
+							cat(paste("WARNING: max than 2 admixed population for this pair of ancestral populations: ",out1," and ",out2,". Randomly displaying one admixed population.",sep=""),sep="\n")
+							admixpopnr				<- max(squarevec)
+							f3mat3[mystart:myend,j]	<- rep(admixpopnr,npop)
+							}
+						#cat(admixpopnr,sep="\n")
+						#cat(paste(i,j,sep="_"),sep="\n")
+						#cat(paste(out1,out2,poporder[admixpopnr],sep="_"),sep="\n")
+					#	}
+					}
+				}
+			}
+		mysambar$f3mat3	<<- f3mat3
+		}
+	#
+	# plot:
+	cat("Creating heatmap...",sep="\n")
+	graphics.off()
+	if(!is.null(export))
+		{
+		exportname	<- ifelse(mybg=="white",exportname,paste(exportname,mybg,sep="."))
+		exportname	<- ifelse(fillsquare,paste(exportname,"fullsquare",sep="."),exportname)
+		exportname	<- paste(exportname,"2D",f3thres,sep=".")
+		mysize	<- 10
+		mysize2	<- 720
+		if(export=="eps"){postscript(paste(exportname,"eps",sep="."),family=mysambar$myfont,width=mysize,height=mysize)}
+		if(export=="pdf"){pdf(paste(exportname,"pdf",sep="."),family=mysambar$myfont,width=mysize,height=mysize)}
+		if(export=="png"){png(paste(exportname,"png",sep="."),family=mysambar$myfont,width=mysize2,height=mysize2)}
+		if(export=="wmf"){win.metafile(paste(exportname,"wmf",sep="."),family=mysambar$myfont,width=mysize,height=mysize)}
+		}
+	par(bg=mybg)
+	myBreaks	<- seq(-0.5,npop+0.5,1)
+	NAcolour	<- ifelse(is.null(NAcolour),"white",NAcolour)
+	myColours	<- c(NAcolour,popcols)
+	if(fillsquare)
+		{
+		my_matrix	<- mysambar$f3mat3
+		}else{
+		my_matrix	<- mysambar$f3mat2
+		}
+	heatmap.2(my_matrix,lhei=c(0.5,4),lwid=c(0.5,4),labRow=NA,labCol=NA,Rowv=NA,Colv=NA,scale="none",col=myColours,breaks=myBreaks,RowSideColors=rep(popcols,each=npop),ColSideColors=popcols,
+	dendrogram="none",trace="none",cexCol=1.5,cexRow=1.5,ylab="",xlab="",srtRow=0,key=FALSE,adjCol=c(1,0.5),adjRow=c(0,NA),offsetRow=-0.5,offsetCol=-0.5)
+	#
+	if(addlabels)
+		{
+		mtext("Ancestral population 1", side = 1, cex = 2, line = 3)
+		mtext("Ancestral population 2", side = 4, cex = 2, line = 0)
+		}
+	mtext(plottitle,side=3,line=1,cex=3)
+	if(!is.null(subtitle))
+		{
+		mtext(subtitle,side=3,line=-0.5,cex=subtitlecex)
+		}
+	if(addlegend)
+		{
+		legend(x=0.1,y=0.75,legend=mysambar$poporder,fill=mysambar$colorder,border=mysambar$colorder,bty='n',cex=legendcex)
+		}
+	if(!is.null(export))
+		{
+		dev.off()
+		cat("Heatmap has been exported to the directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
+	}
+
+f3heatmap<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heatmap",f3df=mysambar$f3df,addlabels=TRUE,plottitle="f3-score",mybg="white",subtitle=NULL,NAcolour=NULL,addlegend=TRUE,fillsquare=FALSE,legendcex=1.25)
 	{
 	if(is.null(f3df))
 		{
@@ -21497,8 +21755,11 @@ f3heatmap<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heat
 	heatmap.2(my_matrix,lhei=c(0.5,4),lwid=c(0.5,4),labRow=NA,labCol=NA,Rowv=NA,Colv=NA,scale="none",col=myColours,breaks=myBreaks,RowSideColors=rep(popcols,each=npop),ColSideColors=popcols,
 	dendrogram="none",trace="none",cexCol=1.5,cexRow=1.5,ylab="",xlab="",srtRow=0,key=FALSE,adjCol=c(1,0.5),adjRow=c(0,NA),offsetRow=-0.5,offsetCol=-0.5)
 	#
-	mtext("Ancestral population 1", side = 1, cex = 2, line = 3)
-	mtext("Ancestral population 2", side = 4, cex = 2, line = 0)
+	if(addlabels)
+		{
+		mtext("Ancestral population 1", side = 1, cex = 2, line = 3)
+		mtext("Ancestral population 2", side = 4, cex = 2, line = 0)
+		}
 	mtext(plottitle,side=3,line=1,cex=3)
 	if(!is.null(subtitle))
 		{
