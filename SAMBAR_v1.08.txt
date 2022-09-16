@@ -16,6 +16,7 @@ example_run<-function()
 	importdata(inputprefix="SNPdataprefix",sumstatsfile=FALSE,depthfile=FALSE)
 	filterdata(indmiss=0.25,snpmiss=0.1)
 	findstructure()
+	createmaps()
 	calckinship()
 	calcdistance()
 	calcdiversity()
@@ -1185,6 +1186,8 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 	#
 	# define colours:
 	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
+	# 30-08-2020: new default colours:
+	# defaultcolours			<- c("mediumblue","darkred","steelblue3","grey50","deepskyblue1","grey20","darkorchid4","#654321","midnightblue","ivory2","#009595","darkgreen","greenyellow","indianred1","orange","lavenderblush3","aquamarine4","burlywood4")
 	if(is.null(colourvector))
 		{
 		colourvector	<- defaultcolours	
@@ -3329,7 +3332,17 @@ add2inds<-function(samplefile=NULL,filteronly=FALSE,geomap_thres=-15)
 			{
 			return(cat("ERROR: number of samples in sample info (see 'myinfo') does not correspond with number of retained individuals in inds dataframe.",sep="\n"))	
 			}else{
-			return(cat("ERROR: number of samples in sample info (see 'myinfo') does not correspond with number of individuals in inds dataframe.",sep="\n"))	
+			if(nrow(myinfo)>nrow(indsretained))
+				{
+				cat("Selecting within input dataframe sample names which occur in inds dataframe.",sep="\n")
+				myinfo	<- myinfo[myinfo$name%in%indsretained$name,]
+				if(nrow(myinfo)!=nrow(indsretained))
+					{
+					return(cat("ERROR: after subselecting, number of samples in sample info (see 'myinfo') does not correspond with number of individuals in inds dataframe.",sep="\n"))
+					}
+				}else{
+				return(cat("ERROR: number of samples in sample info (see 'myinfo') does not correspond with number of individuals in inds dataframe.",sep="\n"))
+				}
 			}
 		}
 	if(any(!as.character(myinfo$name)==as.character(indsretained$name)))
@@ -5863,8 +5876,19 @@ showmiss<-function(export=NULL,doindsfilter=TRUE,dosnpsfilter=FALSE)
 		}
 	my_wd	<- getwd()
 	setwd(mysambar$QCdir)
-	if(!file.exists("Miss.matrix.txt"))
+	if(file.exists("Miss.matrix.txt"))
 		{
+		mymissmatrix		<- as.matrix(read.table("Miss.matrix.txt",header=FALSE))
+		if(nrow(mymissmatrix)!=ninds)
+			{
+			mysambar$missmatrix	<<- NULL
+			}else{
+			mysambar$missmatrix	<<- mymissmatrix
+			}
+		}
+	if(is.null(mysambar$missmatrix))
+		{
+		cat("Generating matrix with missing data points per individual...",sep="\n")
 		mybreaks		<- seq(0,nsnps,winsize)
 		nbreaks			<- length(mybreaks)
 		mystartvec		<- mybreaks[1:(nbreaks-1)]
@@ -5881,8 +5905,6 @@ showmiss<-function(export=NULL,doindsfilter=TRUE,dosnpsfilter=FALSE)
 			mymissmatrix[,j]<- nNA/ncol(mat) 								# fraction of NA per individual
 			}
 		write.table(mymissmatrix,"Miss.matrix.txt",row.names=FALSE,col.names=FALSE,sep="\t",quote=FALSE)
-		}else{
-		mymissmatrix	<- as.matrix(read.table("Miss.matrix.txt",header=FALSE))
 		}
 	myorder						<- order(inds$pop)
 	indstemp					<- inds[myorder,]
@@ -8844,10 +8866,10 @@ popboxplot<-function(export=NULL,exportname="popboxplot",ylabel=NULL,logy=FALSE,
 		}
 	if(addstripchart)
 		{
-		boxplot(myscore~popvector2,border=mysambar$colorder2,log=mylog,col="grey90",las=2,xlab="",ylab="",pch=16,outline=FALSE,ylim=y_lim)
-		stripchart(myscore~popvector2,data=inds,vertical=TRUE,method="jitter",pch=16,cex=mycex,col=mysambar$colorder2,bg="bisque",add=TRUE)
+		boxplot(myscore~popvector2,border=mysambar$colorder,log=mylog,col="grey90",las=2,xlab="",ylab="",pch=16,outline=FALSE,ylim=y_lim)
+		stripchart(myscore~popvector2,data=inds,vertical=TRUE,method="jitter",pch=16,cex=mycex,col=mysambar$colorder,bg="bisque",add=TRUE)
 		}else{
-		boxplot(myscore~popvector2,border=mysambar$colorder2,log=mylog,col="grey90",las=2,xlab="",ylab="",pch=16,outline=TRUE,ylim=y_lim)
+		boxplot(myscore~popvector2,border=mysambar$colorder,log=mylog,col="grey90",las=2,xlab="",ylab="",pch=16,outline=TRUE,ylim=y_lim)
 		}
 	if(!is.null(ylabel))
 		{	
@@ -11286,6 +11308,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 			### CREATE DISTANCE MATRIX ####
 			if(!is.null(inputdistmat))
 				{
+				cat("Creating distance-based tree from distance matrix specified to the inputdistmat flag.",sep="\n")
 				mydistmat				<- inputdistmat
 				mysambar$mytree_distmat	<<- inputdistmat
 				}else{
@@ -11581,6 +11604,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 		}
 	if(calc_parsimony)
 		{
+		cat("Calculating parsimony score of the tree. If this calculation takes too long, rerun the popprtree with the flag 'calc_parsimony' set to FALSE.",sep="\n")
 		# convert genlight to DNAbin:
 		if(is.null(mysambar$mydnabin))
 			{
@@ -11606,6 +11630,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 		}
 	if(calc_likelihood)
 		{
+		cat("Calculating likelihood of the tree. If this calculation takes too long, rerun the popprtree with the flag 'calc_likelihood' set to FALSE.",sep="\n")
 		if(is.null(mysambar$mydnabin))
 			{
 			cat("DNAbin object not found. Generating...",sep="\n")
@@ -12634,7 +12659,7 @@ ape_pcoa_pop<-function(popnames=mysambar$populations,exporttype="pdf",my_method=
 
 # PCoA: Principal Coordinates Analysis (NOTE: this is different from principal component analysis or PCA). Depends on StAMPP (Nei's genetic distance) and Ape (pcoa):
 # ape_pcoa(method="hamming",symbolkey="sex",legendpos="topleft")
-ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="white",axiscol="black",dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,mar4=1,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=NULL,mylegendcol=NULL,mylegendtitle=NULL,side4label=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,boxlwd=1,shuffle_par=NULL,addxy=FALSE)
+ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="white",axiscol="black",dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,mar4=1,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=NULL,mylegendcol=NULL,mylegendtitle=NULL,side4label=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,boxlwd=1,shuffle_par=NULL,addxy=FALSE,use_current_dir=FALSE)
 	{
 	# method can be "nei" (Nei's genetic distance D), "hamming" (Hamming's genetic distance), "euclidean", "pi", "reynolds", or "edwards", although the latter two produces NA and are therefore not useful.
 	# Note: snpselection and indselection can not be applied when running method 'pi'. You should use calcpi() function to recalculate pi on different snp dataset.
@@ -12668,178 +12693,202 @@ ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="w
 	#
 	if(is.null(pscores))
 		{
-		if(!silent){cat("Running pcoa analyses...",sep="\n")}
-		if(method=="nei")
+		if(!is.null(inputdistmat))
 			{
-			if(!silent){cat("Generating distance matrix based on Nei's D...",sep="\n")}
-			# sambarfunction_findstructure:
-			neimatrix 		<- StAMPP::stamppNeisD(mygenlight[indselection,snpselection],pop=FALSE)
-			if(!silent){neimatrix	<<- neimatrix}
-			if(any(is.na(neimatrix)))
+			cat("Using distance matrix specified to inputdistmat flag.",sep="\n")
+			distmat	<- inputdistmat
+			if(any(is.na(distmat)))
 				{
 				mysambar$pcoa_error	<<- TRUE
-				return(cat("ERROR: Pcoa plot can not be generated due to missing data in neimatrix.",sep="\n"))
+				return(cat("ERROR: Pcoa plot can not be generated due to missing data in input distance matrix.",sep="\n"))
 				}else{
 				mysambar$pcoa_error	<<- FALSE
 				}
-			if(any(is.infinite(neimatrix)))
+			if(any(is.infinite(distmat)))
 				{
-				return(cat("ERROR: Pcoa plot can not be generated due to infinite values in neimatrix.",sep="\n"))
+				return(cat("ERROR: Pcoa plot can not be generated due to infinite values in input distance matrix.",sep="\n"))
 				}
 			# sambarfunction_findstructure:
-			p 				<- ape::pcoa(neimatrix, correction="none", rn=NULL)
+			p 				<- ape::pcoa(distmat, correction="none", rn=NULL)
 			if(makeglobal)
 				{
-				mymatrix	<<- neimatrix
+				mymatrix	<<- distmat
 				p			<<- p
 				}
-			}
-		if(method=="hamming")
-			{
-			ploidy(mygenlight)<-2
-			if(!silent){cat("Generating distance matrix based on Hammings genetic distance...",sep="\n")}
-			# sambarfunction_findstructure:
-			hammingmatrix	<- poppr::bitwise.dist(mygenlight[indselection,snpselection],mat=TRUE,euclidean=FALSE)
-			if(any(is.na(hammingmatrix)))
+			}else{
+			if(!silent){cat("Calculating genetic distance matrix, and subsequently carrying out pcoa analyses...",sep="\n")}
+			if(method=="nei")
 				{
-				mysambar$pcoa_error	<<- TRUE
-				return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
-				}else{
-				mysambar$pcoa_error	<<- FALSE
-				}
-			# sambarfunction_findstructure:
-			p 				<- ape::pcoa(hammingmatrix, correction="none", rn=NULL)
-			if(makeglobal)
-				{
-				mymatrix	<<- hammingmatrix
-				p			<<- p
-				}
-			}
-		if(method=="euclidean")
-			{
-			eucmatrix		<- poppr::bitwise.dist(mygenlight[indselection,snpselection],mat=TRUE,euclidean=TRUE)
-			if(any(is.na(eucmatrix)))
-				{
-				mysambar$pcoa_error	<<- TRUE
-				return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
-				}else{
-				mysambar$pcoa_error	<<- FALSE
-				}
-			# sambarfunction_findstructure:
-			p 				<- ape::pcoa(eucmatrix, correction="none", rn=NULL)
-			if(makeglobal)
-				{
-				mymatrix	<<- eucmatrix
-				p			<<- p
-				}
-			}
-		if(method=="pi")
-			{
-			# pimatrix is generated with calcpi
-			if(is.null(mysambar$pidf_metalist[[1]]))
-				{
-				cat("Pairwise distances list not present. Generating now...",sep="\n")
-				#sambarfunction_findstructure
-				calcpi(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,snpselection=snps$filter,popnames=mysambar$populations,corrected=TRUE)
-				}else{
-				pidf		<- mysambar$pidf_metalist[[1]]
-				obspairs	<- nrow(pidf[pidf$ind1!=pidf$ind2,])
-				nind		<- nrow(inds[inds$filter,])
-				exppairs	<- (nind*(nind-1))/2
-				if(obspairs!=exppairs)
+				if(!silent){cat("Generating distance matrix based on Nei's D...",sep="\n")}
+				# sambarfunction_findstructure:
+				neimatrix 		<- StAMPP::stamppNeisD(mygenlight[indselection,snpselection],pop=FALSE)
+				if(!silent){neimatrix	<<- neimatrix}
+				if(any(is.na(neimatrix)))
 					{
-					cat("Number of sample pairs in mysambar$pidf_metalist[[1]] does not correspond with expected number. Recalculating pairwise distances...",sep="\n")
+					mysambar$pcoa_error	<<- TRUE
+					return(cat("ERROR: Pcoa plot can not be generated due to missing data in neimatrix.",sep="\n"))
+					}else{
+					mysambar$pcoa_error	<<- FALSE
+					}
+				if(any(is.infinite(neimatrix)))
+					{
+					return(cat("ERROR: Pcoa plot can not be generated due to infinite values in neimatrix.",sep="\n"))
+					}
+				# sambarfunction_findstructure:
+				p 				<- ape::pcoa(neimatrix, correction="none", rn=NULL)
+				if(makeglobal)
+					{
+					mymatrix	<<- neimatrix
+					p			<<- p
+					}
+				}
+			if(method=="hamming")
+				{
+				ploidy(mygenlight)<-2
+				if(!silent){cat("Generating distance matrix based on Hammings genetic distance...",sep="\n")}
+				# sambarfunction_findstructure:
+				hammingmatrix	<- poppr::bitwise.dist(mygenlight[indselection,snpselection],mat=TRUE,euclidean=FALSE)
+				if(any(is.na(hammingmatrix)))
+					{
+					mysambar$pcoa_error	<<- TRUE
+					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
+					}else{
+					mysambar$pcoa_error	<<- FALSE
+					}
+				# sambarfunction_findstructure:
+				p 				<- ape::pcoa(hammingmatrix, correction="none", rn=NULL)
+				if(makeglobal)
+					{
+					mymatrix	<<- hammingmatrix
+					p			<<- p
+					}
+				}
+			if(method=="euclidean")
+				{
+				eucmatrix		<- poppr::bitwise.dist(mygenlight[indselection,snpselection],mat=TRUE,euclidean=TRUE)
+				if(any(is.na(eucmatrix)))
+					{
+					mysambar$pcoa_error	<<- TRUE
+					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
+					}else{
+					mysambar$pcoa_error	<<- FALSE
+					}
+				# sambarfunction_findstructure:
+				p 				<- ape::pcoa(eucmatrix, correction="none", rn=NULL)
+				if(makeglobal)
+					{
+					mymatrix	<<- eucmatrix
+					p			<<- p
+					}
+				}
+			if(method=="pi")
+				{
+				# pimatrix is generated with calcpi
+				if(is.null(mysambar$pidf_metalist[[1]]))
+					{
+					cat("Pairwise distances list not present. Generating now...",sep="\n")
+					#sambarfunction_findstructure
 					calcpi(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,snpselection=snps$filter,popnames=mysambar$populations,corrected=TRUE)
+					}else{
+					pidf		<- mysambar$pidf_metalist[[1]]
+					obspairs	<- nrow(pidf[pidf$ind1!=pidf$ind2,])
+					nind		<- nrow(inds[inds$filter,])
+					exppairs	<- (nind*(nind-1))/2
+					if(obspairs!=exppairs)
+						{
+						cat("Number of sample pairs in mysambar$pidf_metalist[[1]] does not correspond with expected number. Recalculating pairwise distances...",sep="\n")
+						calcpi(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,snpselection=snps$filter,popnames=mysambar$populations,corrected=TRUE)
+						}
 					}
-				}
-			#sambarfunction_findstructure
-			pidf			<- mysambar$pidf_metalist[[1]]
-			if(!silent){cat("Converting from dataframe to matrix...",sep="\n")}
-			#sambarfunction_findstructure
-			pimatrix		<- pidf2matrix(pidf=mysambar$pidf_metalist[[1]],myinds=inds$nr[inds$filter])
-			if(any(is.na(pimatrix)))
-				{
-				mysambar$pcoa_error	<<- TRUE
-				return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
-				}else{
-				mysambar$pcoa_error	<<- FALSE
-				}
-			if(!silent){cat("Executing pcoa analyses...",sep="\n")}
-			# sambarfunction_findstructure:
-			if(!silent){pimatrix	<<- pimatrix}
-			p 				<- ape::pcoa(pimatrix, correction="none", rn=NULL)	
-			if(makeglobal)
-				{
-				mymatrix	<<- pimatrix
-				p			<<- p
-				}
-			# 15-11-2019: untraceable error when running the function above: Error in array(STATS, dims[perm]) : 'dims' cannot be of length 0
-			# 26-01-2020: another untraceable error when running the function above: 
-			# Error in data.frame(eig[1:k], rel.eig, rel.eig.cor, bs, cum.eig.cor, cum.bs) : 
-			# arguments imply differing number of rows: 90, 92
-			# In addition: Warning message:
-			# In sqrt(eig[1:k2]) : NaNs produced
-			}
-		if(method=="edwards")
-			{
-			# 21-03-2022: not useful, because produces NA-values.
-			if(is.null(mysambar$genind))
-				{
-				genlight2genind(input=mygenlight,add2sambar=TRUE)
-				}else{
-				if(length(pop(mysambar$genind))!=length(inds$name[inds$filter]))
+				#sambarfunction_findstructure
+				pidf			<- mysambar$pidf_metalist[[1]]
+				if(!silent){cat("Converting from dataframe to matrix...",sep="\n")}
+				#sambarfunction_findstructure
+				pimatrix		<- pidf2matrix(pidf=mysambar$pidf_metalist[[1]],myinds=inds$nr[inds$filter])
+				if(any(is.na(pimatrix)))
 					{
-					cat("WARNING: number of individuals in mysambar$genind object does not correspond with number of retained individuals in inds dataframe. Creating new genind object...",sep="\n") 
+					mysambar$pcoa_error	<<- TRUE
+					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
+					}else{
+					mysambar$pcoa_error	<<- FALSE
+					}
+				if(!silent){cat("Executing pcoa analyses...",sep="\n")}
+				# sambarfunction_findstructure:
+				if(!silent){pimatrix	<<- pimatrix}
+				p 				<- ape::pcoa(pimatrix, correction="none", rn=NULL)	
+				if(makeglobal)
+					{
+					mymatrix	<<- pimatrix
+					p			<<- p
+					}
+				# 15-11-2019: untraceable error when running the function above: Error in array(STATS, dims[perm]) : 'dims' cannot be of length 0
+				# 26-01-2020: another untraceable error when running the function above: 
+				# Error in data.frame(eig[1:k], rel.eig, rel.eig.cor, bs, cum.eig.cor, cum.bs) : 
+				# arguments imply differing number of rows: 90, 92
+				# In addition: Warning message:
+				# In sqrt(eig[1:k2]) : NaNs produced
+				}
+			if(method=="edwards")
+				{
+				# 21-03-2022: not useful, because produces NA-values.
+				if(is.null(mysambar$genind))
+					{
 					genlight2genind(input=mygenlight,add2sambar=TRUE)
 					}else{
-					cat("Using available genind object at mysambar$genind.",sep="\n")
+					if(length(pop(mysambar$genind))!=length(inds$name[inds$filter]))
+						{
+						cat("WARNING: number of individuals in mysambar$genind object does not correspond with number of retained individuals in inds dataframe. Creating new genind object...",sep="\n") 
+						genlight2genind(input=mygenlight,add2sambar=TRUE)
+						}else{
+						cat("Using available genind object at mysambar$genind.",sep="\n")
+						}
+					}
+				mymatrix		<- poppr::edwards.dist(mysambar$genind)
+				if(any(is.na(mymatrix)))
+					{
+					mysambar$pcoa_error	<<- TRUE
+					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
+					}else{
+					mysambar$pcoa_error	<<- FALSE
+					}
+				# sambarfunction_findstructure:
+				p 				<- ape::pcoa(mymatrix, correction="none", rn=NULL)
+				if(makeglobal)
+					{
+					mymatrix	<<- mymatrix
+					p			<<- p
 					}
 				}
-			mymatrix		<- poppr::edwards.dist(mysambar$genind)
-			if(any(is.na(mymatrix)))
+			if(method=="reynolds")
 				{
-				mysambar$pcoa_error	<<- TRUE
-				return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
-				}else{
-				mysambar$pcoa_error	<<- FALSE
-				}
-			# sambarfunction_findstructure:
-			p 				<- ape::pcoa(mymatrix, correction="none", rn=NULL)
-			if(makeglobal)
-				{
-				mymatrix	<<- mymatrix
-				p			<<- p
-				}
-			}
-		if(method=="reynolds")
-			{
-			# 21-03-2022: not useful, because produces NA-values. 
-			if(is.null(mysambar$genind))
-				{
-				genlight2genind(input=mygenlight,add2sambar=TRUE)
-				}else{
-				if(length(pop(mysambar$genind))!=length(inds$name[inds$filter]))
+				# 21-03-2022: not useful, because produces NA-values. 
+				if(is.null(mysambar$genind))
 					{
-					cat("WARNING: number of individuals in mysambar$genind object does not correspond with number of retained individuals in inds dataframe. Creating new genind object...",sep="\n") 
 					genlight2genind(input=mygenlight,add2sambar=TRUE)
 					}else{
-					cat("Using available genind object at mysambar$genind.",sep="\n")
+					if(length(pop(mysambar$genind))!=length(inds$name[inds$filter]))
+						{
+						cat("WARNING: number of individuals in mysambar$genind object does not correspond with number of retained individuals in inds dataframe. Creating new genind object...",sep="\n") 
+						genlight2genind(input=mygenlight,add2sambar=TRUE)
+						}else{
+						cat("Using available genind object at mysambar$genind.",sep="\n")
+						}
 					}
-				}
-			mymatrix		<- poppr::reynolds.dist(mysambar$genind)
-			if(any(is.na(mymatrix)))
-				{
-				mysambar$pcoa_error	<<- TRUE
-				return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
-				}else{
-				mysambar$pcoa_error	<<- FALSE
-				}
-			# sambarfunction_findstructure:
-			p 				<- ape::pcoa(mymatrix, correction="none", rn=NULL)
-			if(makeglobal)
-				{
-				mymatrix	<<- mymatrix
-				p			<<- p
+				mymatrix		<- poppr::reynolds.dist(mysambar$genind)
+				if(any(is.na(mymatrix)))
+					{
+					mysambar$pcoa_error	<<- TRUE
+					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
+					}else{
+					mysambar$pcoa_error	<<- FALSE
+					}
+				# sambarfunction_findstructure:
+				p 				<- ape::pcoa(mymatrix, correction="none", rn=NULL)
+				if(makeglobal)
+					{
+					mymatrix	<<- mymatrix
+					p			<<- p
+					}
 				}
 			}
 		}else{
@@ -12870,7 +12919,7 @@ ape_pcoa<-function(pscores=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="w
 		if(!is.null(export))
 			{
 			if(resetgraphics){graphics.off()}
-			setwd(mysambar$structuredir)
+			if(!use_current_dir){setwd(mysambar$structuredir)}
 			my_symbol	<- ifelse(labels,ifelse(is.null(missvector),"labels","missingness"),ifelse(is.null(symbolkey),ifelse(use_symboltype2,"symboltype2","dots"),symbolkey))
 			if(is.null(exportname))
 				{
@@ -16727,10 +16776,10 @@ mapsingleshape<-function(export=NULL,plotratios=1,plottitle=NULL,exportname=NULL
 			if(export=="png"){png(paste(exportname,mycoordlabel,borderlabel,mybg,"png",sep="."),height=2000,width=2000*myratio)}
 			if(export=="wmf"){win.metafile(paste(exportname,mycoordlabel,borderlabel,mybg,"wmf",sep="."),height=6,width=6*myratio)}
 			}
-		ww2 			<- map('world', wrap=c(-15,345), plot=FALSE, fill=TRUE)
+		ww2 			<- maps::map('world', wrap=c(-15,345), plot=FALSE, fill=TRUE)
 		bordercol		<- ifelse(showborders,"white",NA)
 		par(bg=mybg)
-		map(ww2,ylim=y_lim,xlim=x_lim,col="grey95",border=bordercol,fill=TRUE)
+		maps::map(ww2,ylim=y_lim,xlim=x_lim,col="grey95",border=bordercol,fill=TRUE)
 		#map(ww2,ylim=c(25,80),xlim=c(-10,280),col="grey95",border=bordercol,fill=TRUE)
 		for (j in c(1:length(species)))
 			{
@@ -16804,11 +16853,16 @@ mapsingleshape<-function(export=NULL,plotratios=1,plottitle=NULL,exportname=NULL
 				}else{
 				points(mycoord,col=mycols,cex=mycex,pch=mypchs,lwd=mylwd)
 				}
-			#if(any(mypchs<=20))
-			#	{
-			#	pchbool	<- mypchs<=20
-			#	points(mycoord[pchbool,],col=mycols[pchbool],cex=mycex,pch=mypchs[pchbool])
-			#	}
+			if(any(mypchs<=20))
+				{
+				pchbool	<- mypchs<=20
+				points(mycoord[pchbool,],col=mycols[pchbool],cex=mycex,pch=mypchs[pchbool])
+				}
+			if(any(mypchs>20))
+				{
+				pchbool	<- mypchs>20
+				points(mycoord[pchbool,],col="grey50",bg=mycols[pchbool],cex=mycex,pch=mypchs[pchbool])
+				}	
 			#if(!is.null(markbool))
 			#	{
 			#	points(mycoord[markbool,],col=mycols2[markbool],bg=mycols[markbool],cex=mycex,pch=mypchs,lwd=3)
@@ -16823,7 +16877,7 @@ mapsingleshape<-function(export=NULL,plotratios=1,plottitle=NULL,exportname=NULL
 			cat("Adding line segments...",sep="\n")
 			for(k in c(1:nrow(linesdf)))
 				{
-				segments(x0=linesdf$x0[k],x1=inesdf$x1[k],y0=inesdf$y0[k],y1=inesdf$y1[k],lty=inesdf$lty[k],lwd=inesdf$lwd[k],col=linesdf$col[k])
+				segments(x0=linesdf$x0[k],x1=linesdf$x1[k],y0=linesdf$y0[k],y1=linesdf$y1[k],lty=linesdf$lty[k],lwd=linesdf$lwd[k],col=linesdf$col[k])
 				}
 			}
 		if(addrefuge)
@@ -17020,7 +17074,7 @@ run_find.clusters<-function(mygeno=mygenlight,indsfilter=inds$filter,longthresho
 	myratio2	<- (latmax-latmin)/(lonmax-lonmin)
 	#
 	# plot range:
-	ww2 		<- map('world', wrap=c(0-longthreshold,360-longthreshold), plot=FALSE, fill=TRUE)
+	ww2 		<- maps::map('world', wrap=c(0-longthreshold,360-longthreshold), plot=FALSE, fill=TRUE)
 	bordercol	<- ifelse(showborders,"white",NA)
 	exportname	<- ifelse(dolabels,paste(exportname,"labels",sep="_"),exportname)
 	### K: 2 to 5:
@@ -17043,7 +17097,7 @@ run_find.clusters<-function(mygeno=mygenlight,indsfilter=inds$filter,longthresho
 		inds$findcladecol				<<- NA
 		inds$findcladecol[indsfilter]	<<- coloursvec[as.factor(mygrp$grp)]
 		#
-		map(ww2,ylim=c(latmin,latmax),xlim=c(lonmin,lonmax),col="grey90",border=bordercol,fill=TRUE)
+		maps::map(ww2,ylim=c(latmin,latmax),xlim=c(lonmin,lonmax),col="grey90",border=bordercol,fill=TRUE)
 		if(dolabels)
 			{
 			#plot(inds$longitude3[indsfilter],inds$latitude[indsfilter],col="white",xlab="",ylab="",xaxt='n',yaxt='n',cex=3,pch=16)
@@ -17077,7 +17131,7 @@ run_find.clusters<-function(mygeno=mygenlight,indsfilter=inds$filter,longthresho
 		inds$findcladecol				<<- NA
 		inds$findcladecol[indsfilter]	<<- coloursvec[as.factor(mygrp$grp)]
 		#
-		map(ww2,ylim=c(latmin,latmax),xlim=c(lonmin,lonmax),col="grey90",border=bordercol,fill=TRUE)
+		maps::map(ww2,ylim=c(latmin,latmax),xlim=c(lonmin,lonmax),col="grey90",border=bordercol,fill=TRUE)
 		if(dolabels)
 			{
 			#plot(inds$longitude3[indsfilter],inds$latitude[indsfilter],col="white",xlab="",ylab="",xaxt='n',yaxt='n',cex=3,pch=16)
@@ -17111,7 +17165,7 @@ run_find.clusters<-function(mygeno=mygenlight,indsfilter=inds$filter,longthresho
 		inds$findcladecol				<<- NA
 		inds$findcladecol[indsfilter]	<<- coloursvec[as.factor(mygrp$grp)]
 		#
-		map(ww2,ylim=c(latmin,latmax),xlim=c(lonmin,lonmax),col="grey90",border=bordercol,fill=TRUE)
+		maps::map(ww2,ylim=c(latmin,latmax),xlim=c(lonmin,lonmax),col="grey90",border=bordercol,fill=TRUE)
 		if(dolabels)
 			{
 			#plot(inds$longitude3[indsfilter],inds$latitude[indsfilter],col="white",xlab="",ylab="",xaxt='n',yaxt='n',cex=3,pch=16)
@@ -19711,7 +19765,7 @@ exportneitable<-function(popnames=mysambar$populations)
 # tree for populations:
 # This shows genetic difference between populations, not evolutionary relationship!
 # i.e. a recently diverged founder population can be genetically more distant from the source population than a bigger population which diverged earlier. 
-getpoptree<-function(mymatrix=mysambar$popneimatrix,exportlabel="neiD",labelcex=1.5,mytype="phylogram",myheight=NULL,mywidth=NULL,mylwd=2,edgecolors=TRUE,donj=TRUE,popnames=mysambar$populations,popcolours=mysambar$mycolours,silent=TRUE,doexport=TRUE,addnodelabels=TRUE,maxnodelabel=NULL)
+getpoptree<-function(mymatrix=mysambar$popneimatrix,exportlabel="neiD",labelcex=1.5,mytype="phylogram",myheight=NULL,mywidth=NULL,mylwd=2,edgecolors=TRUE,donj=TRUE,popnames=mysambar$populations,popcolours=mysambar$mycolours,silent=TRUE,doexport=TRUE,addnodelabels=TRUE,maxnodelabel=NULL,myroot=NULL)
 	{
 	#install.packages("phangorn")
 	#library(phangorn)
@@ -19732,6 +19786,10 @@ getpoptree<-function(mymatrix=mysambar$popneimatrix,exportlabel="neiD",labelcex=
 		mytree						<- phangorn::upgma(mymatrix)
 		}else{
 		mytree						<- phangorn::NJ(mymatrix)
+		}
+	if(!is.null(myroot))
+		{
+		mytree	<- root(mytree,outgroup=myroot,resolve.root=TRUE)
 		}
 	#
 	mycolors2 				<- rep("black",Nedge(mytree))
@@ -21435,6 +21493,18 @@ runadmixtools<-function(calcf3=TRUE,calcf4=TRUE,silent=TRUE,tripletdf=NULL,mypre
 	# To avoid error: File admixtools2/Baltic/Black_f2.rds not found!', you might have to delete the output of previous runs.
 	# BiocManager::install("snpStats",suppressUpdates=TRUE)
 	# library(snpStats)
+	#
+	# In case positional information contains row number and one single chromosome/haplotype only, you might encounter the error:
+	# Warning: 35945 parsing failures.
+	# row col expected actual
+	# 1  -- a number     un
+	# 2  -- a number     un
+	# 3  -- a number     un
+	# 4  -- a number     un
+	# 5  -- a number     un
+	# ... ... ........ ......
+	# See problems(...) for more details.
+	#
 	if("admixtools" %in% rownames(installed.packages()) == FALSE)
 		{
 		cat("WARNING: package 'admixtools' has not been installed yet.",sep="\n")
@@ -21568,6 +21638,7 @@ runadmixtools<-function(calcf3=TRUE,calcf4=TRUE,silent=TRUE,tripletdf=NULL,mypre
 			f4df$ratio2[f4df$quartet2==myquartet]	<- ifelse(myvec[2]>myvec[3],myvec[2]/myvec[3],myvec[3]/myvec[2])
 			}
 		mysambar$f4df			<<- f4df
+		#barplotf4()
 		#
 		# D-statistics:
 		# D = (a-b)*(c-d) / ((a + b - 2*a*b) * (c + d - 2*c*d)), which is the same as (P(ABBA) - P(BABA)) / (P(ABBA) + P(BABA))
@@ -21576,6 +21647,50 @@ runadmixtools<-function(calcf3=TRUE,calcf4=TRUE,silent=TRUE,tripletdf=NULL,mypre
 		f4df2$quartet			<- paste(f4df2$pop1,f4df2$pop2,f4df2$pop3,f4df2$pop4,sep="_")
 		mysambar$f4df_D			<<- as.data.frame(f4df2)
 		}
+	}
+
+# 25-08-2022: still under construction
+barplotf4<-function()
+	{
+	qvec	<- vector()
+	qvec[1]	<- "NE-Europe1_NE-Europe2_SpainCenter_SpainWest"
+	qvec[2]	<- "NE-Europe2_SE-Europe_SpainCenter_SpainWest"
+	qvec[3]	<- "NorthAfrica_Sardinia_SpainCenter_SpainWest"
+	qvec[4]	<- "NE-Europe2_SE-Europe_NorthAfrica_Sardinia"
+	qvec[5]	<- "Ireland_Scotland_SpainCenter_SpainWest"
+	qvec[6]	<- "Ireland_Scotland_NE-Europe2_SE-Europe"
+	qvec[7]	<- "NE-Europe1_NE-Europe2_NorthEurope_WestEurope"
+	qvec[8]	<- "CzechiaEast_SE-Europe_NorthEurope_WestEurope"
+	qvec[9]	<- "CzechiaEast_SE-Europe_CzechiaWest_WestEurope"
+	qvec[10]	<- "NorthEurope_WestEurope_Norway_Sweden"
+	qvec[11]<- "CzechiaEast_SE-Europe_Italy_Sardinia"
+	#
+	pdf("quartets.log.pdf",width=19,height=2.75)
+	par(mfrow=c(1,11),mar=c(2,1,1,0.5),oma=c(1,6.5,2,2),cex.axis=1.5)
+	for(k in c(1:11))
+		{
+		myvec		<- strsplit(qvec[k],"_")[[1]]
+		myvec2		<- myvec[order(myvec)]
+		myquartet	<- paste(myvec2,collapse="_")
+		cat(myquartet,sep="\n")
+		mydf		<- f4df[f4df$quartet2==myquartet,]
+		#if(nrow(mydf)==0)
+		#	{
+		#	return(cat("ERROR: quartet not found.",sep="\n"))
+		#	}
+		mynr		<- which(mydf$quartet==qvec[k])
+		x			<- c(1:3)
+		x			<- x[x!=mynr]
+		cat(mynr,sep="\n")
+		mydf		<- mydf[c(mynr,x),]
+		myyaxt		<- ifelse(k==1,"s","n")
+		#barplot(abs(mydf$est),ylim=c(0,0.0075),yaxt=myyaxt,names.arg=c("q1","q2","q3"),space=0.1,las=1,cex.names=1.5,col="grey70",width=0.1)
+		barplot(abs(mydf$est),ylim=c(0.00001,0.02),yaxt=myyaxt,names.arg=c("q1","q2","q3"),space=0.1,las=1,cex.names=1.5,col="grey70",width=0.1,log="y")
+		mytext		<- paste("(",myvec[1],",",myvec[2],"),\n(",myvec[3],",",myvec[4],")",sep="")
+		mtext(side=3,mytext,cex=0.75)
+		}
+	mtext(side=2,outer=TRUE,"f4-score",cex=1.5,line=5)
+	dev.off()
 	}
 
 genomef3heatmap<-function(exporttype=NULL,myscore="f3",thresvec=c(0.55,0.56,0.57,0.58,0.59,0.6),fill_square=FALSE,f3_thres=0.01,f3_thres2=0.57,add_labels=TRUE,add_legend=TRUE,legend_cex=1.25)
@@ -21761,66 +21876,22 @@ f3heatmap2<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3hea
 							}else{
 							squarevec				<- squarevec[order(squarevec,decreasing=TRUE)]
 							}
-						if(nadmix==2)
+						if(nadmix>1)
 							{
-							admixpopnr						<- head(squarevec,2)
-							mybreak1						<- floor((mystart+myend)/2)
-							mybreak2						<- mybreak1+1
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[mybreak2:myend,j]		<- admixpopnr[2]
-							}
-						if(nadmix==3)
-							{
-							admixpopnr						<- head(squarevec,3)
-							mybreak1						<- floor(mystart+(1*npop/3))
-							mybreak2						<- floor(mystart+(2*npop/3))
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[(mybreak1+1):mybreak2,j]	<- admixpopnr[2]
-							f3mat3[(mybreak2+1):myend,j]	<- admixpopnr[3]
-							}
-						if(nadmix==4)
-							{
-							admixpopnr						<- head(squarevec,4)
-							mybreak1						<- floor(mystart+(1*npop/4))
-							mybreak2						<- floor(mystart+(2*npop/4))
-							mybreak3						<- floor(mystart+(3*npop/4))
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[(mybreak1+1):mybreak2,j]	<- admixpopnr[2]
-							f3mat3[(mybreak2+1):mybreak3,j]	<- admixpopnr[3]
-							f3mat3[(mybreak3+1):myend,j]	<- admixpopnr[4]
-							}
-						if(nadmix==5)
-							{
-							admixpopnr						<- head(squarevec,5)
-							mybreak1						<- floor(mystart+(1*npop/5))
-							mybreak2						<- floor(mystart+(2*npop/5))
-							mybreak3						<- floor(mystart+(3*npop/5))
-							mybreak4						<- floor(mystart+(4*npop/5))
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[(mybreak1+1):mybreak2,j]	<- admixpopnr[2]
-							f3mat3[(mybreak2+1):mybreak3,j]	<- admixpopnr[3]
-							f3mat3[(mybreak3+1):mybreak4,j]	<- admixpopnr[4]
-							f3mat3[(mybreak4+1):myend,j]	<- admixpopnr[5]
-							}
-						if(nadmix>6)
-							{
-							# 12-08-2022: currently not yet option to display more than three colours per field:
-							cat(paste("WARNING: more than 6 admixed population for this pair of ancestral populations: ",out1," and ",out2,". Randomly displaying six admixed populations only.",sep=""),sep="\n")
-							}
-						if(nadmix==6|nadmix>6)
-							{
-							admixpopnr						<- head(squarevec,6)
-							mybreak1						<- floor(mystart+(1*npop/6))
-							mybreak2						<- floor(mystart+(2*npop/6))
-							mybreak3						<- floor(mystart+(3*npop/6))
-							mybreak4						<- floor(mystart+(4*npop/6))
-							mybreak5						<- floor(mystart+(5*npop/6))
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[(mybreak1+1):mybreak2,j]	<- admixpopnr[2]
-							f3mat3[(mybreak2+1):mybreak3,j]	<- admixpopnr[3]
-							f3mat3[(mybreak3+1):mybreak4,j]	<- admixpopnr[4]
-							f3mat3[(mybreak4+1):mybreak5,j]	<- admixpopnr[5]
-							f3mat3[(mybreak5+1):myend,j]	<- admixpopnr[6]
+							admixpopnr		<- head(squarevec,nadmix)
+							mybreakvec		<- rep(NA,nadmix-1)	
+							for(breaknr in c(1:(nadmix-1)))
+								{
+								mybreakvec[breaknr]	<- floor(mystart+(breaknr*npop/nadmix))
+								}
+							startvec		<- c(mystart,mybreakvec+1)
+							endvec			<- c(mybreakvec,myend)
+							for(binnr in c(1:nadmix))
+								{
+								binstart	<- startvec[binnr]
+								binend		<- endvec[binnr]
+								f3mat3[binstart:binend,j]		<- admixpopnr[binnr]
+								}
 							}
 						#cat(admixpopnr,sep="\n")
 						#cat(paste(i,j,sep="_"),sep="\n")
@@ -22128,7 +22199,7 @@ f3pvalues<-function(mydf=mysambar$f3df,export=NULL,plotname="f3_pvalues",yline=5
 		}
 	}
 
-f3heatmap<-function(creatematrix=TRUE,pthres=0.05,f3thres=0,export=NULL,exportname="f3heatmap",f3df=mysambar$f3df,addlabels=TRUE,plottitle="f3-score",mybg="white",subtitle=NULL,NAcolour=NULL,addlegend=TRUE,fillsquare=FALSE,legendcex=1.25)
+f3heatmap<-function(creatematrix=TRUE,pthres=0.05,f3thres=0,export=NULL,exportname="f3heatmap",f3df=mysambar$f3df,addlabels=TRUE,plottitle="f3-score",mybg="white",subtitle=NULL,NAcolour=NULL,addlegend=TRUE,fillsquare=FALSE,legendcex=1.25,oldmethod=FALSE)
 	{
 	if(is.null(f3df))
 		{
@@ -22228,66 +22299,22 @@ f3heatmap<-function(creatematrix=TRUE,pthres=0.05,f3thres=0,export=NULL,exportna
 							}else{
 							squarevec				<- squarevec[order(squarevec,decreasing=TRUE)]
 							}
-						if(nadmix==2)
+						if(nadmix>1)
 							{
-							admixpopnr						<- head(squarevec,2)
-							mybreak1						<- floor((mystart+myend)/2)
-							mybreak2						<- mybreak1+1
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[mybreak2:myend,j]		<- admixpopnr[2]
-							}
-						if(nadmix==3)
-							{
-							admixpopnr						<- head(squarevec,3)
-							mybreak1						<- floor(mystart+(1*npop/3))
-							mybreak2						<- floor(mystart+(2*npop/3))
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[(mybreak1+1):mybreak2,j]	<- admixpopnr[2]
-							f3mat3[(mybreak2+1):myend,j]	<- admixpopnr[3]
-							}
-						if(nadmix==4)
-							{
-							admixpopnr						<- head(squarevec,4)
-							mybreak1						<- floor(mystart+(1*npop/4))
-							mybreak2						<- floor(mystart+(2*npop/4))
-							mybreak3						<- floor(mystart+(3*npop/4))
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[(mybreak1+1):mybreak2,j]	<- admixpopnr[2]
-							f3mat3[(mybreak2+1):mybreak3,j]	<- admixpopnr[3]
-							f3mat3[(mybreak3+1):myend,j]	<- admixpopnr[4]
-							}
-						if(nadmix==5)
-							{
-							admixpopnr						<- head(squarevec,5)
-							mybreak1						<- floor(mystart+(1*npop/5))
-							mybreak2						<- floor(mystart+(2*npop/5))
-							mybreak3						<- floor(mystart+(3*npop/5))
-							mybreak4						<- floor(mystart+(4*npop/5))
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[(mybreak1+1):mybreak2,j]	<- admixpopnr[2]
-							f3mat3[(mybreak2+1):mybreak3,j]	<- admixpopnr[3]
-							f3mat3[(mybreak3+1):mybreak4,j]	<- admixpopnr[4]
-							f3mat3[(mybreak4+1):myend,j]	<- admixpopnr[5]
-							}
-						if(nadmix>6)
-							{
-							# 12-08-2022: currently not yet option to display more than three colours per field:
-							cat(paste("WARNING: more than 6 admixed population for this pair of ancestral populations: ",out1," and ",out2,". Randomly displaying six admixed populations only.",sep=""),sep="\n")
-							}
-						if(nadmix==6|nadmix>6)
-							{
-							admixpopnr						<- head(squarevec,6)
-							mybreak1						<- floor(mystart+(1*npop/6))
-							mybreak2						<- floor(mystart+(2*npop/6))
-							mybreak3						<- floor(mystart+(3*npop/6))
-							mybreak4						<- floor(mystart+(4*npop/6))
-							mybreak5						<- floor(mystart+(5*npop/6))
-							f3mat3[mystart:mybreak1,j]		<- admixpopnr[1]
-							f3mat3[(mybreak1+1):mybreak2,j]	<- admixpopnr[2]
-							f3mat3[(mybreak2+1):mybreak3,j]	<- admixpopnr[3]
-							f3mat3[(mybreak3+1):mybreak4,j]	<- admixpopnr[4]
-							f3mat3[(mybreak4+1):mybreak5,j]	<- admixpopnr[5]
-							f3mat3[(mybreak5+1):myend,j]	<- admixpopnr[6]
+							admixpopnr		<- head(squarevec,nadmix)
+							mybreakvec		<- rep(NA,nadmix-1)	
+							for(breaknr in c(1:(nadmix-1)))
+								{
+								mybreakvec[breaknr]	<- floor(mystart+(breaknr*npop/nadmix))
+								}
+							startvec		<- c(mystart,mybreakvec+1)
+							endvec			<- c(mybreakvec,myend)
+							for(binnr in c(1:nadmix))
+								{
+								binstart	<- startvec[binnr]
+								binend		<- endvec[binnr]
+								f3mat3[binstart:binend,j]		<- admixpopnr[binnr]
+								}
 							}
 						#cat(admixpopnr,sep="\n")
 						#cat(paste(i,j,sep="_"),sep="\n")
@@ -22676,6 +22703,177 @@ findtriplets<-function(mytree=NULL,tripletdf=NULL,tipnames=NULL,silent=TRUE,newi
 		cat(getwd(),sep="\n")
 		}
 	}
+
+# 25-08-2022: check whether quartets are consistent with topology:
+# input population tree can be generated with the commands:
+# pop_neimatrix(export="pdf")
+# getpoptree(mymatrix=mysambar$popneimatrix,exportlabel="neiD",donj=TRUE,edgecolors=TRUE,mytype="unrooted",labelcex=0.75)
+findquartets<-function(mytree=NULL,quartetdf=NULL,tipnames=NULL,silent=TRUE,newickfile=NULL,nexusfile=NULL,quartetfile=NULL,plottree=FALSE,doexport=FALSE,makeglobal=FALSE,myroot=NULL)
+	{
+	my_repos	<- 'http://cran.us.r-project.org'
+	if("ape" %in% rownames(installed.packages()) == FALSE) {install.packages("ape",repos=my_repos)}	
+	if("phangorn" %in% rownames(installed.packages()) == FALSE) {install.packages("phangorn",repos=my_repos)}	
+	if("ape" %in% (.packages()) == FALSE){library("ape")}
+	if("phangorn" %in% (.packages()) == FALSE){library("phangorn")}
+	#
+	### READ TREE ###
+	if(!is.null(newickfile))
+		{
+		cat("Importing tree in newick format...",sep="\n")
+		if(!file.exists(newickfile))
+			{
+			cat("ERROR: Specified tree file not found in directory:",sep="\n")
+			return(cat(getwd(),sep="\n"))
+			}
+		mytree			<- ape::read.tree(newickfile)
+		}
+	if(!is.null(nexusfile))
+		{
+		cat("Importing tree in nexus format...",sep="\n")
+		if(!file.exists(nexusfile))
+			{
+			cat("ERROR: Specified tree file not found in directory:",sep="\n")
+			return(cat(getwd(),sep="\n"))
+			}
+		mytree			<- ape::read.nexus(nexusfile)
+		}
+	if(is.null(mytree))
+		{
+		return(cat("ERROR: please specify an (existing) input tree.",sep="\n"))	
+		}
+	if(class(mytree)!="phylo")
+		{
+		return(cat("ERROR: specified tree should be a 'phylo' object.",sep="\n"))	
+		}
+	if(!is.null(myroot))
+		{
+		if(!myroot%in%mytree$tip.label)
+			{
+			return(cat("ERROR: specified root not present in phylogeny.",sep="\n"))
+			}
+		cat("Rooting tree...",sep="\n")
+		mytree	<- root(mytree,myroot,resolve.root=TRUE)
+		}
+	if(!is.rooted(mytree))
+		{
+		return(cat("ERROR: tree is unrooted. Please specify a root to the myroot flag.",sep="\n")) 
+		}
+	#
+	### READ QUARTETS DATAFRAME ###
+	if(!is.null(quartetfile))
+		{
+		cat("Importing txt-file with quartets...",sep="\n")
+		if(!file.exists(quartetfile))
+			{
+			cat("ERROR: Specified quartet file not found in directory:",sep="\n")
+			return(cat(getwd(),sep="\n"))
+			}
+		quartetdf 		<- read.table(quartetfile,header=TRUE)
+		}
+	if(is.null(quartetdf))
+		{
+		if(is.null(tipnames))
+			{
+			cat("WARNING: no (existing) input quartets dataframe defined, and no (existing) tipnames defined either. Generating a dataframe will all possible quartets.",sep="\n")
+			tipnames		<- mytree$tip.label
+			}else{
+			cat("No input quartet dataframe defined. Generating a dataframe with all possible quartets for samples/populations specified to tipnames flag.",sep="\n")
+			}
+		npops				<- length(tipnames)
+		quartetdf			<- as.data.frame(permutations(n=npops,r=4,v=tipnames,repeats.allowed=F))
+		colnames(quartetdf)	<- c("p1","p2","p3","p4")
+		}else{
+		cat("Evaluating quartets specified in input quartets dataframe...",sep="\n")
+		colnames(quartetdf)[colnames(quartetdf)=="P1"]	<- "p1"
+		colnames(quartetdf)[colnames(quartetdf)=="P2"]	<- "p2"
+		colnames(quartetdf)[colnames(quartetdf)=="P3"]	<- "p3"
+		colnames(quartetdf)[colnames(quartetdf)=="P4"]	<- "p4"
+		if(any(!c("p1","p2","p3","p4")%in%colnames(quartetdf)))
+			{
+			return(cat("ERROR: input quartet dataframe should contain columns named 'p1', 'p2', 'p3' and 'p4' (case-sensitive).",sep="\n"))	
+			}
+		if(is.null(tipnames))
+			{
+			tipnames		<- unique(c(quartetdf$p1,quartetdf$p2,quartetdf$p3,quartetdf$p4))
+			npops			<- length(tipnames)
+			}else{
+			popvec	<- unique(c(quartetdf$p1,quartetdf$p2,quartetdf$p3,quartetdf$p4))
+			if(any(!popvec%in%tipnames)|any(!tipnames%in%popvec))
+				{
+				return(cat("ERROR: population names in quartets dataframe do not correspond with population names in input tipnames vector.",sep="\n"))
+				}
+			}
+		}
+	if(any(!unique(c(quartetdf$p1,quartetdf$p2,quartetdf$p3,quartetdf$p4)%in%mytree$tip.label)))
+		{
+		return(cat("ERROR: one or more names in quartets dataframe (columns p1, p2, p3 and p4) are not present in tiplabels of phylogeny.",sep="\n"))
+		}
+	cat(paste("Number of quartets: ", nrow(quartetdf),".",sep=""),sep="\n")
+	# for our analysis no difference between (((A,B),(C,D)) and ((B,A),(C,D)), ((A,B),(D,C)) or ((B,A),(D,C)). Delete ((B,A),(C,D)), ((A,B),(D,C)) or ((B,A),(D,C)):
+	cat("Checking quartets dataframe for occurrence of (((A,B),(C,D)), ((B,A),(C,D)), ((A,B),(D,C)) or ((B,A),(D,C)), and if present, selecting one only.",sep="\n") 
+	quartetdf$quartet		<- NA
+	for(k in c(1:nrow(quartetdf)))
+		{
+		myvec					<- as.vector(unlist(quartetdf[k,c("p1","p2","p3","p4")]))
+		myvec					<- myvec[order(myvec)]
+		quartetdf$quartet[k]	<- paste(myvec,collapse="_")
+		}
+	quartetdf				<- quartetdf[(!duplicated(quartetdf$quartet)),]
+	nquartets				<- nrow(quartetdf)
+	cat(paste("Number of quartets: ", nquartets,".",sep=""),sep="\n")
+	rfdf					<<- quartetdf
+	#
+	if(makeglobal)
+		{
+		reftree				<<- mytree
+		myquartetdf			<<- quartetdf 
+		}
+	### CALCULATE ROBINSON-FOULDS SCORE ####
+	cat("Checking whether quartets are consistent with topology...",sep="\n")
+	rfdf$RF					<<- NA
+	for(i in c(1:nrow(quartetdf)))
+	#for(i in c(1:30))
+		{
+		if(i%%25000==0){cat(paste(i," out of ",nrow(quartetdf),".",sep=""),sep="\n")}
+		in1					<- quartetdf$p1[i]
+		in2					<- quartetdf$p2[i]
+		out1				<- quartetdf$p3[i]
+		out2				<- quartetdf$p4[i]
+		mynewick			<<- paste("((",in1,",",in2,"),(",out1,",",out2,"));",sep="")
+		quartettree 		<<- read.tree(text=mynewick)	
+		subtree				<<- keep.tip(phy=mytree,tip=c(in1,in2,out1,out2))
+		if(makeglobal)
+			{
+			mynewick			<<- mynewick
+			quartettree 		<<- quartettree	
+			subtree				<<- subtree
+			}
+		if(!is.binary(subtree))
+			{
+			return(cat("ERROR: non-binary subtree.",sep="\n"))
+			}
+		# phangorn package:
+		# cat("Calculating Robinson-Foulds distance.",sep="\n")
+		rfdf$RF[i]			<<- RF.dist(tree1=subtree,tree2=quartettree,check.labels=TRUE,rooted=TRUE)
+		}
+	nconsistent		<- length(rfdf$RF[rfdf$RF==0&!is.na(rfdf$RF)])
+	ndiscordant		<- length(rfdf$RF[rfdf$RF!=0&!is.na(rfdf$RF)])
+	cat(paste("Number of topology-consistent quartets: ",nconsistent,".",sep="") ,sep="\n")
+	cat(paste("Number of topology-discordant quartets: ",ndiscordant,".",sep="") ,sep="\n")
+	cat("Robinson-Foulds scores are stored in dataframe 'rfdf'.\nA score of 0 indicates that the quartet topology is consistent with the input tree (and hence can be used for ABBA-BABA calculations).",sep="\n") 
+	if(plottree)
+		{
+		plot(mytree,type="unrooted")
+		}
+	if(doexport)
+		{
+		write.table(rfdf,"quartets.robinsonfould.all.txt",quote=FALSE,sep="\t",col.names=TRUE,row.names=FALSE)
+		write.table(rfdf[rfdf$RF==0,],"quartets.robinsonfould.filter.txt",quote=FALSE,sep="\t",col.names=TRUE,row.names=FALSE)
+		cat("The table has also been exported to the files 'quartets.robinsonfould.all.txt' and 'quartets.robinsonfould.filter.txt' in the directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
+	}
+
 
 # 04-04-2022: heatmap for Dstats:
 Dheatmap<-function(export=NULL,exportname="Dstats_heatmap",do_analyses=TRUE,creatematrix=TRUE,introgressors=mysambar$poporder,ingroups=mysambar$poporder,silent=TRUE,do_jackknife=FALSE,block_size=1000000,my_root=NULL)
@@ -24107,11 +24305,13 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 		}
 	#
 	# identical to MLH:
+	cat("Plotting heterozygosity for all sites (same as MLH)...",sep="\n")
 	indheboxplot(export="eps",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
 	indheboxplot(export="pdf",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
 	indheboxplot(export="png",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
 	if(mysambar$os=="Windows"){indheboxplot(export="wmf",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)}
-	# segregating sites only:	
+	# segregating sites only:
+	cat("Plotting heterozygosity for segregating sites only...",sep="\n")
 	indheboxplot(export="eps",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)
 	indheboxplot(export="pdf",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)	
 	indheboxplot(export="png",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)
@@ -24410,19 +24610,31 @@ calcMLH<-function(popnames=mysambar$populations,phenovector=NULL)
 
 MLHboxplot<-function(export=NULL,sMLH=FALSE,plotname="MLH_boxplot",popnames=mysambar$poporder,popcolours=mysambar$colorder,ylabel="Multi locus heterozygosity (%)",yline=5.25,silent=TRUE)
 	{
+	if(is.null(popnames))
+		{
+		return(cat("ERROR: the flag 'popnames' may not be set to NULL.",sep="\n"))
+		}
+	if(is.null(popcolours))
+		{
+		return(cat("ERROR: the flag 'popcolours' may not be set to NULL.",sep="\n"))
+		}
 	indstemp	<- droplevels(inds[inds$filter,])
 	npops		<- length(popnames)
 	#
-	if(!"MLH"%in%colnames(inds))
+	if(!"MLH"%in%colnames(indstemp))
 		{
 		# SambaR's hetero_all estimate is identical to the MLH estimate of the package inbreedR
 		cat("Column 'MLH' not present in inds dataframe. Setting it equal to inds$hetero_all.",sep="\n")
+		if(!"hetero_all"%in%colnames(indstemp))
+			{
+			return(cat("ERROR: the column inds$hetero_all is also missing (?). Rerun the filterdata() function.",sep="\n"))
+			}
 		indstemp$MLH<- indstemp$hetero_all
 		}
 	#
 	if(sMLH)
 		{
-		if(!"sMLH"%in%colnames(inds))
+		if(!"sMLH"%in%colnames(indstemp))
 			{
 			return(cat("Column 'sMLH' not present in inds dataframe. First run the calcMLH function.",sep="\n"))
 			}
@@ -24433,6 +24645,10 @@ MLHboxplot<-function(export=NULL,sMLH=FALSE,plotname="MLH_boxplot",popnames=mysa
 		ymin		<- 0.8*min(indstemp$MLH,na.rm=TRUE)
 		ymax		<- ifelse(ymax>1,1,ymax)
 		ymin		<- ifelse(ymin<0,0,ymin)
+		}
+	if(!"poporder"%in%colnames(indstemp))
+		{
+		return(cat("ERROR: the column 'poporder' is missing from inds object.",sep="\n"))
 		}
 	#
 	if(!is.null(export))
@@ -27655,7 +27871,7 @@ add2inds2<-function(myfile="allvcfdist.noheaders.txt",mutrate=NULL,errorrate=0,g
 		inds2		<<- inds2temp
 		}
 	cat("Information added to inds2 dataframe.",sep="\n")
-	if("n0"%in%colnames(inds2))
+	if("n0"%in%colnames(inds2)|"hd0"%in%colnames(inds2))
 		{
 		inds2		<- inds2temp
 		calc_rawdistance(error_rate=errorrate,mut_rate=mutrate,gen_time=gentime)
@@ -27680,36 +27896,58 @@ calc_rawdistance<-function(error_rate=0,mut_rate=1*10^-8,gen_time=NULL,missfilte
 	# Error rate for y chromosome: 1*10^-4
 	# Error rate for autosomes (diploid): 0.7*10^-5
 	#
-	if(all(c("n0","n1","n2he","n2ho")%in%colnames(inds2)))
+	if(all(c("h0","h1","d0","d1","d2he","d2ho","hd0","hd1","hd2")%in%colnames(inds2)))
 		{
-		cat("Diploid data.",sep="\n")
-		inds2$d			<- (inds2$n1*0.5+inds2$n2he*0.5+inds2$n2ho)/(inds2$n0+inds2$n1+inds2$n2he+inds2$n2ho)*100
-		inds2$meanhe	<- (inds2$n1*0.5+inds2$n2he)/(inds2$n0+inds2$n1+inds2$n2he+inds2$n2ho)*100
-		#inds2$he		<- inds2$n2he/(inds2$n2he+inds2$n0)*100
-		inds2$d_miss	<- inds2$nmiss/(inds2$nmiss+inds2$n0+inds2$n1+inds2$n2he+inds2$n2ho)
+		cat("Haplodiploid data.",sep="\n")
+		inds2$ploidy	<- ifelse(inds2$h0>0|inds2$h1>0,"HA_HA",ifelse(inds2$hd0>0|inds2$hd1>0|inds2$hd2>0,"HA_DI","DI_DI"))
+		inds2$d			<- NA
+		inds2$meanhe	<- NA
+		inds2$d_miss	<- NA
+		# both haploid:
+		inds2$d			<- ifelse(inds2$h0>0|inds2$h1>0,ifelse(inds2$name1!=inds2$name2,ifelse(inds2$h0+inds2$h1!=0,inds2$h1/(inds2$h0+inds2$h1)*100,NA),0),inds2$d)
+		inds2$meanhe	<- ifelse(inds2$h0>0|inds2$h1>0,0,inds2$meanhe)
+		inds2$d_miss	<- ifelse(inds2$h0>0|inds2$h1>0,inds2$nmiss/(inds2$nmiss+inds2$h0+inds2$h1),inds2$d_miss)
+		# both diploid:
+		inds2$d			<- ifelse(inds2$d0>0|inds2$d1>0|inds2$d2he>0|inds2$d2ho>0,(inds2$d1*0.5+inds2$d2he*0.5+inds2$d2ho)/(inds2$d0+inds2$d1+inds2$d2he+inds2$d2ho)*100,inds2$d)
+		inds2$meanhe	<- ifelse(inds2$d0>0|inds2$d1>0|inds2$d2he>0|inds2$d2ho>0,(inds2$d1*0.5+inds2$d2he)/(inds2$d0+inds2$d1+inds2$d2he+inds2$d2ho)*100,inds2$meanhe)
+		inds2$d_miss	<- ifelse(inds2$d0>0|inds2$d1>0|inds2$d2he>0|inds2$d2ho>0,inds2$nmiss/(inds2$nmiss+inds2$d0+inds2$d1+inds2$d2he+inds2$d2ho),inds2$d_miss)
+		# one haploid, one diploid:
+		inds2$d			<- ifelse(inds2$hd0>0|inds2$hd1>0|inds2$hd2>0,(inds2$hd1*0.5+inds2$hd2)/(inds2$hd0+inds2$hd1+inds2$hd2)*100,inds2$d)
+		inds2$meanhe	<- ifelse(inds2$hd0>0|inds2$hd1>0|inds2$hd2>0,(inds2$hd1)/(inds2$hd0+inds2$hd1+inds2$hd2)*100,inds2$meanhe)
+		inds2$d_miss	<- ifelse(inds2$hd0>0|inds2$hd1>0|inds2$hd2>0,inds2$nmiss/(inds2$nmiss+inds2$hd0+inds2$hd1+inds2$hd2),inds2$d_miss)
 		}else{
-		cat("Haploid data.",sep="\n")
-		inds2$d				<- ifelse(inds2$name1!=inds2$name2,ifelse(inds2$n0+inds2$n1!=0,inds2$n1/(inds2$n0+inds2$n1)*100,NA),0)
-		#inds2$meanhe		<- 0
-		inds2$exp_nerror 	<- ifelse(inds2$name1!=inds2$name2,ifelse(inds2$n0+inds2$n1!=0,round((inds2$n0+inds2$n1)*error_rate),NA),0)
-		inds2$d_corrected	<- ifelse(inds2$name1!=inds2$name2,ifelse(inds2$n0+inds2$n1!=0,(inds2$n1-inds2$exp_nerror)/(inds2$n0+inds2$n1)*100,NA),0)
-		inds2$d_miss		<- inds2$nmiss/(inds2$nmiss+inds2$n0+inds2$n1)
-		if(!is.null(gen_time)&!is.null(mut_rate))
+		if(all(c("n0","n1","n2he","n2ho")%in%colnames(inds2)))
 			{
-			cat("Assuming specified mutation rate is per site per generation.",sep="\n") 
-			inds2$tmrca_g	<- (1/100*inds2$d_corrected)/(2*mut_rate)
-			inds2$tmrca_y	<- inds2$tmrca_g*gen_time
-			}
-		if(is.null(gen_time)&!is.null(mut_rate))
-			{
-			cat("Assuming specified mutation rate is per site per year.",sep="\n") 
-			inds2$tmrca_y	<- (1/100*inds2$d_corrected)/(2*mut_rate)
-			inds2$tmrca_g	<- NA
+			cat("Diploid data.",sep="\n")
+			inds2$d			<- (inds2$n1*0.5+inds2$n2he*0.5+inds2$n2ho)/(inds2$n0+inds2$n1+inds2$n2he+inds2$n2ho)*100
+			inds2$meanhe	<- (inds2$n1*0.5+inds2$n2he)/(inds2$n0+inds2$n1+inds2$n2he+inds2$n2ho)*100
+			#inds2$he		<- inds2$n2he/(inds2$n2he+inds2$n0)*100
+			inds2$d_miss	<- inds2$nmiss/(inds2$nmiss+inds2$n0+inds2$n1+inds2$n2he+inds2$n2ho)
+			}else{
+			cat("Haploid data.",sep="\n")
+			inds2$d				<- ifelse(inds2$name1!=inds2$name2,ifelse(inds2$n0+inds2$n1!=0,inds2$n1/(inds2$n0+inds2$n1)*100,NA),0)
+			#inds2$meanhe		<- 0
+			inds2$exp_nerror 	<- ifelse(inds2$name1!=inds2$name2,ifelse(inds2$n0+inds2$n1!=0,round((inds2$n0+inds2$n1)*error_rate),NA),0)
+			inds2$d_corrected	<- ifelse(inds2$name1!=inds2$name2,ifelse(inds2$n0+inds2$n1!=0,(inds2$n1-inds2$exp_nerror)/(inds2$n0+inds2$n1)*100,NA),0)
+			inds2$d_miss		<- inds2$nmiss/(inds2$nmiss+inds2$n0+inds2$n1)
+			if(!is.null(gen_time)&!is.null(mut_rate))
+				{
+				cat("Assuming specified mutation rate is per site per generation.",sep="\n") 
+				inds2$tmrca_g	<- (1/100*inds2$d_corrected)/(2*mut_rate)
+				inds2$tmrca_y	<- inds2$tmrca_g*gen_time
+				}
+			if(is.null(gen_time)&!is.null(mut_rate))
+				{
+				cat("Assuming specified mutation rate is per site per year.",sep="\n") 
+				inds2$tmrca_y	<- (1/100*inds2$d_corrected)/(2*mut_rate)
+				inds2$tmrca_g	<- NA
+				}
 			}
 		}
 	inds2$d2	<- inds2$d
 	inds2$d3	<- inds2$d
 	inds2		<<- inds2
+	cat("Raw genetic distances added to inds2 dataframe.",sep="\n")
 	}
 
 # 22-06-2022: renamed from 'dxystripchart' to 'plot_rawdistance'
