@@ -24380,8 +24380,10 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 			cat("If you receive an error shortly after this line, rerun the calcdiversity function with the flag do_venn to FALSE.",sep="\n") 
 			# Venn diagram showing overlap of polymorphic sites between loci
 			# Works for maximum 5 populations
-			markervenn(export=TRUE,doprop=FALSE)
-			markervenn(export=TRUE,doprop=TRUE)
+			markervenn(export=TRUE,doprop=FALSE,dofilter=TRUE)
+			markervenn(export=TRUE,doprop=TRUE,dofilter=TRUE)
+			markervenn(export=TRUE,doprop=FALSE,dofilter=FALSE)
+			markervenn(export=TRUE,doprop=TRUE,dofilter=FALSE)
 			}
 		}else{
 		cat("Only 1 population defined. Skipping count of private alleles.")
@@ -24885,8 +24887,14 @@ private_hist<-function(popnames=mysambar$populations,snpsfilter=NULL,export=NULL
 # 14-09-2021:
 # Shows number of private allele as well as shared alleles
 # Works for maximum 5 populations
-markervenn<-function(export=FALSE,plotname="Private_and_shared_alleles_venndiagram",minmaf=0,myfilter=snps$filter,popnames=mysambar$populations,popcolours=mysambar$mycolours,silent=TRUE,numbercex=2.5,labelcex=2.5,addtotal=FALSE,include_overall=FALSE,doprop=FALSE)
+markervenn<-function(export=FALSE,plotname="Private_and_shared_alleles_venndiagram",minmaf=0,dofilter=TRUE,popnames=mysambar$populations,popcolours=mysambar$mycolours,silent=TRUE,numbercex=2.5,labelcex=2.5,addtotal=FALSE,include_overall=FALSE,doprop=FALSE)
 	{
+	if(dofilter)
+		{
+		myfilter	<- snps$filter
+		}else{
+		myfilter	<- TRUE
+		}
 	seglist		<<- list()
 	npops		<- length(popnames)
 	for(k in c(1:npops))
@@ -24920,7 +24928,8 @@ markervenn<-function(export=FALSE,plotname="Private_and_shared_alleles_venndiagr
 	if(!silent){cat("Plotting...",sep="\n")}
 	# depends on package VennDiagram
 	plotname	<- ifelse(doprop,paste(plotname,"prop",sep="."),plotname)
-	if(export){pdf(paste(plotname,minmaf,"pdf",sep="."),height=6,width=8)}
+	plotname	<- ifelse(dofilter,paste(plotname,"filtered",sep="."),paste(plotname,"unfiltered",sep="."))
+	if(export){pdf(paste(plotname,paste("minmaf",minmaf,sep=""),"pdf",sep="."),height=6,width=8)}
 	#v1 <- venn.diagram(seglist,filename=NULL,alpha=0.6,cex=3,cat.cex=3,fill=c("blue","darkorchid4"),col=c("blue","darkgreen","darkorchid4"),margin=0.1)
 	v1 	<<- venn.diagram(seglist,filename=NULL,alpha=0.6,cex=numbercex,cat.cex=labelcex,fill=popcolours,col=popcolours,margin=0.1)
 	if(doprop)
