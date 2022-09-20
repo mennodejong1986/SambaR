@@ -5637,7 +5637,7 @@ exporthighestsd<-function(nsnps=c(10,20,50,100,150,250),silent=TRUE)
 	setwd(mywd)
 	}
 
-exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE,do_silent=TRUE,per_pop=FALSE)
+exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE,do_silent=TRUE,per_pop=FALSE,do_tab=TRUE)
 	{
 	setwd(mysambar$inputfilesdir)
 	if(do_immanc)
@@ -5659,19 +5659,19 @@ exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,d
 	if(do_pednumber)
 		{
 		cat("Exporting input for plink relatedness (pi_hat) calculations ('metapop.allinds.filter.number.ped' and 'metapop.allinds.filter.number.map)...",sep="\n")
-		genlight2ped(snpsfilter=snps$filter,indsfilter=rep(TRUE,nrow(inds)),exportname="metapop.allinds.filter.number",quiet=TRUE) 		
+		genlight2ped(snpsfilter=snps$filter,indsfilter=rep(TRUE,nrow(inds)),exportname="metapop.allinds.filter.number",quiet=TRUE,use_tab=do_tab) 		
 		cat("Exporting input for Admixture software and plink relatedness (pi_hat) calculations ('metapop.filter.number.ped' and 'metapop.filter.number.map')...",sep="\n")
-		genlight2ped(snpsfilter=snps$filter,indsfilter=inds$filter,exportname="metapop.retainedinds.filter.number",quiet=TRUE)
+		genlight2ped(snpsfilter=snps$filter,indsfilter=inds$filter,exportname="metapop.retainedinds.filter.number",quiet=TRUE,use_tab=do_tab)
 		# 17-06-2019: This was originally called 'Relatednessinput'
 		# 16-03-2019: I made changes to include all samples in the output file.
 		cat("Exporting input for plink LD calculations (files ending on 'filter2.number.ped' and 'filter2.number.map'). This make take a while...",sep="\n")	
-		exportdata(snpsfilter=snps$filter2,indsfilter=inds$filter,export_name="filter2.number",quiet2=TRUE,do_all=per_pop)
+		exportdata(snpsfilter=snps$filter2,indsfilter=inds$filter,export_name="filter2.number",quiet2=TRUE,do_all=per_pop,dotab=do_tab)
 		}
 	#
 	if(do_pedletter)
 		{
 		cat("Exporting input for 'plink --recode vcf' command (files ending on 'filter.number.ped' and 'filter.number.map'), in case you would like to convert filtered datasets (back) to vcf format.",sep="\n")
-		exportdata(snpsfilter=snps$filter,indsfilter=inds$filter,export_name="filter.letter",geno_nr=FALSE,quiet2=TRUE,do_all=per_pop)
+		exportdata(snpsfilter=snps$filter,indsfilter=inds$filter,export_name="filter.letter",geno_nr=FALSE,quiet2=TRUE,do_all=per_pop,dotab=do_tab)
 		}
 	#
 	setwd(mysambar$inputdatadir)
@@ -10600,7 +10600,7 @@ mat2df<-function(mymat=mysambar$indneimatrix)
 	}
 
 # Function to convert a dataframe with pairwise sample scores into a 2D matrix, and optionally create heatmap using plotindmatrix function.
-df2mat<-function(mydf=inds2,myinds=inds$nr,indnames=inds$name,mypops=inds$pop,myscore=NULL,doheatmap=TRUE,twosided=FALSE,exportprefix="Rawdistance_matrix.ind",plot_title="Raw genetic distance (%)")
+df2mat<-function(mydf=inds2,myinds=inds$nr,indnames=inds$name,mypops=inds$pop,myscore=NULL,doheatmap=TRUE,twosided=FALSE,above_diagonal=TRUE,exportprefix="Rawdistance_matrix.ind",plot_title="Raw genetic distance (%)")
 	{
 	if(is.null(mydf))
 		{
@@ -10630,7 +10630,13 @@ df2mat<-function(mydf=inds2,myinds=inds$nr,indnames=inds$name,mypops=inds$pop,my
 		mydf		<- mydf[order(mydf$name1,mydf$name2),]
 		myscorevec	<- mydf[,myscore,drop=TRUE]	
 		mymatrix	<- matrix(myscorevec,nrow=ninds,ncol=ninds,byrow=TRUE)
-		mymatrix[lower.tri(mymatrix)]	<- NA
+		if(above_diagonal)
+			{
+			cat("Storing data above diagonal.")
+			mymatrix[lower.tri(mymatrix)]	<- NA
+			}else{
+			cat("Storing on both sides of diagonal.",sep="\n")
+			}
 		}else{
 		mydf1	<- mydf[mydf$name1==mydf$name2,]
 		mydf2	<- mydf[mydf$name1!=mydf$name2,]
@@ -10653,7 +10659,14 @@ df2mat<-function(mydf=inds2,myinds=inds$nr,indnames=inds$name,mypops=inds$pop,my
 		colnames(m2)		<- myinds
 		rownames(m2)		<- myinds
 		m2[lower.tri(m2)]	<- mydf2[,myscore,drop=TRUE]
-		mymatrix			<- t(m2)
+		if(above_diagonal)
+			{
+			cat("Storing data above diagonal.")
+			mymatrix		<- t(m2)
+			}else{
+			cat("Storing data below diagonal. Can be transformed into a dist object using the function 'as.dist()'.",sep="\n")
+			mymatrix		<- m2
+			}
 		if(nrow(mydf1)>0)
 			{
 			cat("Adding within-individual scores to diagonal...",sep="\n")
@@ -11108,7 +11121,7 @@ mltree<-function(starttree=NULL,starttree_distance=NULL,starttree_method=NULL,do
 		}
 	}
 
-popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,mutrate=NULL,genomeprop=1,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,marknode=FALSE,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE,dopathlength=FALSE,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE)
+popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,mutrate=NULL,genomeprop=1,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,marknode=FALSE,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE,dopathlength=FALSE,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE)
 	{
 	# type can be: "phylogram" (default), "cladogram", "fan", "unrooted", "radial"
 	# distance can be 'bitwise.dist' (default, which is Hamming's distance), 'euclidean', 'allele sharing distance', 'pi', 'nei.dist', 'rogers.dist', 'edwards.dist', 'reynolds.dist'
@@ -11949,7 +11962,13 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	#write.nexus(mytree,file=paste(filename,"labels.nexus.txt",sep="."),translate=TRUE)
 	#
 	# export in newick format:
-	write.tree(mytree,file=paste(filename,"labels.newick.txt",sep="."),append=FALSE,digits=0,tree.names=FALSE)
+	if(do_append)
+		{
+		cat("Adding Newick-format tree to file 'mytrees.labels.newick.txt'.",sep="\n") 
+		write.tree(mytree,file=paste("mytrees.labels.newick.txt",sep="."),append=TRUE,digits=0,tree.names=FALSE)
+		}else{
+		write.tree(mytree,file=paste(filename,"labels.newick.txt",sep="."),append=FALSE,digits=0,tree.names=FALSE)
+		}
 	# without branch lengths:
 	# mytree[[2]]<-NULL
 	# write.tree(mytree,file=paste(filename,"labels.newick.nobranchlengths.txt",sep="."),append=FALSE,digits=0,tree.names=FALSE)
@@ -28251,36 +28270,44 @@ calcpairmiss<-function(popnames=mysambar$populations,exporttype=NULL,use_current
 		}
 	# scatterplot pairwise miss:
 	if(!silent){cat("Plotting batcheffect...",sep="\n")}
-	plotbatcheffects(export=exporttype,dothin=TRUE,mydf=inds2[!inds2$sameind,])
+	plotbatcheffects(export=exporttype,dothin=TRUE,mydf=inds2[!inds2$sameind,],usepopcol=FALSE)
+	plotbatcheffects(export=exporttype,dothin=TRUE,mydf=inds2[!inds2$sameind,],usepopcol=TRUE)
 	if(!use_currentdir)
 		{
 		setwd(my_wd)
 		}
-	if(!silent){cat("Generation Batch effect matrix...",sep="\n")}
+	#if(!silent){cat("Generation batch effect matrix...",sep="\n")}
 	#batcheffectmat()
 	}
 
-plotbatcheffects<-function(export=NULL,dothin=TRUE,mydf=inds2[inds$bool,])
+plotbatcheffects<-function(export=NULL,dothin=TRUE,mydf=inds2[inds$filter,],usepopcol=FALSE)
 	{
 	graphics.off()
 	if(dothin)
 		{
 		# This is to make plot lighter: no need to plot overlapping points.
-		mydf2		<- mydf[,c("pairmiss_exp","pairmiss_obs","outlier")]
+		mydf2		<- mydf[,c("pairmiss_exp","pairmiss_obs","outlier","popcol1","popcol2")]
 		mydf		<- unique(mydf2)
 		}
 	if(!is.null(export))
 		{
-		if(export=="eps"){postscript("Pairwise_miss_deviation.scatter.eps",family=mysambar$myfont,width=10,height=10)}
-		if(export=="pdf"){pdf("Pairwise_miss_deviation.scatter.pdf",family=mysambar$myfont,width=10,height=10)}
-		if(export=="png"){png("Pairwise_miss_deviation.scatter.png",family=mysambar$myfont,width=720,height=720)}
-		#if(export=="wmf"){win.metafile("Pairwise_miss_deviation.scatter.wmf",family=mysambar$myfont,width=10,height=10)} # this file is too big
+		collabel	<- ifelse(usepopcol,"popcol","black")
+		if(export=="eps"){postscript(paste("Pairwise_miss_deviation.scatter",collabel,"eps",sep="."),family=mysambar$myfont,width=10,height=10)}
+		if(export=="pdf"){pdf(paste("Pairwise_miss_deviation.scatter",collabel,"pdf",sep="."),,family=mysambar$myfont,width=10,height=10)}
+		if(export=="png"){png(paste("Pairwise_miss_deviation.scatter",collabel,"png",sep="."),family=mysambar$myfont,width=720,height=720)}
+		#if(export=="wmf"){win.metafile(paste("Pairwise_miss_deviation.scatter",collabel,"wmf",sep="."),family=mysambar$myfont,width=10,height=10)} # this file is too big
 		}
 	par(mar=c(5,6,5,2),cex.axis=2.5,cex.lab=3,cex.main=3)
 	mymax	<- max(c(mydf$pairmiss_exp,mydf$pairmiss_obs),na.rm=TRUE)
-	plot(mydf$pairmiss_exp,mydf$pairmiss_obs,pch=16,cex=1,xlab="Expected missingness per sample pair",ylab="Observed missingness per sample pair",ylim=c(0,mymax),xlim=c(0,mymax),main="Identification of batch effects")
-	points(mydf$pairmiss_exp[mydf$outlier],mydf$pairmiss_obs[mydf$outlier],pch=16,cex=1,col="red")
-	legend("topleft",legend=c("TRUE","FALSE"),title="Batch effect",bty='n',fill=c("red","black"),cex=3)
+	if(usepopcol)
+		{
+		plot(mydf$pairmiss_exp,mydf$pairmiss_obs,pch=21,col=mydf$popcol1,bg=mydf$popcol2,cex=1.5,lwd=3,xlab="Expected missingness per sample pair",ylab="Observed missingness per sample pair",ylim=c(0,mymax),xlim=c(0,mymax),main="Identification of batch effects")
+		legend("topleft",legend=mysambar$poporder2,fill=mysambar$colorder2,bty='n',cex=2)
+		}else{
+		plot(mydf$pairmiss_exp,mydf$pairmiss_obs,pch=16,cex=1,lwd=2,xlab="Expected missingness per sample pair",ylab="Observed missingness per sample pair",ylim=c(0,mymax),xlim=c(0,mymax),main="Identification of batch effects")
+		points(mydf$pairmiss_exp[mydf$outlier],mydf$pairmiss_obs[mydf$outlier],pch=16,cex=1,col="red")
+		legend("topleft",legend=c("TRUE","FALSE"),title="Batch effect",bty='n',fill=c("red","black"),cex=3)
+		}
 	if(!is.null(export)){dev.off()}
 	}
 
@@ -36636,34 +36663,34 @@ exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include
 	if(export_outlier)
 		{
 		cat("Exporting dataset with all outlier SNPs marked by at least one selection scan, in PED and MAP format...",sep="\n")
-		exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+		exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 		if(any(outlierfilter2))
 			{
 			cat("Exporting dataset with outlier SNPs marked by all (used) selection scans, in PED and MAP format...",sep="\n")
-			exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter2,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.overlap",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter2,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.overlap",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}else{
 			cat("No SNP has been marked by all outlier scans.",sep="\n")
 			}
 		# outliers of individual selection scans:
 		if(any(gwdsout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&gwdsout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&gwdsout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		if(any(pcadaptout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&pcadaptout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&pcadaptout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		if(any(outflankout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&outflankout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&outflankout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		if(any(bayescanout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&bayescanout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&bayescanout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		if(any(fsthetout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&fsthetout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&fsthetout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		}
 	#
@@ -36671,27 +36698,27 @@ exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include
 		{
 		neutralfilter	<- snps$filter&(!outfilter)
 		cat("Exporting dataset with neutral SNPs in PED and MAP format...",sep="\n")
-		exportdata(indsfilter=inds$filter,snpsfilter=neutralfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+		exportdata(indsfilter=inds$filter,snpsfilter=neutralfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 		#
 		if(any(gwdsout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!gwdsout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!gwdsout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		if(any(pcadaptout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!pcadaptout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!pcadaptout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		if(any(outflankout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!outflankout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!outflankout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		if(any(bayescanout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!bayescanout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!bayescanout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		if(any(fsthetout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!fsthetout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!fsthetout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
 			}
 		}
 	setwd(currentdir)
@@ -36700,7 +36727,7 @@ exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include
 
 # this function exports PED and MAP files for all populations separately and for all pops combined:
 # depends on function 'genlight2ped':
-exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysambar$populations,export_name="filter1",geno_nr=TRUE,quiet2=FALSE,do_all=TRUE,do_pheno=FALSE,misschar="0",silent=TRUE)
+exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysambar$populations,export_name="filter1",geno_nr=TRUE,quiet2=FALSE,do_all=TRUE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=TRUE)
 	{ 
 	if(do_all)
 		{
@@ -36722,7 +36749,7 @@ exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysa
 		indstemp		<<- indstemp
 		genlighttemp	<<- mygenlight
 		}
-	genlight2ped(genonumber=geno_nr,exportname=exportnametemp,input=genlighttemp,in_snps=snpstemp,in_inds=indstemp,snpsfilter=rep(TRUE,nrow(snpstemp)),indsfilter=rep(TRUE,nrow(indstemp)),quiet=quiet2,miss_char=misschar)
+	genlight2ped(genonumber=geno_nr,exportname=exportnametemp,input=genlighttemp,in_snps=snpstemp,in_inds=indstemp,snpsfilter=rep(TRUE,nrow(snpstemp)),indsfilter=rep(TRUE,nrow(indstemp)),quiet=quiet2,miss_char=misschar,use_tab=dotab)
 	if(do_all)
 		{
 		for (mypop in popnames)
@@ -36731,7 +36758,7 @@ exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysa
 			snpstemp		<- snps[snpsfilter,]
 			indstemp		<- inds[inds$pop==mypop&indsfilter,]
 			exportnametemp	<- paste(mypop,export_name,sep=".")
-			genlight2ped(genonumber=geno_nr,exportname=exportnametemp,input=genlighttemp,in_snps=snpstemp,in_inds=indstemp,snpsfilter=rep(TRUE,nrow(snpstemp)),indsfilter=rep(TRUE,nrow(indstemp)),quiet=quiet2,miss_char=misschar)
+			genlight2ped(genonumber=geno_nr,exportname=exportnametemp,input=genlighttemp,in_snps=snpstemp,in_inds=indstemp,snpsfilter=rep(TRUE,nrow(snpstemp)),indsfilter=rep(TRUE,nrow(indstemp)),quiet=quiet2,miss_char=misschar,use_tab=dotab)
 			}
 		}
 	}
