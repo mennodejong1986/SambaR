@@ -5637,8 +5637,19 @@ exporthighestsd<-function(nsnps=c(10,20,50,100,150,250),silent=TRUE)
 	setwd(mywd)
 	}
 
-exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE,do_silent=TRUE,per_pop=FALSE,do_tab=TRUE)
+exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE,do_silent=TRUE,per_pop=FALSE,do_tab=TRUE,imputeddata=FALSE)
 	{
+	if(imputeddata)
+		{
+		if(is.null(mysambar$imputedmatrix))
+			{
+			return(cat("ERROR: The flag 'imputeddata' is set to TRUE but mysambar$imputedmatrix does not exist. Did you run the sambarimpute(per_snp=FALSE) function?",sep="\n")) 
+			}
+		cat("Using imputed data (because flag 'imputeddata' is set to TRUE).",sep="\n")
+		inputgenlight	<- as.genlight(mysambar$imputedmatrix)
+		}else{
+		inputgenlight	<- mygenlight
+		}
 	setwd(mysambar$inputfilesdir)
 	if(do_immanc)
 		{
@@ -5659,19 +5670,23 @@ exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,d
 	if(do_pednumber)
 		{
 		cat("Exporting input for plink relatedness (pi_hat) calculations ('metapop.allinds.filter.number.ped' and 'metapop.allinds.filter.number.map)...",sep="\n")
-		genlight2ped(snpsfilter=snps$filter,indsfilter=rep(TRUE,nrow(inds)),exportname="metapop.allinds.filter.number",quiet=TRUE,use_tab=do_tab) 		
+		myexportname		<- ifelse(imputeddata,"metapop.allinds.filter.number.imputed","metapop.allinds.filter.number")
+		genlight2ped(input=inputgenlight,snpsfilter=snps$filter,indsfilter=rep(TRUE,nrow(inds)),exportname=myexportname,quiet=TRUE,use_tab=do_tab) 		
 		cat("Exporting input for Admixture software and plink relatedness (pi_hat) calculations ('metapop.filter.number.ped' and 'metapop.filter.number.map')...",sep="\n")
-		genlight2ped(snpsfilter=snps$filter,indsfilter=inds$filter,exportname="metapop.retainedinds.filter.number",quiet=TRUE,use_tab=do_tab)
+		myexportname		<- ifelse(imputeddata,"metapop.retainedinds.filter.number.imputed","metapop.retainedinds.filter.number")
+		genlight2ped(input=inputgenlight,snpsfilter=snps$filter,indsfilter=inds$filter,exportname=myexportname,quiet=TRUE,use_tab=do_tab)
 		# 17-06-2019: This was originally called 'Relatednessinput'
 		# 16-03-2019: I made changes to include all samples in the output file.
-		cat("Exporting input for plink LD calculations (files ending on 'filter2.number.ped' and 'filter2.number.map'). This make take a while...",sep="\n")	
-		exportdata(snpsfilter=snps$filter2,indsfilter=inds$filter,export_name="filter2.number",quiet2=TRUE,do_all=per_pop,dotab=do_tab)
+		cat("Exporting input for plink LD calculations (files ending on 'filter2.number.ped' and 'filter2.number.map'). This make take a while...",sep="\n")
+		myexportname		<- ifelse(imputeddata,"filter2.number.imputed","filter2.number")
+		exportdata(input_genlight=inputgenlight,snpsfilter=snps$filter2,indsfilter=inds$filter,export_name="filter2.number",quiet2=TRUE,do_all=per_pop,dotab=do_tab)
 		}
 	#
 	if(do_pedletter)
 		{
 		cat("Exporting input for 'plink --recode vcf' command (files ending on 'filter.number.ped' and 'filter.number.map'), in case you would like to convert filtered datasets (back) to vcf format.",sep="\n")
-		exportdata(snpsfilter=snps$filter,indsfilter=inds$filter,export_name="filter.letter",geno_nr=FALSE,quiet2=TRUE,do_all=per_pop,dotab=do_tab)
+		myexportname		<- ifelse(imputeddata,"filter.letter.imputed","filter.letter")
+		exportdata(input_genlight=inputgenlight,snpsfilter=snps$filter,indsfilter=inds$filter,export_name=myexportname,geno_nr=FALSE,quiet2=TRUE,do_all=per_pop,dotab=do_tab)
 		}
 	#
 	setwd(mysambar$inputdatadir)
@@ -36736,7 +36751,7 @@ exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include
 
 # this function exports PED and MAP files for all populations separately and for all pops combined:
 # depends on function 'genlight2ped':
-exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysambar$populations,export_name="filter1",geno_nr=TRUE,quiet2=FALSE,do_all=TRUE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=TRUE)
+exportdata<-function(input_genlight=mygenlight,indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysambar$populations,export_name="filter1",geno_nr=TRUE,quiet2=FALSE,do_all=TRUE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=TRUE)
 	{ 
 	if(do_all)
 		{
@@ -36744,7 +36759,7 @@ exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysa
 		}else{
 		exportnametemp	<- export_name
 		}
-	genlighttemp		<- mygenlight[indsfilter,snpsfilter]
+	genlighttemp		<- input_genlight[indsfilter,snpsfilter]
 	snpstemp			<- snps[snpsfilter,]
 	indstemp			<- inds[indsfilter,]
 	if(do_pheno)
@@ -36763,7 +36778,7 @@ exportdata<-function(indsfilter=inds$filter,snpsfilter=snps$filter,popnames=mysa
 		{
 		for (mypop in popnames)
 			{
-			genlighttemp	<- mygenlight[inds$pop==mypop&indsfilter,snpsfilter]
+			genlighttemp	<- input_genlight[inds$pop==mypop&indsfilter,snpsfilter]
 			snpstemp		<- snps[snpsfilter,]
 			indstemp		<- inds[inds$pop==mypop&indsfilter,]
 			exportnametemp	<- paste(mypop,export_name,sep=".")
