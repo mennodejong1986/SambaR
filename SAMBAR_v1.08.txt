@@ -24216,7 +24216,7 @@ plotmigration<-function(myinputmatrix="bayesassmatrix.txt",mycolours=NULL,export
 # I decided not to include calcLD, because it only calculates LD for adjacent snps (otherwise it takes too long).
 # What's more, SambaR provides excellent plotting function for PLINK output. 
 
-calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,silent=TRUE,u_g=1.0*10^-8,dohwe=TRUE,do_sfs=FALSE,do_continue=FALSE,redo_tajd=TRUE,do_venn=TRUE)
+calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,silent=TRUE,u_g=1.0*10^-8,dohwe=TRUE,do_he=TRUE,do_sfs=FALSE,do_continue=FALSE,redo_tajd=TRUE,do_triplot=TRUE,do_venn=TRUE)
 	{
 	# nrsites must be a vector of length of either 1 or length of vector mysambar$populations
 	# nrsegsites must be vector of length of either 1 or length of vector mysambar$populations
@@ -24245,7 +24245,7 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 		{	
 		return(cat("ERROR: column names of genlight object do not correspond with snps$genlightname column. Contact developer of SambaR.",sep="\n"))
 		}
-		my_devices	<- dev.list()
+	my_devices	<- dev.list()
 	n_devices	<- length(my_devices)
 	if(n_devices!=0)
 		{
@@ -24255,6 +24255,57 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 			{
 			dev.off(k)
 			}
+		}
+	cat("REMINDER: if you receive an error stating 'cannot open file' (without the addition 'No such file or directory') this is likely because the file is opened in another file viewer.",sep="\n")
+	cat("If so, close the relevant file in the file viewer and try again.",sep="\n")		
+	setwd(mysambar$diversitydir)
+	if(do_he)
+		{
+		if(all(inds$hetero==0,na.rm=TRUE))
+			{
+			return(cat("All individuals fully homozygous. Haploid data? Not generating heterozygosity plots.",sep="\n"))
+			}
+		if("inbreedR" %in% rownames(installed.packages()))
+			{
+			# 23-09-2022: unexplained occasional error message (only observed when running calcdiversity() function, not when running MLHboxplot independently):
+			# Error in boxplot.default(split(mf[[response]], mf[-response], drop = drop, : invalid first argument
+			# Called from: boxplot.default(split(mf[[response]], mf[-response], drop = drop,
+			# sep = sep, lex.order = lex.order), xlab = xlab, ylab = ylab,
+			# add = add, ann = ann, horizontal = horizontal, ...)
+			if("inbreedR" %in% (.packages()) == FALSE){library(inbreedR)}
+			cat("Calculating (standardized) multilocus heterozygosity (sMLH) using inbreedR...",sep="\n")
+			calcMLH()
+			cat("Plotting standardized multilocus heterozygosity...",sep="\n")
+			MLHboxplot(export="eps",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
+			MLHboxplot(export="pdf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
+			MLHboxplot(export="png",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
+			if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")}
+			cat("Plotting multilocus heterozygosity...",sep="\n")
+			MLHboxplot(export="eps",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
+			MLHboxplot(export="pdf",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
+			MLHboxplot(export="png",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
+			if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")}
+			}else{
+			# the function will use the column 'hetero_all' rather than MLH (identical values): 
+			cat("Plotting multilocus heterozygosity...",sep="\n")
+			MLHboxplot(export="eps",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
+			MLHboxplot(export="pdf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
+			MLHboxplot(export="png",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
+			if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")}
+			}
+		#
+		# identical to MLH:
+		cat("Plotting heterozygosity for all sites (same as MLH)...",sep="\n")
+		indheboxplot(export="eps",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
+		indheboxplot(export="pdf",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
+		indheboxplot(export="png",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
+		if(mysambar$os=="Windows"){indheboxplot(export="wmf",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)}
+		# segregating sites only:
+		cat("Plotting heterozygosity for segregating sites only...",sep="\n")
+		indheboxplot(export="eps",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)
+		indheboxplot(export="pdf",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)	
+		indheboxplot(export="png",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)
+		if(mysambar$os=="Windows"){indheboxplot(export="wmf",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)}
 		}
 	if(do_sfs)
 		{
@@ -24268,9 +24319,6 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 		}else{
 		cat("Because the flag do_SFS is set to FALSE (default), SambaR will not generate SFS-vectors.",sep="\n")
 		}
-	cat("REMINDER: if you receive an error stating 'cannot open file' (without the addition 'No such file or directory') this is likely because the file is opened in another file viewer.",sep="\n")
-	cat("If so, close the relevant file in the file viewer and try again.",sep="\n")		
-	setwd(mysambar$diversitydir)
 	if("meanpi"%in%colnames(pops2)&"d"%in%colnames(pops2))
 		{
 		if(!silent){cat("popfstvshe(score1=meanpi,score2=d)",sep="\n")}
@@ -24295,62 +24343,24 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 		popfstvshe(export="pdf",score1="meanhe",score2="fst",addlegend=FALSE,legendcex=1.5)
 		popfstvshe(export="pdf",score1="meanhe",score2="fst",addlegend=TRUE)
 		}
-	if(!silent){cat("plotgenotri",sep="\n")}
-	plotgenotri(export="eps",allsites=FALSE)
-	plotgenotri(export="pdf",allsites=FALSE)
-	plotgenotri(export="png",allsites=FALSE)
-	if(mysambar$os=="Windows"){plotgenotri(export="wmf",allsites=TRUE)}
-	plotgenotri(export="eps",allsites=TRUE)
-	plotgenotri(export="pdf",allsites=TRUE)
-	plotgenotri(export="png",allsites=TRUE)
-	if(mysambar$os=="Windows"){plotgenotri(export="wmf",allsites=TRUE)}
-	cat("Hardy Weinberg calculations...",sep="\n")
-	cat("If you receive an error after this line, set the flag dohwe to FALSE.",sep="\n")
+	if(do_triplot)
+		{
+		if(!silent){cat("plotgenotri",sep="\n")}
+		plotgenotri(export="eps",allsites=FALSE)
+		plotgenotri(export="pdf",allsites=FALSE)
+		plotgenotri(export="png",allsites=FALSE)
+		if(mysambar$os=="Windows"){plotgenotri(export="wmf",allsites=TRUE)}
+		plotgenotri(export="eps",allsites=TRUE)
+		plotgenotri(export="pdf",allsites=TRUE)
+		plotgenotri(export="png",allsites=TRUE)
+		if(mysambar$os=="Windows"){plotgenotri(export="wmf",allsites=TRUE)}
+		cat("Hardy Weinberg calculations...",sep="\n")
+		cat("If you receive an error after this line, set the flag dohwe to FALSE.",sep="\n")
+		}
 	if(dohwe)
 		{
 		hwe(export="pdf")
 		}
-	if(all(inds$hetero==0,na.rm=TRUE))
-		{
-		return(cat("All individuals fully homozygous. Haploid data? Not generating plots.",sep="\n"))
-		}
-	if("inbreedR" %in% rownames(installed.packages()))
-		{
-		if("inbreedR" %in% (.packages()) == FALSE){library(inbreedR)}
-		cat("Calculating (standardized) multilocus heterozygosity (sMLH) using inbreedR...",sep="\n")
-		calcMLH()
-		cat("Plotting standardized multilocus heterozygosity...",sep="\n")
-		MLHboxplot(export="eps",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
-		MLHboxplot(export="pdf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
-		MLHboxplot(export="png",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
-		if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")}
-		cat("Plotting multilocus heterozygosity...",sep="\n")
-		MLHboxplot(export="eps",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
-		MLHboxplot(export="pdf",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
-		MLHboxplot(export="png",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")
-		if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=TRUE,plotname="MLHstandardized_boxplot",ylabel="sMLH")}
-		}else{
-		# the function will use the column 'hetero_all' rather than MLH (identical values): 
-		cat("Plotting multilocus heterozygosity...",sep="\n")
-		MLHboxplot(export="eps",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
-		MLHboxplot(export="pdf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
-		MLHboxplot(export="png",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")
-		if(mysambar$os=="Windows"){MLHboxplot(export="wmf",sMLH=FALSE,plotname="MLH_boxplot",ylabel="Multi locus heterozygosity")}
-		}
-	#
-	# identical to MLH:
-	cat("Plotting heterozygosity for all sites (same as MLH)...",sep="\n")
-	indheboxplot(export="eps",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
-	indheboxplot(export="pdf",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
-	indheboxplot(export="png",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)
-	if(mysambar$os=="Windows"){indheboxplot(export="wmf",plotname="He_allsites_boxplot",heteroscore="hetero_all",ylabel="Heterozygosity (%)",yline=4.5)}
-	# segregating sites only:
-	cat("Plotting heterozygosity for segregating sites only...",sep="\n")
-	indheboxplot(export="eps",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)
-	indheboxplot(export="pdf",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)	
-	indheboxplot(export="png",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)
-	if(mysambar$os=="Windows"){indheboxplot(export="wmf",plotname="He_segsites_boxplot",heteroscore="hetero",ylabel="Heterozygosity (%)",yline=4.5)}
-	#
 	# plot_F(export=TRUE)				# 26-09-2019: incorrect at the moment, needs to be improved	
 	if(length(mysambar$populations)==1)
 		{
