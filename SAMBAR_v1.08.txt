@@ -813,15 +813,15 @@ getpackages<-function(myrepos='http://cran.us.r-project.org',mylib=NULL,noupdate
 		cat(getwd(),sep="\n")
 		cat("SambaR will attempt to install and load all packages (but only if not installed/loaded yet).",sep="\n")
 		# to recreate vectors, use: write.csv(matrix(as.character(myrpackages$package),nrow=1),row.names=FALSE)
-		mypackagesvec	<- c("cli","Rcpp","fs","rlang","usethis","vctrs","car","curl","colorspace","ape","scales","vegan","sf","spdep","adegenet","StAMPP","scatterplot3d","plot3D","zoo","processx","devtools","vioplot","gplots","RColorBrewer","migest","plyr","circlize","grid","gridGraphics","gridExtra","MASS","poppr","FactoMineR","factoextra","rworldmap","mapplots","VennDiagram","fsthet","PopGenome","bibtex","mnormt","psych","sp","raster","phangorn","seqinr","RcppEigen","gtools","plotly","robust","vcfR","pcadapt","detectRUNS","BiocManager","SNPRelate","LEA","qvalue","gdsfmt","XML","karyoploteR","OutFLANK","tess3r","IRanges","Biostrings","HybridCheck","inbreedR","admixtools")
+		mypackagesvec	<- c("cli","Rcpp","fs","rlang","usethis","vctrs","car","curl","colorspace","ape","scales","vegan","sf","spdep","adegenet","StAMPP","scatterplot3d","plot3D","zoo","processx","devtools","vioplot","graphics","gplots","RColorBrewer","migest","plyr","circlize","grid","gridGraphics","gridExtra","MASS","poppr","FactoMineR","factoextra","rworldmap","mapplots","VennDiagram","fsthet","PopGenome","bibtex","mnormt","psych","sp","raster","phangorn","seqinr","RcppEigen","gtools","plotly","robust","vcfR","pcadapt","detectRUNS","BiocManager","SNPRelate","LEA","qvalue","gdsfmt","XML","karyoploteR","OutFLANK","tess3r","IRanges","Biostrings","HybridCheck","inbreedR","admixtools")
 		# 28_10_2021:
-		#versionvec		<- c("latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","4.1.0","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest")
-		versionvec		<- c("latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest")
-		sourcevec		<- c("CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","Bioconductor","Bioconductor","Bioconductor","Bioconductor","CRAN","Bioconductor","github","github","Bioconductor","Bioconductor","github","CRAN","github")
-		githubdirvec	<- c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,"whitlock/OutFLANK","bcm-uga/TESS3_encho_sen",NA,NA,"BenJWard/HybridCheck",NA,"uqrmaie1/admixtools")
-		requiredvec		<- c("essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","to_be_removed","essential","essential","optional","optional","optional","optional","optional","optional","optional","essential","recommended","recommended","optional","optional","optional","optional","optional","optional","optional","optional","optional","optional","recommended","TBC","optional","TBC","optional","optional","optional","optional","recommended","recommended","recommended","recommended","optional","TBC","recommended","recommended","optional","optional","optional","optional","optional","optional","optional")
-		whichfuncvec	<- c("all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","to_be_removed","all_functions","all_functions","additional_analysis","additional_analysis","additional_analysis","findstructure()","findstructure()","findstructure()","findstructure()","findstructure()","findstructure()","findstructure()","additional_analysis","additional_analysis","selectionanalyses()","selectionanalyses()","selectionanalyses()","importdata()","additional_analysis","additional_analysis","additional_analysis","additional_analysis","findstructure()","TBC","additional_analysis","TBC","selectionanalyses()","selectionanalyses()","selectionanalyses()","selectionanalyses()","calcdiversity","importdata()","findstructure()","findstructure()","selectionanalyses()","TBC","calcdiversity();calcdistance()","calcdiversity();calcdistance()","selectionanalyses()","additional_analysis","calcdistance()","calcdistance()","calcdistance()","calcdistance()","calcdistance()")
-		analysistypevec	<- c("data_management","data_management","data_management","data_management","data_management","data_management","data_management","data_management","data_management","plotting","data_management","data_management","data_management","data_management","data_management","data_management","data_management","plotting","plotting","sliding_window_analyses","install_packages","to_be_removed","plotting","plotting","circosplots_geneflow","circosplots_geneflow","circosplots_geneflow","DAPC_plots","DAPC_plots","DAPC_plots","MDS","pcoa_tree_fst","CA","CA","geographical_maps","geographical_maps","Venn_diagrams","Venn_diagrams","Venn_diagrams","referencing","RDA","RDA","geographical_maps_TESS","geographical_maps_TESS","NJtree_plot","TBC","geographical_maps_TESS","TBC","pcadapt","pcadapt","pcadapt","pcadapt","Runs_of_homozygosity","install_bioconductor_packages","PCA","admixture_analysis","qvalue_for_OutFLANK","TBC","karyoplots","karyoplots","OutFLANK","geographical_maps_TESS","HybridCheck","HybridCheck","HybridCheck","Heterozygosity_fitness_correlations","admixtools_statistics")
+		#versionvec		<- c("latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","4.1.0","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest")
+		versionvec		<- c("latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest","latest")
+		sourcevec		<- c("CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","CRAN","Bioconductor","Bioconductor","Bioconductor","Bioconductor","CRAN","Bioconductor","github","github","Bioconductor","Bioconductor","github","CRAN","github")
+		githubdirvec	<- c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,"whitlock/OutFLANK","bcm-uga/TESS3_encho_sen",NA,NA,"BenJWard/HybridCheck",NA,"uqrmaie1/admixtools")
+		requiredvec		<- c("essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","essential","to_be_removed","essential","essential","essential","optional","optional","optional","optional","optional","optional","optional","essential","recommended","recommended","optional","optional","optional","optional","optional","optional","optional","optional","optional","optional","recommended","TBC","optional","TBC","optional","optional","optional","optional","recommended","recommended","recommended","recommended","optional","TBC","recommended","recommended","optional","optional","optional","optional","optional","optional","optional")
+		whichfuncvec	<- c("all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","all_functions","to_be_removed","all_functions","all_functions","all_functions","additional_analysis","additional_analysis","additional_analysis","findstructure()","findstructure()","findstructure()","findstructure()","findstructure()","findstructure()","findstructure()","additional_analysis","additional_analysis","selectionanalyses()","selectionanalyses()","selectionanalyses()","importdata()","additional_analysis","additional_analysis","additional_analysis","additional_analysis","findstructure()","TBC","additional_analysis","TBC","selectionanalyses()","selectionanalyses()","selectionanalyses()","selectionanalyses()","calcdiversity","importdata()","findstructure()","findstructure()","selectionanalyses()","TBC","calcdiversity();calcdistance()","calcdiversity();calcdistance()","selectionanalyses()","additional_analysis","calcdistance()","calcdistance()","calcdistance()","calcdistance()","calcdistance()")
+		analysistypevec	<- c("data_management","data_management","data_management","data_management","data_management","data_management","data_management","data_management","data_management","plotting","data_management","data_management","data_management","data_management","data_management","data_management","data_management","plotting","plotting","sliding_window_analyses","install_packages","to_be_removed","plotting","plotting","plotting","circosplots_geneflow","circosplots_geneflow","circosplots_geneflow","DAPC_plots","DAPC_plots","DAPC_plots","MDS","pcoa_tree_fst","CA","CA","geographical_maps","geographical_maps","Venn_diagrams","Venn_diagrams","Venn_diagrams","referencing","RDA","RDA","geographical_maps_TESS","geographical_maps_TESS","NJtree_plot","TBC","geographical_maps_TESS","TBC","pcadapt","pcadapt","pcadapt","pcadapt","Runs_of_homozygosity","install_bioconductor_packages","PCA","admixture_analysis","qvalue_for_OutFLANK","TBC","karyoplots","karyoplots","OutFLANK","geographical_maps_TESS","HybridCheck","HybridCheck","HybridCheck","Heterozygosity_fitness_correlations","admixtools_statistics")
 		#
 		do_load			<- rep(TRUE,length(mypackagesvec))
 		do_load[1:9]	<- FALSE
@@ -3730,6 +3730,8 @@ importmultidata<-function(structurefile="allsamples.stru",colourvector=NULL,oner
 	temp				<- as.factor(inds$pop)
 	inds$popcol			<<- colourvector[temp]
 	inds$nr				<<- c(1:nrow(inds))
+	inds$allgeno		<<- TRUE
+	inds$allgeno2		<<- TRUE
 	#
 	cat("Creating inds dataframe...",sep="\n")
 	# create snps dataframe:
@@ -3795,6 +3797,10 @@ importmultidata<-function(structurefile="allsamples.stru",colourvector=NULL,oner
 			}
 		}
 	#
+	### create inds2 (sample pairs) and pops2 (pop pairs) dataframes:
+	getinds2()
+	if(any(is.na(inds2$indpair))){return(cat("ERROR: NA-values in inds2$indpair column.",sep="\n"))} 
+	getpops2()
 	### create SambaR directories:
 	cat("Creating output directories...",sep="\n")
 	inputdatadir		<- getwd()
@@ -8594,7 +8600,7 @@ plot_indF<-function(export=NULL,addylabel=TRUE,logy=FALSE,plotname="Inbreeding",
 	if(!is.null(export)){dev.off()}
 	}	
 
-plotscatter_indF<-function(export=NULL,popnames=mysambar$populations,dolabels=FALSE,Fcorrect=FALSE)
+plotscatter_indF<-function(export=NULL,popnames=mysambar$populations,dolabels=FALSE,Fcorrect=FALSE,legendcex=2.5)
 	{
 	npops	<- length(popnames)
 	graphics.off()
@@ -8629,7 +8635,7 @@ plotscatter_indF<-function(export=NULL,popnames=mysambar$populations,dolabels=FA
 		lines(c(0.5*mymin,2*mymax),c(0.5*mymin,2*mymax),col="grey")
 		text(exphomo[inds$filter],obshomo[inds$filter],inds$nr[inds$filter],cex=1.5,col=inds$popcol[inds$filter])
 		}
-	legend("bottomright",legend=popnames,fill=mysambar$mycolours[1:npops],cex=2.5,bty='n')
+	legend("bottomright",legend=popnames,fill=mysambar$mycolours[1:npops],cex=legendcex,bty='n')
 	if(!is.null(export)){dev.off()}
 	}
 
@@ -8778,7 +8784,7 @@ plot_indF_old<-function(popnames=mysambar$populations,export=NULL)
 	snps <<- snps[, !duplicated(colnames(snps), fromLast = TRUE)]
 	}
 
-expHe_vs_He<-function(popnames=mysambar$populations,export=NULL,allsites=FALSE)
+expHe_vs_He<-function(popnames=mysambar$populations,export=NULL,allsites=FALSE,legendcex=2)
 	{
 	# plot:
 	graphics.off()
@@ -8811,7 +8817,7 @@ expHe_vs_He<-function(popnames=mysambar$populations,export=NULL,allsites=FALSE)
 	temp2	<- 2*temp*(1-temp)
 	lines(temp,temp2,col="black",lwd=2)
 	# add legend:
-	legend("topleft",legend=popnames,bty='n',fill=mysambar$mycolours,cex=2)
+	legend("topleft",legend=popnames,bty='n',fill=mysambar$mycolours,cex=legendcex)
 	if(!is.null(export)){dev.off()}
 	}
 
@@ -8858,9 +8864,10 @@ popboxplot<-function(export=NULL,exportname="popboxplot",ylabel=NULL,logy=FALSE,
 		return(cat("ERROR: Lengths of myscore vector and popvector do not correspond.",sep="\n"))
 		}
 	npops		<- length(mysambar$populations)
-	if(length(unique(popvector))!=npops)
+	npops2		<- length(unique(popvector))
+	if(npops2!=npops)
 		{
-		return(cat("ERROR: found more populations than expected based on length of mysambar$populations. Perhaps run the excludepop() function?.",sep="\n"))
+		return(cat(paste("ERROR: found more populations in popvector (",npops2,") than expected based on length of mysambar$populations (",npops,"). Perhaps run the excludepop() function?.",sep=""),sep="\n"))
 		}
 	popvector2		<- factor(popvector,levels=mysambar$poporder)
 	if(!is.null(export))
@@ -10623,6 +10630,7 @@ ind_neimatrix<-function(export=NULL,doplot=FALSE)
 			}
 		}
 
+# 02-01-2023: still being used?
 mat2df<-function(mymat=mysambar$indneimatrix)
 	{
 	myinds	<- rownames(mymat)
@@ -10631,7 +10639,7 @@ mat2df<-function(mymat=mysambar$indneimatrix)
 	}
 
 # Function to convert a dataframe with pairwise sample scores into a 2D matrix, and optionally create heatmap using plotindmatrix function.
-df2mat<-function(mydf=inds2,myinds=inds$nr,indnames=inds$name,mypops=inds$pop,myscore=NULL,doheatmap=FALSE,twosided=FALSE,above_diagonal=TRUE,exportprefix="Rawdistance_matrix.ind",plot_title="Raw genetic distance (%)")
+df2mat<-function(mydf=inds2,myinds=inds$nr,indnames=inds$name,nr_bins=6,mypops=inds$pop,myscore=NULL,doheatmap=FALSE,twosided=FALSE,above_diagonal=TRUE,exportprefix="Rawdistance_matrix.ind",plot_title="Uncorrected genetic distance (%)")
 	{
 	if(is.null(mydf))
 		{
@@ -10711,33 +10719,59 @@ df2mat<-function(mydf=inds2,myinds=inds$nr,indnames=inds$name,mypops=inds$pop,my
 	#
 	if(doheatmap)
 		{
-		# expects as input a MATRIX, with number of columns and rows equalling number of RETAINED individuals, in alphabetical order of sample names (similar as in inds dataframe).
+		# expects as input a MATRIX of ALL individuals (both retained and filtered out), in alphabetical order of sample names (similar as in inds dataframe).
 		cat("Running plotindmatrix function...",sep="\n")
 		mymatrix2					<- mymatrix
 		mymatrix2[diag(mymatrix2)]	<- NA
-		plotindmatrix(ind_matrix=mymatrix2,export_name=paste(exportprefix,"nr",sep="."),plottitle=plot_title,n_bins=8,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE,add_lab=TRUE,print_name=FALSE)
-		plotindmatrix(ind_matrix=mymatrix2,export_name=paste(exportprefix,"name",sep="."),plottitle=plot_title,n_bins=8,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE,add_lab=TRUE,print_name=TRUE)
+		plotindmatrix(ind_matrix=mymatrix2,do_filter=TRUE,export_name=paste(exportprefix,"nr",sep="."),plottitle=plot_title,n_bins=nr_bins,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE,add_lab=TRUE,print_name=FALSE)
+		plotindmatrix(ind_matrix=mymatrix2,do_filter=TRUE,export_name=paste(exportprefix,"name",sep="."),plottitle=plot_title,n_bins=nr_bins,export="pdf",bincol1="orange",bincol2="white",midbincol=NULL,,silent=TRUE,add_lab=TRUE,print_name=TRUE)
+		cat("Distance matrices have been exported to the directory:",sep="\n")
+		cat(getwd(),sep="\n")
 		}
 	return(mymatrix)
 	}
 
 # expects as input a MATRIX, with number of columns and rows equalling number of RETAINED individuals, in alphabetical order of sample names (similar as in inds dataframe).
 # for example: mysambar$indneimatrix (generated with ind_neimatrix function) and mysambar$pimatrix (generated with calcpi and subsequently pidf2matrix function)  
-plotindmatrix<-function(n_bins=5,export=NULL,alphabet_order=FALSE,my_Breaks=NULL,bincol1="orange",bincol2="white",midbincol=NULL,add_lab=FALSE,legendcex=2.5,ind_matrix=mysambar$indneimatrix,export_name="Neimatrix.ind",plottitle="Nei's genetic distance",silent=TRUE,print_name=FALSE)
+plotindmatrix<-function(n_bins=5,do_filter=TRUE,export=NULL,alphabet_order=FALSE,my_Breaks=NULL,bincol1="orange",bincol2="white",midbincol=NULL,add_lab=FALSE,legendcex=2,ind_matrix=mysambar$indneimatrix,export_name="Neimatrix.ind",plottitle=NULL,silent=TRUE,print_name=FALSE)
 		{
 		if(is.null(ind_matrix)){return(cat("ERROR: Please specify an existing matrix using the 'ind_matrix'-flag. In case you specified 'mysambar$indneimatrix', did you run the ind_neimatrix function?",sep="\n"))}
 		if(is.null(export_name)){return(cat("ERROR: Please specify the name of the plot using the 'plotname'-flag.",sep="\n"))}
 		ind_matrix	<- as.matrix(ind_matrix)
-		#
+		if(do_filter)
+			{
+			if(length(inds$filter)!=nrow(ind_matrix))
+				{
+				if(length(inds$filter[inds$filter])==nrow(ind_matrix))
+					{
+					cat("WARNING: number of columns/rows of matrix specified to ind_matrix flag corresponds to number of retained individuals. Only plotting retained individuals.",sep="\n")
+					}else{
+					return(cat(paste("ERROR: number of columns/rows of matrix specified to ind_matrix flag (",nrow(ind_matrix),"), does not correspond with either total or retained number of individuals in inds dataframe.",sep=""),sep="\n"))
+					}
+				}else{
+				cat("WARNING: the flag 'do_filter' is set to TRUE. Only plotting retained individuals.",sep="\n") 
+				ind_matrix	<- ind_matrix[inds$filter,inds$filter]	# 02-01-2023
+				inds		<- inds[inds$filter,]					# 02-01-2023
+				}
+			}
 		# First reorder inds dataframe according to population:
 		if(alphabet_order)
 			{
+			cat("Plotting samples in alphabetical order (because flag alphabet_order is set to TRUE).",sep="\n")
 			indstemp			<- inds[order(inds$pop),]
 			inputmat			<- ind_matrix[order(inds$pop),]	
 			}else{
+			cat("WARNING: attempting to reorder input matrix based on order defined at inds$poporder.",sep="\n")
 			indstemp2			<- droplevels(inds[inds$filter,])
 			indstemp2$filterorder<- c(1:nrow(indstemp2))
 			indstemp			<- indstemp2[order(indstemp2$poporder),]
+			belowdiag			<- ind_matrix[lower.tri(ind_matrix,diag=FALSE)]
+			if(all(is.na(belowdiag)))
+				{
+				cat("WARNING: inputmatrix does not contain below diagonal values, needed for reordering. Mirroring above diagonal values to below diagonal values...",sep="\n")
+				tmat			<- t(ind_matrix)
+				ind_matrix[lower.tri(ind_matrix,diag=FALSE)]	<- tmat[lower.tri(tmat,diag=FALSE)]
+				}
 			inputmat			<- ind_matrix[indstemp$filterorder,indstemp$filterorder]
 			}
 		export_name	<- paste(export_name,paste(n_bins,"bins",sep=""),sep=".")
@@ -10746,7 +10780,7 @@ plotindmatrix<-function(n_bins=5,export=NULL,alphabet_order=FALSE,my_Breaks=NULL
 		}
 
 # expects as input a VECTOR for all pairwise comparisons between ALL individuals
-plot_indmatrix<-function(export=NULL,indsfilter=TRUE,inputvalues=NULL,popnames=mysambar$populations,n_bins=5,mybreaks=NULL,legpos_x=0.1,legpos_y=0.45,leg_cex=2.5,matcol="orange",plotprefix="indmatrix",miss_labels=FALSE,currentdir=TRUE,plottitle="",silent=TRUE,perpop=TRUE,sub_title=NULL,make_global=FALSE)
+plot_indmatrix<-function(export=NULL,indsfilter=TRUE,inputvalues=NULL,popnames=mysambar$populations,n_bins=5,mybreaks=NULL,legpos_x=0.1,legpos_y=0.45,leg_cex=2.5,matcol="orange",plotprefix="indmatrix",miss_labels=FALSE,currentdir=TRUE,plottitle="",silent=TRUE,perpop=FALSE,sub_title=NULL,make_global=FALSE)
 	{
 	# This function expects as input a vector with values for all pairwise comparisons between ALL individuals in the order 1-2,1-3,1-4,2-3,2-4,3-4 as example for a dataset of 4 individuals.
 	# So: a vector with values for pairwise comparisons between retained individuals will lead to errors.
@@ -11249,7 +11283,7 @@ neighbournetwork<-function(mydistmat=mymat,do_analysis=TRUE,plotname="Phylonetwo
 		}
 	}
 
-popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,mutrate=NULL,genomeprop=1,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE,dopathlength=FALSE,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE)
+popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,mutrate=NULL,genomeprop=1,interval_col="lightblue",interval_lwd=3,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE,dopathlength=FALSE,pathlengthbreaks=NULL,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE)
 	{
 	# type can be: "phylogram" (default), "cladogram", "fan", "unrooted", "radial"
 	# distance can be 'bitwise.dist' (default, which is Hamming's distance), 'euclidean', 'allele sharing distance', 'pi', 'nei.dist', 'rogers.dist', 'edwards.dist', 'reynolds.dist'
@@ -11739,7 +11773,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 		{
 		cat("Calculating pathlength and optionally (if distance matrix is present) difference between path length and genetic distance...",sep="\n")
 		cat("If you receive an error after this line, set the flag do_pathlength to FALSE.",sep="\n") 
-		pathlength(mytree=mytree,exporttype="pdf",plot_name=paste("Pathlengths",mydistance,mymethod,sep="."),distancemat=as.matrix(mydistmat))
+		pathlength(mytree=mytree,exporttype="pdf",plot_name=paste("Pathlengths",mydistance,mymethod,sep="."),distancemat=as.matrix(mydistmat),heatmapbreaks=pathlengthbreaks)
 		}else{
 		cat("Not calculating path lengths.",sep="\n")
 		}
@@ -11933,7 +11967,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 		{
 		if(mytype=="phylogram")
 			{
-			if(!is.null(mutrate))
+			if(!is.null(mutrate)&is.null(myrect))
 				{
 				mtext(side=3,paste("mutation rate = ",formatC(mutrate,format="e",digits=1)," per site per year",sep=""),line=-1)
 				}
@@ -11955,12 +11989,12 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 			xvalues		<- xvalues[(ntips+1):length(xvalues)]
 			yvalues		<- yvalues[(ntips+1):length(yvalues)]
 			nnodes		<- length(xvalues)
-			myrgb		<- as.vector(col2rgb(col="grey40",alpha = FALSE))
+			myrgb		<- as.vector(col2rgb(col=interval_col,alpha = FALSE))
 			mytranscol 	<- rgb(myrgb[1],myrgb[2],myrgb[3],max=255,alpha=125)
 			for(k in c(1:nnodes))
 				{
 				mysd	<- mystderr[k]
-				segments(x0=xvalues[k]-mysd*xvalues[k],y0=yvalues[k],x1=xvalues[k]+mysd*xvalues[k],y1=yvalues[k],col=mytranscol,lwd=4)
+				segments(x0=xvalues[k]-mysd*xvalues[k],y0=yvalues[k],x1=xvalues[k]+mysd*xvalues[k],y1=yvalues[k],col=mytranscol,lwd=interval_lwd)
 				}
 			}else{
 			cat("Not a phylogram. Not adding x-axis.",sep="\n")
@@ -12107,20 +12141,30 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 
 # 23-08-2022: function to plot dependency of TMCRA on mutation rate
 # depends on popprtree:
-runlineartree<-function(mutrates=seq(0.5,2.0,0.1),do_analysis=FALSE,mycolours=c("black","grey20","grey40","grey60","grey80"),mynodes=c(127,128,129,147,149),mynodelabels=c("B","C","D","E","A"),export=NULL,plotname="TMCRA_vs_u",plottitle=NULL,mycex=2.5,axiscex=2,labcex=2.5,maincex=2.5,xline=3.5,yline=4,legendpos="topright",legendcex=1.75)
+runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome_prop=1,do_analysis=FALSE,mycolours=c("black","grey20","grey40","grey60","grey80"),mynodes=c(127,128,129,147,149),mynodelabels=c("B","C","D","E","A"),export=NULL,plotname="TMCRA_vs_u",plottitle=NULL,mycex=2.5,axiscex=2,labcex=2.5,maincex=2.5,xline=3.5,yline=4,legendpos="topright",legendcex=1.75)
 	{
 	if(do_analysis)
 		{
+		if(is.null(input_tree))
+			{
+			return(cat("ERROR: Specify a rooted phylo object to the input_tree flag.",sep="\n"))
+			}
 		mutrates2	<- mutrates*10^-9
 		ulist		<- list()
 		for(k in c(1:length(mutrates2)))
 			{
-			popprtree(do_analysis=FALSE,mydistance="euclidean",mymethod="bionj", makelinear = TRUE,mutrate = mutrates2[k],inputtree=myrootedtree,mytype="phylogram",labelangle="axial",export="pdf",dopathlength=FALSE,fullplotname=FALSE,calc_parsimony=FALSE,calc_likelihood=FALSE,heightfac=0.1,labelcex=0.75)
+			popprtree(do_analysis=FALSE,mydistance="euclidean",mymethod="bionj",makelinear=TRUE,genomeprop=genome_prop,mutrate=mutrates2[k],inputtree=input_tree,mytype="phylogram",labelangle="axial",export="pdf",dopathlength=FALSE,fullplotname=FALSE,calc_parsimony=FALSE,calc_likelihood=FALSE,heightfac=0.1,labelcex=0.75)
 			utree			<- mysambar$plottree 
 			xvalues			<- node.depth.edgelength(utree)
 			ulist[[k]]		<- abs(xvalues-xvalues[1])
 			}
+		ulist				<<- ulist
 		mysambar$tmrcadf	<<- data.frame(do.call(cbind,ulist))
+		}else{
+		if(is.null(mysambar$tmrcadf))
+			{
+			return(cat("ERROR: mysambar$tmcradf not found. Perhaps set the flag do_analysis to TRUE?",sep="\n"))
+			}
 		}
 	cat("Subselecting nodes...",sep="\n")
 	mydf			<- mysambar$tmrcadf
@@ -12163,7 +12207,7 @@ runlineartree<-function(mutrates=seq(0.5,2.0,0.1),do_analysis=FALSE,mycolours=c(
 # Node numbers can be visualized by added to a tree plot, by running the command: nodelabels(frame="none",bg="white",cex=0.25,col="grey50")
 # function 'Subtree' from Martin R. Smith from Durham University
 # First option is extract.clade: extract.clade(phy=mytree,node=307)
-getsubtree <- function(tree,node) 
+getsubtree<-function(tree,node) 
 	{
 	if(is.null(treeOrder <- attr(tree, 'order')) || treeOrder != 'preorder') 
 		{
@@ -12392,7 +12436,7 @@ comparemat<-function(mat1=NULL,mat2=NULL,plot_name="Matrix_diff_SNPvsMISAT",do_s
 	plotindmatrix(n_bins=length(mybreaks)-1,export=exporttype,add_lab=FALSE,ind_matrix=diffmat,my_Breaks=mybreaks,bincol1="darkorange",bincol2="grey80",legendcex=2,export_name=plot_name,plottitle=plot_title,silent=do_silent)
 	}
 
-pathlength_scatterplot<-function(export=NULL,yline=4.75,addlegend=TRUE,focuspop=NULL,excludepop=NULL,plotname="Pathlengths_vs_GeneticDistance",plottitle=NULL,symbolsize=1.5,legendcex=1,legendpos="bottomright",plotrange=NULL)
+pathlength_scatterplot<-function(export=NULL,yline=4.75,addlegend=TRUE,focuspop=NULL,excludepop=NULL,plotname="Pathlengths_vs_GeneticDistance",plottitle=NULL,symbolsize=1.5,legendcex=1,legendpos="topleft",plotrange=NULL)
 	{
 	if(is.null(mysambar$mytree_distmat))
 		{
@@ -12465,6 +12509,7 @@ pathlength_scatterplot<-function(export=NULL,yline=4.75,addlegend=TRUE,focuspop=
 		}
 	# remove within individual comparison:
 	mydf			<- mydf[mydf$ind1!=mydf$ind2,]
+	mysambar$pathlengthdf	<<- mydf
 	#
 	xmax			<- max(mydf$path)
 	xmin			<- min(mydf$path)
@@ -16102,7 +16147,7 @@ LEAstructureplot<-function(mymatrixlist=NULL,mindemes=2,maxdemes=6,side4labels=N
 		{
 		mypopcols	<- rep("black",length(mypopcols))
 		}
-	mylocs2		<- mylocs		# I should come up here with a way to omit black line of first population (because not necessary)
+	mylocs2		<- mylocs		# I should come up here with a way to omit seperation line of first population (because not necessary)
 	#mylocs2	<<- mylocs
 	#
 	mydemes		<- c(mindemes:maxdemes)
@@ -16623,7 +16668,7 @@ plotfossils<-function(adjustlong=TRUE)
 	}
 
 # Create map using package Maps. Advantage compared to Rworldmap is that this function allows to centre the map around the Pacific ocean, if needed 
-plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xmargin=0.05,ymargin=0.15,mybg="white",msnmatrix=NULL,msnlwd=1.5,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,shapelist=NULL,addshapecol="grey50",legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=NULL,legendcex=0.75,mycex=1,pchlwd=0.25,dolabels=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90",boxlwd=1,linesdf=NULL,rangefilter=NULL)
+plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xmargin=0.05,ymargin=0.15,mybg="white",msnmatrix=NULL,msnlwd=1.5,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,shapelist=NULL,addshapecol="grey50",legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=21,legendcex=0.75,mycex=1,pchlwd=0.25,dolabels=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90",boxlwd=1,linesdf=NULL,rangefilter=NULL)
 	{
 	if("maps" %in% rownames(installed.packages()) == FALSE) {install.packages("maps",repos='http://cran.us.r-project.org')}
 	if("maps" %in% (.packages()) == FALSE)					{library(maps)}
@@ -17165,9 +17210,14 @@ findcladenr<-function(mytree=mysambar$mytree,clustervec=inds$K_4,clustercolvec=i
 # 18-06-2022: function to create unrooted tree with highlighted clades, using ggtree
 # Needs as input a dataframe with node numbers and colours of the clades.
 # The clades can be determined by observing dendrograms, or, more objectively, using the find.clusters function.  
-plotcladetree<-function(mytree=mysambar$mytree,colourdf=NULL,exportname="mytree")
+plotcladetree<-function(mytree=mysambar$mytree,colourdf=NULL,exportname="mytree",silent=TRUE,listtips=TRUE)
 	{
-	if("ggtree" %in% rownames(installed.packages()) == FALSE){BiocManager::install("ggtree")}
+	if("ggtree" %in% rownames(installed.packages()) == FALSE)
+		{
+		cat("WARNING: package 'ggtree' not found. Installing now...",sep="\n")
+		if(!require("BiocManager", quietly = TRUE)){install.packages("BiocManager")}
+		BiocManager::install("ggtree")
+		}
 	if("ggtree" %in% (.packages()) == FALSE){library("ggtree")}
 	#
 	if(is.null(mytree))
@@ -17194,15 +17244,38 @@ plotcladetree<-function(mytree=mysambar$mytree,colourdf=NULL,exportname="mytree"
 		colourdf$transparancy	<- 0.8
 		}
 	cat("Plotting unrooted tree with highlighted clades...",sep="\n")
-	p	<- ggtree(mysambar$mytree,layout="unrooted",lwd=1.5)
+	p	<- ggtree(mytree,layout="unrooted",lwd=1.5)
 	for(k in c(1:nrow(colourdf)))
 		{
+		if(!silent){cat(k,sep="\n")}
 		p <- p + geom_hilight(node=colourdf$node[k],fill=colourdf$colour[k],alpha=colourdf$transparancy[k],colour=NA) 
 		}
 	print(p)
 	ggsave(paste(exportname,"highlighted_clades.pdf",sep="_"))
 	cat("The tree file with highlighted clades (with default name 'mytree_highlighted_clades.pdf') has been exported to the directory:",sep="\n")
 	cat(getwd(),sep="\n")
+	if(listtips)
+		{
+		cat("Listing tip labels per clade...",sep="\n")  
+		p		<- ggtree(mytree,layout="unrooted",lwd=1.5)
+		tiplist	<- list()
+		for(k in c(1:nrow(colourdf)))
+			{
+			if(!silent){cat(k,sep="\n")}
+			nodenr			<- colourdf$node[k]
+			tiplist[[k]]	<- as.data.frame(ggtree:::getSubtree(tree=p,node=nodenr))$label[as.data.frame(ggtree:::getSubtree(tree=p,node=nodenr))$isTip]
+			}
+		cat("Adding information to inds dataframe...",sep="\n")
+		inds$nodenr		<<- NA
+		inds$nodecol	<<- NA
+		for(k in c(1:nrow(colourdf)))
+			{
+			indbool					<- inds$name%in%tiplist[[k]] 
+			inds$node[indbool]		<<- colourdf$node[k]
+			inds$nodecol[indbool]	<<- colourdf$colour[k]
+			}
+		cat("Information added to the columns inds$node and inds$nodecol.",sep="\n")
+		}
 	}
 
 run_find.clusters_bic<-function(maxK=20,percvector=c(20,40,60,80,95),niter=1000)
@@ -28807,7 +28880,7 @@ plothist<-function(p1="ABCbc",p2="polar",p3="Black",binsize=250000,xmax=3500000,
 	}
 
 # pairwise missingness:
-calcpairmiss<-function(popnames=mysambar$populations,exporttype=NULL,use_currentdir=TRUE,silent=TRUE,snpsfilter=FALSE,legendcex=2.5,nrbins=20,definebreaks=FALSE,addmiss=TRUE,plotexpected=FALSE,my_Breaks=NULL,include_allsites=FALSE)
+calcpairmiss<-function(popnames=mysambar$populations,exporttype=NULL,use_currentdir=TRUE,silent=TRUE,snpsfilter=FALSE,legendcex=2.5,nrbins=20,definebreaks=FALSE,addmiss=TRUE,plotexpected=FALSE,my_Breaks=NULL,include_allsites=FALSE,plotperpop=FALSE)
 	{
 	if(min(inds$miss,na.rm=TRUE)==0)
 		{
@@ -28938,9 +29011,9 @@ calcpairmiss<-function(popnames=mysambar$populations,exporttype=NULL,use_current
 	if(plotexpected)
 		{
 		if(!silent){cat("Plotting expected 1...",sep="\n")}
-		plot_indmatrix(export=exporttype,indsfilter=TRUE,plottitle="Expected missing data",inputvalues=inds2$pairmiss_exp[!inds2$sameind],miss_labels=addmiss,popnames=mysambar$populations,mybreaks=my_Breaks,n_bins=nrbins,legpos_x=0.1,legpos_y=0.7,leg_cex=legendcex,matcol="orange",plotprefix=paste("Pairwise_miss_exp",plotlabel,sep="."),currentdir=TRUE,perpop=FALSE)
+		plot_indmatrix(export=exporttype,indsfilter=TRUE,plottitle="Expected missing data",inputvalues=inds2$pairmiss_exp[!inds2$sameind],miss_labels=addmiss,popnames=mysambar$populations,mybreaks=my_Breaks,n_bins=nrbins,legpos_x=0.1,legpos_y=0.7,leg_cex=legendcex,matcol="orange",plotprefix=paste("Pairwise_miss_exp",plotlabel,sep="."),currentdir=TRUE,perpop=plotperpop)
 		if(!silent){cat("Plotting expected 2...",sep="\n")}
-		plot_indmatrix(export=exporttype,indsfilter=TRUE,plottitle="Missing data deviation",inputvalues=inds2$diff[!inds2$sameind],miss_labels=addmiss,popnames=mysambar$populations,mybreaks=my_Breaks,n_bins=5,legpos_x=0.1,legpos_y=0.45,leg_cex=legendcex,matcol="orange",plotprefix=paste("Pairwise_miss_deviation",plotlabel,sep="."),currentdir=TRUE,perpop=FALSE)
+		plot_indmatrix(export=exporttype,indsfilter=TRUE,plottitle="Missing data deviation",inputvalues=inds2$diff[!inds2$sameind],miss_labels=addmiss,popnames=mysambar$populations,mybreaks=my_Breaks,n_bins=5,legpos_x=0.1,legpos_y=0.45,leg_cex=legendcex,matcol="orange",plotprefix=paste("Pairwise_miss_deviation",plotlabel,sep="."),currentdir=TRUE,perpop=plotperpop)
 		}
 	# scatterplot pairwise miss:
 	if(!silent){cat("Plotting batcheffect...",sep="\n")}
@@ -29509,18 +29582,29 @@ dxyhisto<-function(mydf=mydistdf,pairdf=NULL,export=NULL,mybreaks=seq(-1,10000,5
 
 # 21-08-2022: renamed from popdxymantel to pops2scatter, to make it generally useful to create scatter plots for pops2 dataframe.
 # 21-06-2022: rebuilt from dxyfac() function, and renamed to popdxymantel:
-pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,export=NULL,mybg="white",plotname="Mantelplot_rawdistance",addlines=NULL,plottitle=NULL,mylinemat=NULL,mycex=3,myxlim=NULL,axiscex=2.5,labcex=3,maincex=3,xline=4.5,yline=5.5,addlegend=TRUE,legendpos="topleft",legend2pos="bottomright",legendcex=1.5,vline=NULL,xlabel="Distance (100 km)",ylabel="Dxy (%)",addregression=TRUE)
+pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,export=NULL,xscore="geodist",yscore="d",mybg="white",plotname="Mantelplot_rawdistance",addlines=NULL,plottitle=NULL,mylinemat=NULL,mycex=3,myxlim=NULL,axiscex=2.5,labcex=3,maincex=3,xline=4.5,yline=5.5,addlegend=TRUE,legendpos="topleft",legend2pos="bottomright",legendcex=1.5,vline=NULL,xlabel="Distance (100 km)",ylabel="Dxy (%)",addregression=TRUE)
 	{
 	if((!"filter1"%in%colnames(pops2))|(!"filter2"%in%colnames(pops2)))
 		{
 		return(cat("ERROR: columns 'filter1' and/or 'filter2' are missing in pops2 dataframe.",sep="\n"))
 		}
-	if(!"geodist"%in%colnames(pops2))
+	if(!any(colnames(pops2)%in%xscore))
 		{
-		return(cat("ERROR: column 'geodist' missing in pops2 dataframe.",sep="\n"))
+		return(cat("ERROR: xscore (default: 'geodist') missing in pops2 dataframe.",sep="\n"))
+		}
+	if(!any(colnames(pops2)%in%yscore))
+		{
+		return(cat("ERROR: yscore (default: 'd') missing in pops2 dataframe.",sep="\n"))
 		}
 	cat("Selecting data...",sep="\n")
-	mydf		<- pops2[pops2$filter&!pops2$samepop,]
+	mydf			<- pops2[pops2$filter&!pops2$samepop,colnames(pops2)%in%c(xscore,yscore)]
+	colnames(mydf)	<- c("x","y")
+	mydf2			<- pops2[pops2$filter&!pops2$samepop,c("popcol1","popcol2")]
+	mydf			<- cbind(mydf,mydf2)
+	if(any(!is.finite(mydf$x)|!is.finite(mydf$y)))
+		{
+		return(cat("ERROR: selected column(s) contain infinite values.",sep="\n"))
+		}
 	#
 	cat("Plotting...",sep="\n")
 	if(!is.null(export))
@@ -29536,9 +29620,9 @@ pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,export=NULL,mybg="white",pl
 	par(mar=c(5.5,7.5,3,0.25),cex.axis=axiscex,cex.lab=labcex,cex.main=maincex,bg=mybg)	
 	if(is.null(myxlim))
 		{
-		plot(mydf$geodist,mydf$d,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=2,main=plottitle)
+		plot(mydf$x,mydf$y,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=2,main=plottitle)
 		}else{
-		plot(mydf$geodist,mydf$d,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=2,xlim=myxlim,main=plottitle)
+		plot(mydf$x,mydf$y,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=2,xlim=myxlim,main=plottitle)
 		}
 	if(!is.null(addlines)){abline(h=addlines,lty=2,col="grey50")}
 	if(addlegend){legend(legendpos,legend=mysambar$poporder,bty='n',fill=mysambar$colorder,border=mysambar$colorder,cex=legendcex)}
@@ -29554,10 +29638,9 @@ pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,export=NULL,mybg="white",pl
 	mtext(side=2,line=yline,ylabel,cex=labcex)
 	if(addregression)
 		{
-		mydata			<- mydf[,c("geodist","d")] 
-		mydata$geodist[mydata$geodist==0]	<- 0.1	
-		#mydata			<- mydata[!is.na(mydata$geodist)&!is.na(mydata$d),]
-		myfit			<- lm(d ~ log10(geodist),data=mydata)
+		mydata			<- mydf
+		mydata$x[mydata$x==0]	<- 0.1	
+		myfit			<- lm(y ~ log10(x),data=mydata)
 		abline(myfit,lty=2,lwd=3)
 		myfit2			<- summary(myfit)
 		myr				<- round(myfit2$r.squared,3)
@@ -30384,7 +30467,7 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 ###############################################################################################################
 # Kinship/relatedness calculations
 
-calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=TRUE,overwrite_kindf=TRUE,do_wahlund=TRUE,king_threshold=0.4)
+calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=TRUE,overwrite_kindf=TRUE,do_wahlund=TRUE,king_threshold=0.4,findroh=FALSE,matrix_perpop=FALSE,legend_cex=2)
 	{
 	setwd(mysambar$sambardir)
 	kinshipdir	<- paste(mysambar$sambardir,"Kinship",sep="/")
@@ -30417,23 +30500,23 @@ calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=
 			plot_indF(export="pdf",plotname="Inbreeding")
 			plot_indF(export="png",plotname="Inbreeding")
 			if(!silent){cat("plotscatter_indF",sep="\n")}
-			plotscatter_indF(dolabels=TRUE,export="eps")
-			plotscatter_indF(dolabels=TRUE,export="png")
-			plotscatter_indF(dolabels=TRUE,export="pdf")
-			if(mysambar$os=="Windows"){plotscatter_indF(dolabels=TRUE,export="wmf")}
+			plotscatter_indF(dolabels=TRUE,export="eps",legendcex=legend_cex)
+			plotscatter_indF(dolabels=TRUE,export="png",legendcex=legend_cex)
+			plotscatter_indF(dolabels=TRUE,export="pdf",legendcex=legend_cex)
+			if(mysambar$os=="Windows"){plotscatter_indF(dolabels=TRUE,export="wmf",legendcex=legend_cex)}
 			if(!silent){cat("barplotF_perind",sep="\n")}
 			barplotF_perind(export="eps")
 			barplotF_perind(export="pdf")
 			barplotF_perind(export="png")
 			if(mysambar$os=="Windows"){barplotF_perind(export="wmf")}
-			FvsHe(export="eps",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=FALSE)
-			FvsHe(export="pdf",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=FALSE)
-			FvsHe(export="png",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=FALSE)
-			if(mysambar$os=="Windows"){FvsHe(export="wmf",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=FALSE)}
-			FvsHe(export="eps",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=FALSE)
-			FvsHe(export="pdf",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=FALSE)
-			FvsHe(export="png",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=FALSE)
-			if(mysambar$os=="Windows"){FvsHe(export="wmf",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=FALSE)}
+			FvsHe(export="eps",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=FALSE,legendcex=legend_cex)
+			FvsHe(export="pdf",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=FALSE,legendcex=legend_cex)
+			FvsHe(export="png",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=FALSE,legendcex=legend_cex)
+			if(mysambar$os=="Windows"){FvsHe(export="wmf",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=FALSE,legendcex=legend_cex)}
+			FvsHe(export="eps",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=FALSE,legendcex=legend_cex)
+			FvsHe(export="pdf",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=FALSE,legendcex=legend_cex)
+			FvsHe(export="png",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=FALSE,legendcex=legend_cex)
+			if(mysambar$os=="Windows"){FvsHe(export="wmf",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=FALSE,legendcex=legend_cex)}
 			}
 		if(!silent){cat("calc_indF(correctmaf=TRUE)",sep="\n")}
 		if(F_correct_maf)
@@ -30445,33 +30528,33 @@ calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=
 			plot_indF(export="pdf",plotname="Inbreeding_corrected",Fcorrect=TRUE)
 			plot_indF(export="png",plotname="Inbreeding_corrected",Fcorrect=TRUE)
 			if(mysambar$os=="Windows"){plot_indF(export="png",plotname="Inbreeding_corrected",Fcorrect=TRUE)}
-			FvsHe(export="eps",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=TRUE)
-			FvsHe(export="pdf",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=TRUE)
-			FvsHe(export="png",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=TRUE)
-			if(mysambar$os=="Windows"){FvsHe(export="wmf",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=TRUE)}
-			FvsHe(export="eps",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=TRUE)
-			FvsHe(export="pdf",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=TRUE)
-			FvsHe(export="png",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=TRUE)
-			if(mysambar$os=="Windows"){FvsHe(export="wmf",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=TRUE)}
+			FvsHe(export="eps",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=TRUE,legendcex=legend_cex)
+			FvsHe(export="pdf",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=TRUE,legendcex=legend_cex)
+			FvsHe(export="png",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=TRUE,legendcex=legend_cex)
+			if(mysambar$os=="Windows"){FvsHe(export="wmf",showlabels=FALSE,popnames=mysambar$populations,Fcorrect=TRUE,legendcex=legend_cex)}
+			FvsHe(export="eps",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=TRUE,legendcex=legend_cex)
+			FvsHe(export="pdf",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=TRUE,legendcex=legend_cex)
+			FvsHe(export="png",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=TRUE,legendcex=legend_cex)
+			if(mysambar$os=="Windows"){FvsHe(export="wmf",showlabels=TRUE,popnames=mysambar$populations,Fcorrect=TRUE,legendcex=legend_cex)}
 			}
 		if(!silent){cat("expHe_vs_He",sep="\n")}
-		expHe_vs_He(export="eps",allsites=FALSE)
-		expHe_vs_He(export="pdf",allsites=FALSE)
-		expHe_vs_He(export="png",allsites=FALSE)
-		if(mysambar$os=="Windows"){expHe_vs_He(export="wmf",allsites=FALSE)}
+		expHe_vs_He(export="eps",allsites=FALSE,legendcex=legend_cex)
+		expHe_vs_He(export="pdf",allsites=FALSE,legendcex=legend_cex)
+		expHe_vs_He(export="png",allsites=FALSE,legendcex=legend_cex)
+		if(mysambar$os=="Windows"){expHe_vs_He(export="wmf",allsites=FALSE,legendcex=legend_cex)}
 		if(!silent){cat("expHe_vs_He allsites",sep="\n")}
-		expHe_vs_He(export="eps",allsites=TRUE)
-		expHe_vs_He(export="pdf",allsites=TRUE)
-		expHe_vs_He(export="png",allsites=TRUE)
-		if(mysambar$os=="Windows"){expHe_vs_He(export="wmf",allsites=TRUE)}
+		expHe_vs_He(export="eps",allsites=TRUE,legendcex=legend_cex)
+		expHe_vs_He(export="pdf",allsites=TRUE,legendcex=legend_cex)
+		expHe_vs_He(export="png",allsites=TRUE,legendcex=legend_cex)
+		if(mysambar$os=="Windows"){expHe_vs_He(export="wmf",allsites=TRUE,legendcex=legend_cex)}
 		}
 	if(!silent){cat("Calculating kinship...",sep="\n")}
-	calckin(do_overwrite=overwrite_kindf,export="pdf")
+	calckin(do_overwrite=overwrite_kindf,export="pdf",plotperpop=matrix_perpop)
 	if(!silent){cat("Plotting king-robust score versus kinship coefficient...",sep="\n")}
-	kinscatter(export="eps")
-	kinscatter(export="pdf")
-	kinscatter(export="png")
-	if(mysambar$os=="Windows"){kinscatter(export="wmf")}
+	kinscatter(export="eps",legendcex=legend_cex)
+	kinscatter(export="pdf",legendcex=legend_cex)
+	kinscatter(export="png",legendcex=legend_cex)
+	if(mysambar$os=="Windows"){kinscatter(export="wmf",legendcex=legend_cex)}
 	if(!silent){cat("Plotting 2D genotype frequencies...",sep="\n")}
 	multi_geno2Dmat(kindf=mysambar$kindf,maxplots=20,mythres=king_threshold,export_type="pdf")
 	if(!silent){cat("Creating boxplots...",sep="\n")}
@@ -30483,18 +30566,18 @@ calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=
 	kinboxplot(export="pdf",plotname="Relatedness_boxplot_k2",kinshipscore="k2",ylabel="Proportion identical genotypes",yline=4.5,onlywithin=FALSE)
 	#
 	# F vs kin:
-	Fvskin(dolabels=FALSE,export="eps",limitrange=FALSE)
-	Fvskin(dolabels=FALSE,export="pdf",limitrange=FALSE)
-	Fvskin(dolabels=FALSE,export="png",limitrange=FALSE)
-	Fvskin(dolabels=TRUE,export="eps",limitrange=FALSE)
-	Fvskin(dolabels=TRUE,export="pdf",limitrange=FALSE)
-	Fvskin(dolabels=TRUE,export="png",limitrange=FALSE)
-	Fvskin(dolabels=FALSE,export="eps",limitrange=TRUE)
-	Fvskin(dolabels=FALSE,export="pdf",limitrange=TRUE)
-	Fvskin(dolabels=FALSE,export="png",limitrange=TRUE)
-	Fvskin(dolabels=TRUE,export="eps",limitrange=TRUE)
-	Fvskin(dolabels=TRUE,export="pdf",limitrange=TRUE)
-	Fvskin(dolabels=TRUE,export="png",limitrange=TRUE)
+	Fvskin(dolabels=FALSE,export="eps",limitrange=FALSE,legendcex=legend_cex)
+	Fvskin(dolabels=FALSE,export="pdf",limitrange=FALSE,legendcex=legend_cex)
+	Fvskin(dolabels=FALSE,export="png",limitrange=FALSE,legendcex=legend_cex)
+	Fvskin(dolabels=TRUE,export="eps",limitrange=FALSE,legendcex=legend_cex)
+	Fvskin(dolabels=TRUE,export="pdf",limitrange=FALSE,legendcex=legend_cex)
+	Fvskin(dolabels=TRUE,export="png",limitrange=FALSE,legendcex=legend_cex)
+	Fvskin(dolabels=FALSE,export="eps",limitrange=TRUE,legendcex=legend_cex)
+	Fvskin(dolabels=FALSE,export="pdf",limitrange=TRUE,legendcex=legend_cex)
+	Fvskin(dolabels=FALSE,export="png",limitrange=TRUE,legendcex=legend_cex)
+	Fvskin(dolabels=TRUE,export="eps",limitrange=TRUE,legendcex=legend_cex)
+	Fvskin(dolabels=TRUE,export="pdf",limitrange=TRUE,legendcex=legend_cex)
+	Fvskin(dolabels=TRUE,export="png",limitrange=TRUE,legendcex=legend_cex)
 	if(do_wahlund)
 		{
 		cat("Creating Wahlund effect plot. If you receive an error after this line, set the flag do_wahlund to FALSE.",sep="\n")
@@ -30503,9 +30586,63 @@ calckinship<-function(silent=TRUE,calcF=TRUE,plot_inbreeding=TRUE,F_correct_maf=
 		wahlundplot(export="png")
 		#if(mysambar$os=="Windows"){wahlundplot(export="wmf")}
 		}
+	if(findroh)
+		{
+		# 21-12-2022: still under construction.
+		runrzooroh()
+		}
 	}
 
-calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,do_overwrite=FALSE,kinthreshold=0.4)
+# 21-12-2022: under construction
+runrzooroh<-function()
+	{
+	# three steps:
+	# 1. load data (with zoodata function)
+	# 2. define model (with zoomodel function)
+	# 3. run analysis (with zoorun function)
+	#
+	# install.packages("RZooRoH")
+	# library("RZooRoH")
+	#	
+	## CREATE INPUT FILES
+	## create genotype file:
+	# The Rzooroh manual states that only four columns are required for gt format (chr, pos, allele1, allele2).
+	# However, when I read the data with four columns, the information is not read in correctly.
+	# No errors appear, but either a warning about number of sample names (in case of 4 columns, no row.names) or chromosome numbers are perceived incorrectly.
+	# I found that these issues appear to be solved when including a second column (name or number for example) after the first column with chromosome names. 
+	# After a bit more reading, it appears indeed that the software expects by default 5 columns, and that you can also use the following options: 'supcol = 4, poscol = 2, chrcol = 1'
+	mydf	<- snps[snps$filter,c("chr","name","pos","minor2","major2")]
+	# supcol = 4, poscol = 2, chrcol = 1)
+	# The snps$filter boolean includes the snps$polyfilter boolean.
+	# Monomorphic sites (which have NA-value in minor column), will cause an error when reading in the data using the zoodata function.
+	mydf2	<- t(as.matrix(mygenlight[,snps$filter]))
+	mydf2[is.na(mydf2)]<-9
+	mydf3	<- cbind(mydf,mydf2)
+	write.table(mydf3,"rzooroh_geno.txt",sep="\t",quote=FALSE,col.names=FALSE,row.names=FALSE)
+	#
+	## create sample file:
+	write.table(inds$name,"rzooroh_samples.txt",sep="\t",quote=FALSE,col.names=FALSE,row.names=FALSE)
+	#
+	## STEP 1: read data
+	mygt 		<- zoodata(genofile="rzooroh_geno.txt",samplefile="rzooroh_samples.txt",zformat="gt")
+	#
+	## STEP 2: define model
+	# outcome critically depends on setting the correct model. Major model settings:
+	# - K: 		number of homozygosity by descent (HBD) classes
+	# - rate:	whilst sliding through the genome, probability to jump from one HBD-class to the nonHBD-class, or another HBD class? Can be predefined or determined by the software? 	
+	mymodel 	<- zoomodel(predefined=FALSE,K=8)
+	#
+	## STEP 3:  detect ROHs using prespecified model:
+	myrohs 		<- zoorun(mymodel,mygt)
+	#
+	## stacked barplot:
+	pdf("zoo_barplot.pdf",width=10,height=6)
+	mycolours	<- c("grey90","grey70","grey50","steelblue1","steelblue3","mediumpurple1","darkorchid4","midnightblue")
+	zooplot_partitioning(myrohs,ylim=c(0,0.5),nonhbd=FALSE,cols=mycolours,border=FALSE,vertical=FALSE)
+	dev.off()
+	}
+
+calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,do_overwrite=FALSE,kinthreshold=0.4,plotperpop=FALSE)
 	{
 	my_wd		<- getwd()
 	myinds		<- inds$nr
@@ -30677,7 +30814,9 @@ calckin<-function(exporttype=NULL,use_currentdir=TRUE,silent=TRUE,legendcex=2.5,
 		if(!silent){cat("Infinite kingrobust values. Omitting kin matrix...",sep="\n")}
 		}else{
 		if(!silent){cat("Creating kin matrix...",sep="\n")}
-		plot_indmatrix(export=exporttype,silent=silent,inputvalues=kindf$kingrobust,popnames=mysambar$populations,n_bins=5,legpos_x=0.1,legpos_y=0.45,leg_cex=legendcex,matcol="orange",plottitle="KING-robust",plotprefix="KINGrelatedness",currentdir=TRUE)
+		kingvalues					<- kindf$kingrobust
+		kingvalues[kingvalues<0]	<- 0
+		plot_indmatrix(export=exporttype,silent=silent,inputvalues=kingvalues,popnames=mysambar$populations,n_bins=5,mybreaks=NULL,legpos_x=0.1,legpos_y=0.45,leg_cex=legendcex,matcol="orange",plottitle="KING-robust",plotprefix="KINGrelatedness",currentdir=TRUE,perpop=plotperpop)
 		}
 	#
 	# EXPORT TABLE
@@ -30894,7 +31033,7 @@ kintable<-function(my_thres=0,silent=FALSE)
 		}
 	}
 
-Fvskin<-function(dolabels=FALSE,export=NULL,limitrange=FALSE)
+Fvskin<-function(dolabels=FALSE,export=NULL,limitrange=FALSE,legendcex=1.5)
 	{
 	kindf			<- mysambar$kindf
 	kindf			<- kindf[kindf$ind1_bool&kindf$ind2_bool,]
@@ -30928,7 +31067,7 @@ Fvskin<-function(dolabels=FALSE,export=NULL,limitrange=FALSE)
 		text(kindf$F,kindf$kingrobust,paste(kindf$ind1,kindf$ind2,sep="_"),pch=16,col=mycols,cex=0.25,xlim=limx,ylim=limy)
 		}
 	abline(h=0.5,lty=2)
-	legend("bottomleft",legend=c(mysambar$populations,"between"),fill=c(mysambar$mycolours,"black"),bty='n',cex=1.5)
+	legend("bottomleft",legend=c(mysambar$populations,"between"),fill=c(mysambar$mycolours,"black"),bty='n',cex=legendcex)
 	if(!is.null(export)){dev.off()}
 	}
 
@@ -36769,7 +36908,7 @@ runRDA<-function(export="pdf",legendpos="topleft",envfile="ENVDATAr5noBSCLEAN_MJ
 ###############################################################################################################
 # Data management and generally used functions
 
-do_heatmap<-function(export_type=NULL,masklower=TRUE,nbins=NULL,roundlevel=2,shownegative=FALSE,mymatrix=nei,my_inds=inds,my_snps=snps,my_col="orange",my_col2="white",my_midcol=NULL,exportname="mymatrix",mytitle=NULL,addlegend=TRUE,myBreaks=NULL,addlab=TRUE,misslabels=FALSE,printname=FALSE,legposx=0.1,legposy=0.52,legcex=2.5,subtitle=NULL)
+do_heatmap<-function(export_type=NULL,masklower=TRUE,nbins=NULL,roundlevel=2,shownegative=FALSE,mymatrix=nei,my_inds=inds,my_snps=snps,my_col="orange",my_col2="white",my_midcol=NULL,exportname="mymatrix",mytitle=NULL,addlegend=TRUE,myBreaks=NULL,addlab=TRUE,misslabels=FALSE,printname=FALSE,legposx=0.1,legposy=0.52,legcex=2,subtitle=NULL)
 		{
 		# This plot will use all data in mymatrix input.
 		# It assumes that nrow(mymatrix) and ncol(mymatrix) corresponds with nrow(my_inds[my_inds$filter,])
@@ -42169,7 +42308,8 @@ plottreemix<-function(export=NULL,prefix=NULL,plotname="Treemixout",myxmin=0,lab
 		}
 	myfile1		<- paste(prefix,"edges.gz",sep=".")
 	myfile2		<- paste(prefix,"vertices.gz",sep=".")
-	if(!file.exists(myfile1)|!file.exists(myfile2))
+	myfile3		<- paste(prefix,"covse.gz",sep=".")
+	if(!file.exists(myfile1)|!file.exists(myfile2)|!file.exists(myfile3))
 		{
 		cat("ERROR: Could not find input files in the directory:",sep="\n")
 		return(cat(getwd(),sep="\n"))
