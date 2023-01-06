@@ -31930,7 +31930,9 @@ selectionanalyses<-function(export="pdf",do_meta=TRUE,plothisto=TRUE,dopiechart=
 		}
 	# check whether bayescan output files are provided if needed:
 	setwd(mysambar$inputfilesdir)
-	mybayefiles <- list.files(pattern = "\\.bayescanout.fst.txt$")
+	# mybayefiles <- list.files(pattern = "\\.bayescanout.fst$")
+	# 06-01-2023:
+	mybayefiles	<- list.files(pattern = ".*.bayescanout.fst")
 	if(length(mybayefiles)<1&add_bayescan)
 		{
 		cat("ERROR: the inputfiles directory does not contain files with the extension 'bayescanout.fst'.",sep="\n")
