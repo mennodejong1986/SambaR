@@ -2735,7 +2735,18 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		nrsnps					<- ncol(as.matrix(mygenlight))
 		mygenlight@loc.names	<<- paste("SNP",c(1:nrsnps),sep="")
 		}	
-	#
+	if(any(is.na(mygenlight@ind.names)))
+		{
+		return(cat("ERROR: NA-value in ind.names slot of input genlight object.",sep="\n"))
+		}
+	indvec	<- mygenlight@ind.names
+	if(any(duplicated(indvec)))
+		{
+		dupvec	<<- indvec[duplicated(indvec)]
+		cat("ERROR: duplicated sample names in ind.names slot of input genlight object.",sep="\n")
+		cat("Type 'dupvec' to find out which names are duplicated.",sep="\n")
+		return(cat("Please edit these names in the input genlight object (see: @ind.names) and afterwards try rerunning the 'genlight2sambar' function.",sep="\n"))
+		}
 	cat("Creating inds object...",sep="\n")
 	nrinds		<- length(mygenlight@ind.names)
 	if(is.null(mygenlight@pop))
@@ -2743,6 +2754,10 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		mypops	<- rep("pop1",nrinds)		
 		}else{
 		mypops	<- as.vector(as.character(mygenlight@pop))
+		if(length(mypops)!=nrinds)
+			{
+			return(cat("ERROR: length of pop slot in input genlight object does not correspond with number of individuals.",sep="\n"))
+			}
 		}
 	inds		<<- data.frame("name"=as.vector(mygenlight@ind.names),"nr"=c(1:nrinds),"pop"=mypops,"pop2"=mypops)
 	if(!is.null(popvector))
@@ -28113,11 +28128,13 @@ getinds2<-function()
 	#
 	if(geobool)
 		{
+		cat("Adding population information to inds2 dataframe, including geographical coordinates.",sep="\n")
 		indstemp1			<- inds[,c("name","pop","popcol","pop2","longitude3","latitude")]	
 		colnames(indstemp1)	<- c("name1","pop1","popcol1","subpop1","long1","lat1")
 		indstemp2			<- inds[,c("name","pop","popcol","pop2","longitude3","latitude")]	
 		colnames(indstemp2)	<- c("name2","pop2","popcol2","subpop2","long2","lat2")
 		}else{
+		cat("Adding population information to inds2 dataframe, without geographical coordinates.",sep="\n")
 		indstemp1			<- inds[,c("name","pop","popcol","pop2")]	
 		colnames(indstemp1)	<- c("name1","pop1","popcol1","subpop1")
 		indstemp2			<- inds[,c("name","pop","popcol","pop2")]	
