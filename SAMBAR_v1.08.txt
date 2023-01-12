@@ -5658,7 +5658,7 @@ exporthighestsd<-function(nsnps=c(10,20,50,100,150,250),silent=TRUE)
 	setwd(mywd)
 	}
 
-exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE,do_silent=TRUE,per_pop=FALSE,do_tab=TRUE,imputeddata=FALSE)
+exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,do_treemix=TRUE,do_popcluster=TRUE,do_silent=TRUE,per_pop=FALSE,do_tab=TRUE,imputeddata=FALSE)
 	{
 	if(imputeddata)
 		{
@@ -5682,7 +5682,6 @@ exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,d
 			cat("Currently only 1 population defined. Not exporting Bayesass input ('Bayesassinput.immanc.txt').",sep="\n")
 			}
 		}
-	#
 	if(do_treemix)
 		{
 		cat("Exporting input for Treemix software. If you receiving an error after this line, set the flag 'do_treemix' to FALSE.",sep="\n")
@@ -5702,14 +5701,17 @@ exportsambarfiles<-function(do_immanc=TRUE,do_pednumber=TRUE,do_pedletter=TRUE,d
 		myexportname		<- ifelse(imputeddata,"filter2.number.imputed","filter2.number")
 		exportdata(input_genlight=inputgenlight,snpsfilter=snps$filter2,indsfilter=inds$filter,export_name="filter2.number",quiet2=TRUE,do_all=per_pop,dotab=do_tab)
 		}
-	#
 	if(do_pedletter)
 		{
 		cat("Exporting input for 'plink --recode vcf' command (files ending on 'filter.number.ped' and 'filter.number.map'), in case you would like to convert filtered datasets (back) to vcf format.",sep="\n")
 		myexportname		<- ifelse(imputeddata,"filter.letter.imputed","filter.letter")
 		exportdata(input_genlight=inputgenlight,snpsfilter=snps$filter,indsfilter=inds$filter,export_name=myexportname,geno_nr=FALSE,quiet2=TRUE,do_all=per_pop,dotab=do_tab)
 		}
-	#
+	if(do_popcluster)
+		{
+		cat("Exporting input for PopCluster software. If you receiving an error after this line, set the flag 'do_popcluster' to FALSE.",sep="\n")
+		genlight2ped(exportname="PopCluster_input",genonumber=TRUE,miss_char="0",use_tab=FALSE,popcluster=TRUE)
+		}
 	setwd(mysambar$inputdatadir)
 	cat("Filtered datasets have been written to:",sep="\n")
 	cat(mysambar$inputfilesdir,sep="\n")
@@ -9288,7 +9290,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 
 
 # This function executes all population structure analyses at once:
-findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="black",legend_pos="bottomright",legend_cex=3,my_legend=NULL,my_legendcol=NULL,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,do_tree=TRUE,dogenindtrees=FALSE,do_MPtree=TRUE,do_MLtree=FALSE,do_pathlength=FALSE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=FALSE,do_phylonetwork=FALSE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
+findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="black",legend_pos="bottomright",legend_cex=3,my_legend=mysambar$poporder,my_legendcol=mysambar$colorder,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,do_tree=TRUE,dogenindtrees=FALSE,do_MPtree=TRUE,do_MLtree=FALSE,do_pathlength=FALSE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=FALSE,do_phylonetwork=FALSE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
 	{
 	# edit 19-06-2022:
 	if(do_tess|do_network|marine_dataset)	
@@ -9395,13 +9397,16 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 			my_order[k]		<- which(popnames==my_pop)
 			inds$poporder[inds$pop==my_pop]	<<- k  
 			}
-		cat("Redefining colour order used for legends of pcoa and pca plots...",sep="\n")
-		my_legend		<- pop_order
-		my_legendcol	<- rep(NA,length(pop_order))
-		for(k in c(1:length(my_legend)))
+		if(is.null(my_legend))
 			{
-			mypop			<- as.character(my_legend[k])
-			my_legendcol[k]	<- mysambar$mycolours2[mysambar$populations2==mypop]
+			cat("Redefining colour order used for legends of pcoa and pca plots...",sep="\n")
+			my_legend		<- pop_order
+			my_legendcol	<- rep(NA,length(pop_order))
+			for(k in c(1:length(my_legend)))
+				{
+				mypop			<- as.character(my_legend[k])
+				my_legendcol[k]	<- mysambar$mycolours2[mysambar$populations2==mypop]
+				}
 			}
 		}
 	# legend_pos can be either topleft, top, topright, left, center, right, bottomleft, bottom, or bottomright
@@ -11737,7 +11742,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	if(any(!(as.character(mytree$tip.label)%in%as.character(inds$name[inds$filter]))))
 		{
 		mytree				<<- mytree
-		return(cat("WARNING: one or more labels in tree (mytree$tip.label) do not correspond with names of retained individuals in inds dataframe (inds$name[inds$filter]).",sep="\n"))
+		return(cat("ERROR: one or more labels in tree (mytree$tip.label) do not correspond with names of retained individuals in inds dataframe (inds$name[inds$filter]).",sep="\n"))
 		}
 	if(any(!(as.character(mytree$tip.label)==as.character(inds$name[inds$filter]))))
 		{
@@ -28123,9 +28128,24 @@ getinds2<-function()
 	#
 	combitable	<- combn(inds$name,m=2)
 	combitable2	<- combn(inds$nr,m=2)
+	if(ncol(combitable)!=ncol(combitable2))
+		{
+		return(cat("ERROR: number of columns of combitable and combitable2 do not correspond. Contact developer of SambaR.",sep="\n"))
+		}
+	ninds		<- nrow(inds)
+	ncombitable	<- ncol(combitable)
+	cat(paste("Number of individuals: ",ninds,".",sep=""),sep="\n")
+	cat(paste("Number of pairwise comparisons: ",ncol(combitable),", as given by: (",ninds,"*(",ninds,"-1))/2.",sep=""),sep="\n") 
+	if(ncombitable!=((ninds*(ninds-1))/2))
+		{
+		return(cat("ERROR: combitable has unexpected number of columns. Contact developer of SambaR.",sep="\n"))
+		}
 	#inds2		<- data.frame("name1"=c(inds$name,combitable[1,]),"name2"=c(inds$name,combitable[2,]),"indpair"=NA,"ind1"=c(inds$nr,combitable2[1,]),"ind2"=c(inds$nr,combitable2[2,]),"sameind"=TRUE,"filter1"=TRUE,"filter2"=TRUE,"filter"=TRUE,"pop1"=NA,"pop2"=NA,"samepop"=TRUE,"poppair"=NA,"popcol1"=NA,"popcol2"=NA,"subpop1"=NA,"subpop2"=NA,"long1"=NA,"lat1"=NA,"long2"=NA,"lat2"=NA,"chorddist"=NA,"geodist"=NA)
 	inds2		<- data.frame("name1"=c(inds$name,combitable[1,]),"name2"=c(inds$name,combitable[2,]),"indpair"=NA,"ind1"=c(inds$nr,combitable2[1,]),"ind2"=c(inds$nr,combitable2[2,]),"sameind"=TRUE,"filter1"=TRUE,"filter2"=TRUE,"filter"=TRUE,"chorddist"=NA,"geodist"=NA)
-	#
+	if(nrow(inds2)!=ncombitable+ninds)
+		{
+		return(cat("ERROR: unexpected number of rows of inds2 dataframe. Contact developer of SambaR.",sep="\n"))
+		}
 	if(geobool)
 		{
 		cat("Adding population information to inds2 dataframe, including geographical coordinates.",sep="\n")
@@ -28143,14 +28163,21 @@ getinds2<-function()
 	inds2merged			<- merge(inds2,indstemp1,by="name1")	
 	if(nrow(inds2merged)!=nrow(inds2))
 		{
+		indstemp1		<<- indstemp1
 		inds2			<<- inds2
-		return(cat("ERROR: unexpected number of rows of inds2 dataframe after merging with indstemp1. Contact developer of SambaR.",sep="\n"))
+		inds2merged		<<- inds2merged
+		nrows			<- nrow(inds2merged)
+		return(cat(paste("ERROR: unexpected number of rows of inds2 dataframe (",nrows,") after merging with indstemp1. Contact developer of SambaR.",sep=""),sep="\n"))
 		}
 	inds2merged2		<- merge(inds2merged,indstemp2,by="name2")	
 	if(nrow(inds2merged2)!=nrow(inds2))
 		{
+		indstemp2		<<- indstemp2
 		inds2			<<- inds2
-		return(cat("ERROR: unexpected number of rows of inds2 dataframe after merging with indstemp2. Contact developer of SambaR.",sep="\n"))
+		inds2merged		<<- inds2merged
+		inds2merged2	<<- inds2merged2
+		nrows			<- nrow(inds2merged2)
+		return(cat(paste("ERROR: unexpected number of rows of inds2 dataframe (",nrows,") after merging with indstemp2. Contact developer of SambaR.",sep=""),sep="\n"))
 		}
 	inds2				<- inds2merged2
 	inds2$indpair		<- ifelse(as.character(inds2$name1)<as.character(inds2$name2),paste(inds2$name1,inds2$name2,sep="_"),paste(inds2$name1,inds2$name2,sep="_"))
@@ -28182,7 +28209,7 @@ getinds2<-function()
 		inds2$geodist[!is.finite(inds2$geodist)]	<- NA
 		inds2$geodist	<- inds2$geodist/100		# unit: 100 km
 		}else{
-		cat("WARNING: not calculating geographic distance (because no geographical position information present). This means you cannot generate a Mantel plot using the dxyfac function.",sep="\n") 
+		cat("WARNING: not calculating geographic distance (because no geographical position information present). This means you cannot generate a Mantel plot using the pops2scatter function.",sep="\n") 
 		}
 	inds2		<<- inds2
 	}
@@ -28283,7 +28310,7 @@ inds2pops<-function(missfilter=NULL)
 	}
 
 # 20-06-2022: add results to inds2 dataframe. For example, output from VCF_calcdist.sh.
-add2inds2<-function(myfile="allvcfdist.noheaders.txt",mutrate=NULL,errorrate=0,gentime=NULL,miss_filter=NULL)
+add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,miss_filter=NULL)
 	{
 	if(is.null(myfile))
 		{
@@ -28301,21 +28328,29 @@ add2inds2<-function(myfile="allvcfdist.noheaders.txt",mutrate=NULL,errorrate=0,g
 		{
 		return(cat("ERROR: input dataframe should contain the columns 'name1' and 'name2'.",sep="\n"))
 		}
-	mycolnames	<- colnames(x)
-	indpairvec	<- ifelse(as.character(x$name1)<as.character(x$name2),paste(x$name1,x$name2,sep="_"),paste(x$name1,x$name2,sep="_"))
 	if(nrow(inds2)!=nrow(x))
 		{
 		cat(paste("WARNING: number of rows in input dataframe (",nrow(x),") does not correspond to number of rows in inds2 dataframe (",nrow(inds2),").",sep=""),sep="\n")
 		}
-	# remove column names which also occur in inds2 dataframe:
-	x			<- x[,!mycolnames%in%colnames(inds2)]
-	x$indpair	<- indpairvec	
-	#
+	mycolnames	<- colnames(x)
+	mycolnames	<- mycolnames[!mycolnames%in%c("name1","name2")]
+	if(any(mycolnames%in%colnames(inds2)))
+		{
+		cat("WARNING: replacing existing columns in inds2 dataframe.",sep="\n")
+		inds2	<<- inds2[,!(colnames(inds2)%in%mycolnames)]	
+		}
+	indpairvec	<- ifelse(as.character(x$name1)<as.character(x$name2),paste(x$name1,x$name2,sep="_"),paste(x$name2,x$name1,sep="_"))
+	x$indpair	<- indpairvec
+	x			<- x[!duplicated(x$indpair),]
+	x$name1		<- NULL
+	x$name2		<- NULL
 	if(nrow(inds2)<nrow(x))
 		{
+		# 11-01-2023: replace all=FALSE with all=TRUE
 		inds2temp	<- merge(inds2,x,all=FALSE,by="indpair")
 		if(nrow(inds2temp)!=npairs)
 			{
+			inputdf	<<- x
 			return(cat("ERROR: merging 'merge(all=FALSE)' resulted in unexpected number of rows.",sep="\n"))
 			}
 		inds2		<<- inds2temp
@@ -28323,6 +28358,7 @@ add2inds2<-function(myfile="allvcfdist.noheaders.txt",mutrate=NULL,errorrate=0,g
 		inds2temp	<- merge(inds2,x,all=TRUE,by="indpair")
 		if(nrow(inds2temp)!=npairs)
 			{
+			inputdf	<<- x
 			return(cat("ERROR: merging 'merge(all=TRUE)' resulted in unexpected number of rows.",sep="\n"))
 			}
 		inds2		<<- inds2temp
