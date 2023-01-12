@@ -28149,9 +28149,11 @@ popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL)
 getinds2<-function()
 	{
 	cat("Creating inds2 dataframe...",sep="\n")
-	geobool		<- "longitude3"%in%colnames(inds)
-	#
-	combitable	<- combn(inds$name,m=2)
+	if(any(!c("name","nr","pop","popcol","pop2")%in%colnames(inds)))
+		{
+		return(cat("ERROR: inds dataframe should contain at least the columns 'name', 'pop', 'popcol', 'pop2', and 'nr'.",sep="\n"))
+		}
+	combitable	<- combn(as.character(inds$name),m=2)
 	combitable2	<- combn(inds$nr,m=2)
 	if(ncol(combitable)!=ncol(combitable2))
 		{
@@ -28166,11 +28168,20 @@ getinds2<-function()
 		return(cat("ERROR: combitable has unexpected number of columns. Contact developer of SambaR.",sep="\n"))
 		}
 	#inds2		<- data.frame("name1"=c(inds$name,combitable[1,]),"name2"=c(inds$name,combitable[2,]),"indpair"=NA,"ind1"=c(inds$nr,combitable2[1,]),"ind2"=c(inds$nr,combitable2[2,]),"sameind"=TRUE,"filter1"=TRUE,"filter2"=TRUE,"filter"=TRUE,"pop1"=NA,"pop2"=NA,"samepop"=TRUE,"poppair"=NA,"popcol1"=NA,"popcol2"=NA,"subpop1"=NA,"subpop2"=NA,"long1"=NA,"lat1"=NA,"long2"=NA,"lat2"=NA,"chorddist"=NA,"geodist"=NA)
-	inds2		<- data.frame("name1"=c(inds$name,combitable[1,]),"name2"=c(inds$name,combitable[2,]),"indpair"=NA,"ind1"=c(inds$nr,combitable2[1,]),"ind2"=c(inds$nr,combitable2[2,]),"sameind"=TRUE,"filter1"=TRUE,"filter2"=TRUE,"filter"=TRUE,"chorddist"=NA,"geodist"=NA)
+	inds2		<- data.frame("name1"=c(as.character(inds$name),as.character(combitable[1,])),"name2"=c(as.character(inds$name),as.character(combitable[2,])),"indpair"=NA,"ind1"=c(inds$nr,combitable2[1,]),"ind2"=c(inds$nr,combitable2[2,]),"sameind"=TRUE,"filter1"=TRUE,"filter2"=TRUE,"filter"=TRUE,"chorddist"=NA,"geodist"=NA)
 	if(nrow(inds2)!=ncombitable+ninds)
 		{
 		return(cat("ERROR: unexpected number of rows of inds2 dataframe. Contact developer of SambaR.",sep="\n"))
 		}
+	if(!any(inds$name%in%inds2$name1))
+		{
+		return(cat("ERROR: sample names in inds dataframe do not correspond to sample names in inds2$name1 column. Contact developer of SambaR.",sep="\n"))
+		}
+	if(!any(inds$name%in%inds2$name2))
+		{
+		return(cat("ERROR: sample names in inds dataframe do not correspond to sample names in inds2$name2 column. Contact developer of SambaR.",sep="\n"))
+		}	
+	geobool		<- "longitude3"%in%colnames(inds)
 	if(geobool)
 		{
 		cat("Adding population information to inds2 dataframe, including geographical coordinates.",sep="\n")
