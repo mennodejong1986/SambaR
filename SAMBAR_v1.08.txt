@@ -5610,7 +5610,7 @@ excludepop<-function(popvector=NULL,do_exclude=NULL,retain=FALSE)
 	#inds2				<<- inds2 
 	#inds2$filter		<<- inds2$filter1&inds2$filter2
 	# 12-01-2023: replaced above lines with the following lines:
-	cat("Updating inds2 dataframe...",sep="\n")
+	cat("Updating inds2 dataframe ...",sep="\n")
 	retainedvec			<- inds$name[inds$filter] 
 	inds2$filter1[inds2$name1%in%retainedvec]	<<- TRUE
 	inds2$filter1[!inds2$name1%in%retainedvec]	<<- FALSE
@@ -5635,7 +5635,7 @@ excludepop<-function(popvector=NULL,do_exclude=NULL,retain=FALSE)
 	 		return(cat("ERROR: unexpected number of retained individuals in inds2 dataframe after updating ind2 dataframe. Contact developer of SambaR.",sep="\n"))
 			}
 		}
-	cat("Updating pops2 dataframe...",sep="\n")
+	cat("Updating pops2 dataframe ...",sep="\n")
 	for(i in c(1:nrow(pops2)))
 		{
 		pop1				<- as.character(pops2$pop1[i])
