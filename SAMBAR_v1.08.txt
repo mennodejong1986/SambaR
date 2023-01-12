@@ -5552,7 +5552,8 @@ excludepop<-function(popvector=NULL,do_exclude=NULL,retain=FALSE)
 	inds$filter			<<- inds$filter2
 	if(is.null(popvector))
 		{
-		return(cat("WARNING: no population name provided to the popvector flag. Not excluding any population.",sep="\n"))
+		excludepopvector		<- c()
+		cat("WARNING: no population name provided to the popvector flag. Not excluding any population.",sep="\n")
 		}else{
 		if(retain)
 			{
@@ -5590,35 +5591,59 @@ excludepop<-function(popvector=NULL,do_exclude=NULL,retain=FALSE)
 			popordernr[i]		<- mypopnr
 			}
 		mysambar$popordernr		<<- popordernr
-		#
-		cat("Updating inds2 dataframe...",sep="\n")
-		indstemp1			<- inds[,c("name","filter")]	
-		colnames(indstemp1)	<- c("name1","filter1")
-		indstemp2			<- inds[,c("name","filter")]	
-		colnames(indstemp2)	<- c("name2","filter2")
-		inds2merged			<- merge(inds2,indstemp1,by="name1")	
-		if(nrow(inds2merged)!=nrow(inds2))
-			{
-			return(cat("ERROR: unexpected number of rows of inds2 dataframe after adding filter1 column. Contact developer of SambaR.",sep="\n"))
-			}
-		inds2merged2		<- merge(inds2merged,indstemp2,by="name2")	
-		if(nrow(inds2merged2)!=nrow(inds2))
-			{
-			return(cat("ERROR: unexpected number of rows of inds2 dataframe after adding filter2 column. Contact developer of SambaR.",sep="\n"))
-			}
-		inds2				<<- inds2 
-		inds2$filter		<<- inds2$filter1&inds2$filter2
-		#
-		cat("Updating pops2 dataframe...",sep="\n")
-		for(i in c(1:nrow(pops2)))
-			{
-			pop1				<- as.character(pops2$pop1[i])
-			pop2				<- as.character(pops2$pop2[i])
-			pops2$filter1[i]	<<- !pop1%in%excludepopvector
-			pops2$filter2[i]	<<- !pop2%in%excludepopvector
-			}
-		pops2$filter			<<- pops2$filter1&pops2$filter2
 		}
+	#cat("Updating inds2 dataframe...",sep="\n")
+	#indstemp1			<- inds[,c("name","filter")]	
+	#colnames(indstemp1)<- c("name1","filter1")
+	#indstemp2			<- inds[,c("name","filter")]	
+	#colnames(indstemp2)<- c("name2","filter2")
+	#inds2merged		<- merge(inds2,indstemp1,by="name1")	
+	#if(nrow(inds2merged)!=nrow(inds2))
+	#	{
+	#	return(cat("ERROR: unexpected number of rows of inds2 dataframe after adding filter1 column. Contact developer of SambaR.",sep="\n"))
+	#	}
+	#inds2merged2		<- merge(inds2merged,indstemp2,by="name2")	
+	#if(nrow(inds2merged2)!=nrow(inds2))
+	#	{
+	#	return(cat("ERROR: unexpected number of rows of inds2 dataframe after adding filter2 column. Contact developer of SambaR.",sep="\n"))
+	#	}
+	#inds2				<<- inds2 
+	#inds2$filter		<<- inds2$filter1&inds2$filter2
+	# 12-01-2023: replaced above lines with the following lines:
+	cat("Updating inds2 dataframe...",sep="\n")
+	retainedvec			<- inds$name[inds$filter] 
+	inds2$filter1[inds2$name1%in%retainedvec]	<<- TRUE
+	inds2$filter1[!inds2$name1%in%retainedvec]	<<- FALSE
+	inds2$filter2[inds2$name2%in%retainedvec]	<<- TRUE
+	inds2$filter2[!inds2$name2%in%retainedvec]	<<- FALSE
+	inds2$filter		<<- inds2$filter1&inds2$filter2
+	# checkpoint:
+	boolvec				<- c(inds2$name1%in%retainedvec,inds2$name2%in%retainedvec)
+	if(all(boolvec))
+		{
+		if(any(!inds$filter))
+			{
+			return(cat("ERROR: unexpected number of retained individuals (namely all) in inds2 dataframe after updating ind2 dataframe. Contact developer of SambaR.",sep="\n"))
+			}
+		}else{
+		nretained2		<- length(boolvec[boolvec])
+		ndiscarded2		<- length(boolvec[!boolvec])
+		nretained		<- length(inds$filter[inds$filter])
+		ndiscarded		<- length(inds$filter[!inds$filter])
+		if(nretained2!=(ndiscarded2/ndiscarded*nretained))
+			{
+	 		return(cat("ERROR: unexpected number of retained individuals in inds2 dataframe after updating ind2 dataframe. Contact developer of SambaR.",sep="\n"))
+			}
+		}
+	cat("Updating pops2 dataframe...",sep="\n")
+	for(i in c(1:nrow(pops2)))
+		{
+		pop1				<- as.character(pops2$pop1[i])
+		pop2				<- as.character(pops2$pop2[i])
+		pops2$filter1[i]	<<- !pop1%in%excludepopvector
+		pops2$filter2[i]	<<- !pop2%in%excludepopvector
+		}
+	pops2$filter			<<- pops2$filter1&pops2$filter2
 	}
 
 exporthighestsd<-function(nsnps=c(10,20,50,100,150,250),silent=TRUE)
@@ -28163,19 +28188,26 @@ getinds2<-function()
 	inds2merged			<- merge(inds2,indstemp1,by="name1")	
 	if(nrow(inds2merged)!=nrow(inds2))
 		{
-		indstemp1		<<- indstemp1
-		inds2			<<- inds2
-		inds2merged		<<- inds2merged
+		#indstemp1		<<- indstemp1
+		write.table(indstemp1,"indstemp1.txt",quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
+		#inds2			<<- inds2
+		write.table(inds2,"inds2.txt",quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
+		#inds2merged		<<- inds2merged
+		write.table(inds2merged,"inds2merged.txt",quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
 		nrows			<- nrow(inds2merged)
 		return(cat(paste("ERROR: unexpected number of rows of inds2 dataframe (",nrows,") after merging with indstemp1. Contact developer of SambaR.",sep=""),sep="\n"))
 		}
 	inds2merged2		<- merge(inds2merged,indstemp2,by="name2")	
 	if(nrow(inds2merged2)!=nrow(inds2))
 		{
-		indstemp2		<<- indstemp2
-		inds2			<<- inds2
-		inds2merged		<<- inds2merged
-		inds2merged2	<<- inds2merged2
+		#indstemp2		<<- indstemp2
+		write.table(indstemp2,"indstemp2.txt",quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
+		#inds2			<<- inds2
+		write.table(inds2,"inds2.txt",quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
+		#inds2merged		<<- inds2merged
+		write.table(inds2merged,"inds2merged.txt",quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
+		#inds2merged2	<<- inds2merged2
+		write.table(inds2merged2,"inds2merged2.txt",quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
 		nrows			<- nrow(inds2merged2)
 		return(cat(paste("ERROR: unexpected number of rows of inds2 dataframe (",nrows,") after merging with indstemp2. Contact developer of SambaR.",sep=""),sep="\n"))
 		}
