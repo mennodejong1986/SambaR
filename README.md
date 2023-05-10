@@ -19,11 +19,11 @@ By default, the calcdiversity() function of SambaR does no longer generate SFS-v
 
 If you use SambaR for scientific publications, please cite:
 
-Menno J. de Jong, Joost F. de Jong, A. Rus Hoelzel, Axel Janke, 2021, SambaR: an R package for fast, easy and reproducible population‐genetic analyses of biallelic SNP datasets, Molecular Ecology Resources, doi/10.1111/1755-0998.13339
+*Menno J. de Jong, Joost F. de Jong, A. Rus Hoelzel, Axel Janke, 2021, SambaR: an R package for fast, easy and reproducible population‐genetic analyses of biallelic SNP datasets, Molecular Ecology Resources, doi/10.1111/1755-0998.13339*
 
 If you make use of the selection scan GWDS for scientific publications, please cite in addition:
 
-Menno de Jong, Fiona Lovatt, A. Rus Hoelzel, 2021, Detecting genetic signals of selection in heavily bottlenecked reindeer populations by comparing parallel founder events, Molecular Ecology, doi/10.1111/mec.15837
+*Menno de Jong, Fiona Lovatt, A. Rus Hoelzel, 2021, Detecting genetic signals of selection in heavily bottlenecked reindeer populations by comparing parallel founder events, Molecular Ecology, doi/10.1111/mec.15837*
 
 Do not forgot to also cite all applicable references of other R packages which SambaR uses to generate the output. A file with a list of references will be available in the SambaR output directories.
 
