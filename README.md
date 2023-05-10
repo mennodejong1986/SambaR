@@ -15,7 +15,7 @@ UPDATE 22-04-2021
 By default, the calcdiversity() function of SambaR does no longer generate SFS-vectors. Users can still enable this utility, but are adviced to generate SFS vectors using more established methods (e.g., ANGSD, EasySFS or Popgen Pipeline Platform).     
 
 
-CITING SAMBAR
+## How to cite SambaR
 
 If you use SambaR for scientific publications, please cite:
 
