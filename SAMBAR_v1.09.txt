@@ -9740,8 +9740,9 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 				getindtree(export="pdf",do_analysis=TRUE,nbootstrap=0,mymethod="bionj",mydistance="euclidean",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
 				getindtree(export="pdf",do_analysis=TRUE,nbootstrap=0,mymethod="OLS",mydistance="euclidean",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
 				#				
-				# Allele sharing distance (generated with SambaR's calcpi function):
-				# getindtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="ASD",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
+				# Allele sharing distance (note: ASD not the same as sequence dissimilarity calculated by SambaR's calcpi function (?)):
+				# getindtree(export="pdf",do_analysis=TRUE,mymethod="bioNJ",mydistance="ASD",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
+				# getindtree(export="pdf",do_analysis=TRUE,mymethod="bionj",mydistance="pi",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=FALSE,calc_parsimony=FALSE,calc_likelihood=FALSE,silent=FALSE,legendpos="topleft")
 				#
 				# sequence dissimilarity (generated with SambaR's calcpi function):
 				cat("Hierarchical structuring of individuals based on sequence dissimilarity score (i.e. using calcpi function of SambaR package)...",sep="\n")
@@ -11811,7 +11812,8 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 					{
 					cat("Creating distance-based tree from allele sharing distance (ASD) matrix...",sep="\n")
 					#sambarfunction_findstructure
-					mysambar$asdmatrix	<<- pidf2matrix(pidf=mysambar$pidf_metalist[[1]],myinds=as.character(inds$name[inds$filter]),do_asd=TRUE)
+					#mysambar$asdmatrix	<<- pidf2matrix(pidf=mysambar$pidf_metalist[[1]],myinds=as.character(inds$name[inds$filter]),do_asd=TRUE)
+					mysambar$asdmatrix	<<- pidf2matrix(pidf=mysambar$pidf_metalist[[1]],myinds=inds$nr[inds$filter],do_asd=TRUE)
 					mydistmat			<- mysambar$asdmatrix
 					}
 				if(mydistance=="bitwise.dist")
@@ -12046,6 +12048,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 		indorder				<- mytree$edge[tipindex,2]
 		mycolors2[tipindex]		<- my_colours[indorder]
 		}
+	#colorstemp		<<- mycolors2
 	if(showpop)
 		{
 		# 16-07-2021: to plot one pop name per population rather than all sample names
@@ -20230,6 +20233,47 @@ chromfst<-function(export=NULL,n_chroms=NULL,myfst=NULL,mycol="darkorchid4",wide
 		}
 	}
 
+# 23-05-2023: 
+pops2matrix<-function(plot_label=NULL,my_Breaks=NULL,nr_breaks=8,doplot=TRUE,myscore=NULL,zero_diagonal=FALSE,return_object=TRUE)
+	{
+	if(is.null(myscore))
+		{
+		return(cat("ERROR: specify column name (present in pops2 dataframe).",sep="\n"))
+		}
+	npops				<- length(mysambar$populations2)
+	mymatrix			<- matrix(NA,nrow=npops,ncol=npops)
+	colnames(mymatrix)	<- mysambar$populations2
+	rownames(mymatrix)	<- mysambar$populations2
+	if(!myscore%in%colnames(pops2))
+		{
+		return(cat("ERROR: specified column not present in pops2 dataframe.",sep="\n"))
+		}
+	myvector			<- as.vector(pops2[,myscore])
+	for(i in c(1:npops))
+		{
+		mypop1	<- mysambar$populations2[i]
+		for(j in c(1:npops))
+			{
+			if(i==j&zero_diagonal)
+				{
+				mymatrix[i,j]	<- 0
+				}else{
+				mypop2			<- mysambar$populations2[j]
+				mymatrix[i,j]	<- myvector[(pops2$pop1==mypop1&pops2$pop2==mypop2)|(pops2$pop1==mypop2&pops2$pop2==mypop1)]
+				}
+			}
+		}
+	if(doplot)
+		{
+		myplotname		<- ifelse(is.null(plot_label),"Popmatrix",paste("Popmatrix",plot_label,sep="_"))
+		plotpopmatrix(exportname=paste(myplotname,"labels",sep="_"),addlabels=TRUE,popnames=mysambar$populations2,mymatrix=mymatrix,nrbreaks=nr_breaks,addlegend=TRUE,plotlabelcex=8,export="pdf",legcex=4,plotlabel=plot_label,myBreaks=my_Breaks)
+		plotpopmatrix(exportname=myplotname,addlabels=FALSE,popnames=mysambar$populations2,mymatrix=mymatrix,nrbreaks=nr_breaks,addlegend=TRUE,plotlabelcex=8,export="pdf",legcex=4,plotlabel=plot_label,myBreaks=my_Breaks)
+		}
+	if(return_object)
+		{
+		return(mymatrix)
+		}
+	}
 
 # 10-10-2022: General function to plot matrices with pairwise population scores
 # Note: no NA below diagonal, otherwise due to reordering data will be lost
@@ -21256,9 +21300,13 @@ pidf2matrix_old<-function(pidf=pidf_meta[[1]],myinds=inds$nr[inds$filter],do_col
 	return(pimatrix)
 	}	
 
-pidf2matrix<-function(pidf=pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filter],mypops=inds$pop[inds$filter],do_colour=FALSE,onlybetweenpop=FALSE,onlywithinpop=FALSE)
+pidf2matrix<-function(pidf=mysambar$pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filter],myindnames=inds$name[inds$filter],mypops=inds$pop[inds$filter],quickmethod=TRUE,do_colour=FALSE,onlybetweenpop=FALSE,onlywithinpop=FALSE)
 	{
-	ninds									<- length(myinds)
+	if(is.null(pidf))
+		{
+		return(cat("ERROR: no (existing) dataframe specified to pidf dataframe.",sep="\n"))
+		}
+	ninds		<- length(myinds)
 	nexprows	<- ninds+((ninds*(ninds-1))/2)
 	if(nexprows!=nrow(pidf))
 		{
@@ -21266,30 +21314,69 @@ pidf2matrix<-function(pidf=pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filte
 		}else{
 		cat("Input dataframe has the expected length.",sep="\n")
 		}
-	m2										<- matrix(NA,nrow=ninds,ncol=ninds)
-	if(do_colour)
+	cat("Creating distance matrix...",sep="\n") 
+	# 24-05-2023: 'quick method' replaced with more reliable 'slow method':
+	if(quickmethod)
 		{
-		m2[lower.tri(m2)]					<- pidf[(ninds+1):nrow(pidf),"colour"]				# below diagonal between individual colours
-		diag(m2)							<- pidf[(1:ninds),"colour"]							# on diagonal individual colours	
-		}else{
-		if(do_asd)
+		cat("WARNING: using quick (less reliable) method to convert data into distance matrix...",sep="\n")
+		m2										<- matrix(NA,nrow=ninds,ncol=ninds)
+		if(do_colour)
 			{
-			m2[lower.tri(m2)]					<- pidf[(ninds+1):nrow(pidf),"ASD"]				# below diagonal between individual scores
-			diag(m2)							<- pidf[(1:ninds),"ASD"]						# on diagonal individual scores
+			m2[lower.tri(m2)]					<- pidf[(ninds+1):nrow(pidf),"colour"]				# below diagonal between individual colours
+			diag(m2)							<- pidf[(1:ninds),"colour"]							# on diagonal individual colours	
 			}else{
-			m2[lower.tri(m2)]					<- pidf[(ninds+1):nrow(pidf),"ndiffpersite"]	# below diagonal between individual scores
-			diag(m2)							<- pidf[(1:ninds),"ndiffpersite"]				# on diagonal individual scores
+			if(do_asd)
+				{
+				m2[lower.tri(m2)]				<- pidf[(ninds+1):nrow(pidf),"ASD"]				# below diagonal between individual scores
+				diag(m2)						<- pidf[(1:ninds),"ASD"]						# on diagonal individual scores
+				}else{
+				m2[lower.tri(m2)]				<- pidf[(ninds+1):nrow(pidf),"ndiffpersite"]	# below diagonal between individual scores
+				diag(m2)						<- pidf[(1:ninds),"ndiffpersite"]				# on diagonal individual scores
+				}
+			}
+		colnames(m2)							<- myindnames
+		rownames(m2)							<- myindnames
+		mymatrix								<- t(m2)
+		if(do_colour)
+			{
+			mymatrix[lower.tri(mymatrix)]		<- pidf[(ninds+1):nrow(pidf),"colour"]
+			}else{
+			if(do_asd)
+				{
+				mymatrix[lower.tri(mymatrix)]		<- pidf[(ninds+1):nrow(pidf),"ASD"]
+				}else{
+				mymatrix[lower.tri(mymatrix)]		<- pidf[(ninds+1):nrow(pidf),"ndiffpersite"]
+				}
+			}
+		}else{
+		# 24-05-2023: new lines:
+		mymatrix									<- matrix(NA,nrow=ninds,ncol=ninds)
+		colnames(mymatrix)							<- myindnames
+		rownames(mymatrix)							<- myindnames
+		if(do_colour)
+			{
+			mycolumn	<- pidf$colour
+			}else{
+				{
+				if(do_asd)
+					{
+					mycolumn	<- pidf$ASD
+					}else{
+					mycolumn	<- pidf$ndiffpersite
+					}
+				}
+			}
+		for(i in c(1:length(myindnames)))
+			{
+			myind1	<- myindnames[i]
+			for(j in c(1:length(myindnames)))
+				{
+				myind2	<- myindnames[j]
+				mymatrix[i,j]	<- mycolumn[(pidf$name1==myind1&pidf$name2==myind2)|(pidf$name1==myind2&pidf$name2==myind1)] 
+				}
 			}
 		}
-	colnames(m2)							<- myinds
-	rownames(m2)							<- myinds
-	pimatrix								<- t(m2)
-	if(do_colour)
-		{
-		pimatrix[lower.tri(pimatrix)]		<- pidf[(ninds+1):nrow(pidf),"colour"]
-		}else{
-		pimatrix[lower.tri(pimatrix)]		<- pidf[(ninds+1):nrow(pidf),"ndiffpersite"]
-		}
+	### until here changes on 24-05-2023	
 	if(onlybetweenpop)
 		{
 		for(i in c(1:ninds))
@@ -21300,7 +21387,7 @@ pidf2matrix<-function(pidf=pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filte
 				mypop2	<- mypops[j]
 				if(mypop1==mypop2)
 					{
-					pimatrix[i,j]			<- NA
+					mymatrix[i,j]			<- NA
 					}
 				}
 			}
@@ -21315,12 +21402,12 @@ pidf2matrix<-function(pidf=pidf_meta[[1]],do_asd=FALSE,myinds=inds$nr[inds$filte
 				mypop2	<- mypops[j]
 				if(mypop1!=mypop2)
 					{
-					pimatrix[i,j]			<- NA
+					mymatrix[i,j]			<- NA
 					}
 				}
 			}
 		}
-	return(pimatrix)
+	return(mymatrix)
 	}	
 
 # End of population differentiation analyses 
@@ -28801,7 +28888,7 @@ inds2pops<-function(missfilter=NULL)
 	mydf$ind1			<- NULL
 	mydf$ind2			<- NULL
 	mydf$poppair		<- inds2$poppair[missfilter]
-	mydf2				<- aggregate(mydf[,c(1:ncol(mydf)-1)], by = list(mydf$poppair),FUN=mean)
+	mydf2				<- aggregate(mydf[,c(1:ncol(mydf)-1)], by = list(mydf$poppair),FUN=mean,na.rm=TRUE)
 	# merge:
 	newcolnames			<- colnames(mydf2)
 	if(length(newcolnames)==0)
@@ -30823,8 +30910,8 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 	# options(repos=c(CRAN='http://cran.us.r-project.org'))
 	# install_github("hemstrow/snpR")
 	# library(snpR)
-	# mymatrix	<- as.matrix(mygenlight[inds$filter,snps$filter2])
-	# mymatrix	<- cbind(inds$nr[inds$filter],inds$pop[inds$filter],mymatrix)
+	# mymatrix		<- as.matrix(mygenlight[inds$filter,snps$filter2])
+	# mymatrix		<- cbind(inds$nr[inds$filter],inds$pop[inds$filter],mymatrix)
 	# newmat		<- format_snps(mymatrix, ecs=2, output = 1, input_form = "0_geno") 
 	# but then I got an ERROR it couldn't find 'm'
 	#
@@ -30861,6 +30948,7 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 		}
 	if(!is.null(mychrom)&is.null(myrange))	{popdf$chrom<- mychrom}
 	#
+	cat("Calculating sequencing divergence for all sample pairs...",sep="\n")
 	if(!any(snpselection))
 		{
 		popdf$mean_nsites	<- 0
@@ -30899,10 +30987,14 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 			nnavec			<- vector()
 			for (i in c(1:ncol(indpairtable)))
 				{
+				if(i%%10000==0)
+					{
+					cat(paste(i," out of ",ncol(indpairtable)," comparisons in total.",sep=""),sep="\n") 
+					}
 				ind1		<- indpairtable[1,i]
 				ind2		<- indpairtable[2,i]
-				geno1		<- mymatrix[ind1,]
-				geno2		<- mymatrix[ind2,]
+				geno1		<- mymatrix[inds$nr==ind1,]		#24-05-2023: corrected: geno1		<- mymatrix[ind1,]
+				geno2		<- mymatrix[inds$nr==ind2,]		#24-05-2023: corrected: geno2		<- mymatrix[ind2,]
 				# To avoid that NA is included when stating geno==1, we change NA to 3:
 				geno1[is.na(geno1)]	<- 3
 				geno2[is.na(geno2)]	<- 3
@@ -30955,14 +31047,14 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 			for(i in c(1:nrow(pidf)))
 				{
 				ind1nr				<- pidf$ind1[i]
-				pidf$name1[i]		<- inds$name[ind1nr]
-				pidf$pop1[i]		<- inds$pop[ind1nr]
-				pidf$popcol1[i]		<- inds$popcol[ind1nr]
+				pidf$name1[i]		<- inds$name[inds$nr==ind1nr]			## 23-05-2023: removed error: inds$name[ind1nr]
+				pidf$pop1[i]		<- inds$pop[inds$nr==ind1nr]			## 23-05-2023: removed error: inds$name[ind1nr]
+				pidf$popcol1[i]		<- inds$popcol[inds$nr==ind1nr]			## 23-05-2023: removed error: inds$name[ind1nr]
 				ind2nr				<- pidf$ind2[i]
-				pidf$name2[i]		<- inds$name[ind2nr]
-				pidf$pop2[i]		<- inds$pop[ind2nr]
-				pidf$popcol2[i]		<- inds$popcol[ind2nr]
-				}
+				pidf$name2[i]		<- inds$name[inds$nr==ind2nr]			## 23-05-2023: removed error: inds$name[ind2nr]
+				pidf$pop2[i]		<- inds$pop[inds$nr==ind2nr]			## 23-05-2023: removed error: inds$name[ind2nr]
+				pidf$popcol2[i]		<- inds$popcol[inds$nr==ind2nr]			## 23-05-2023: removed error: inds$name[ind2nr]
+				}	
 			pidf$ndiffperhaplo		<- round(pidf$ndiff/pidf$npairwise,3)
 			pidf$ndiffpersite		<- pidf$ndiffperhaplo/pidf$nsites
 			pidf$ndiffpersite[!is.finite(pidf$ndiffpersite)]	<- NA	
@@ -31145,6 +31237,36 @@ calcpi<-function(pi_per_pop=FALSE,myinput=mygenlight,indselection=inds$filter,sn
 		}
 	# remove duplicate columns:		
 	inds 	<<- inds[, !duplicated(colnames(inds),fromlast=TRUE)]
+	#
+	## ADD INFO TO INDS2 DATAFRAME:
+	if(!pi_per_pop)
+		{
+		cat("Adding columns to inds2 dataframe...",sep="\n")
+		pidf			<- mysambar$pidf_metalist[[1]]
+		pidf$indpair	<- paste(pidf$name1,pidf$name2,sep="_")
+		#pidf$indpair	<- ifelse(pidf$name1<pidf$name2,paste(pidf$name1,pidf$name2,sep="_"),paste(pidf$name2,pidf$name1,sep="_"))
+		if(!all(pidf$indpair%in%inds2$indpair))
+			{
+			return(cat("ERROR: pair names do not correspond. Information cannot be added to inds2 dataframe.",sep="\n"))
+			}
+		if("ndiffpersite"%in%colnames(inds2))
+			{
+			inds2$ndiffpersite	<<- NULL
+			}
+		if("ASD"%in%colnames(inds2))
+			{
+			inds2$ASD			<<- NULL
+			}
+		tempdf	<- pidf[,c("indpair","ndiffpersite","ASD")]
+		combdf	<- merge(inds2,tempdf,by="indpair",all=TRUE)
+		if(nrow(combdf)!=nrow(inds2))
+			{
+			combdf		<<- combdf
+			return(cat("ERROR: data cannot be merged.",sep="\n"))
+			}
+		inds2	<<- combdf
+		inds2pops()
+		}
 	}	
 
 # End of calculations per sample pair
