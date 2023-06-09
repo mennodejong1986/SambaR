@@ -31812,7 +31812,7 @@ calckin<-function(exporttype=NULL,use_currentdir=FALSE,silent=TRUE,silentnr=5000
 			}
 		if(redo_analyses)
 			{
-			cat("Pairwise_relatedness.txt file is not present or does not have the expected number of rows, or flag do_overwrite (flag 'overwrite_kindf' of wrapper calckinship function)is set to TRUE. Creating datafile now.",sep="\n")  
+			cat("Pairwise_relatedness.txt file is not present or does not have the expected number of rows, or flag do_overwrite (flag 'overwrite_kindf' of wrapper calckinship function)is set to TRUE (default setting). Creating datafile now.",sep="\n")  
 			cat("This will take some time, but the next time you run the calckin() function this step will be automatically omitted and then it will be much faster.",sep="\n")  
 			mymatrix		<- as.matrix(mygenlight[,snps$filter])
 			inds2$ndata1	<<- NA
