@@ -9681,7 +9681,6 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 		neighbournetwork(mydistmat=mymat,do_analysis=TRUE,plotname="Phylonetwork_neighbornet_pi",mylwd=0.5,doexport=FALSE,mynetwork=NULL,edgecolors=TRUE,silent=TRUE,dolabels=TRUE,mybg="white",labelcex=1,addlegend=TRUE,legendpos="bottomright",legendcex=1.25)
 		# export:
 		neighbournetwork(mydistmat=mymat,do_analysis=FALSE,plotname="Phylonetwork_neighbornet_pi",mylwd=0.5,doexport=TRUE,mynetwork=mysambar$phylonetwork,edgecolors=TRUE,silent=TRUE,dolabels=TRUE,mybg="white",labelcex=1,addlegend=TRUE,legendpos="bottomright",legendcex=1.25)
-		dev.off()
 		#
 		# FOR INDIVIDUALS, NEI:
 		# create matrix:
@@ -9690,12 +9689,10 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 		neighbournetwork(mydistmat=mysambar$indneimatrix,do_analysis=TRUE,plotname="Phylonetwork_neighbornet_nei",mylwd=0.5,doexport=FALSE,mynetwork=NULL,edgecolors=TRUE,silent=TRUE,dolabels=TRUE,mybg="white",labelcex=1,addlegend=TRUE,legendpos="bottomright",legendcex=1.25)
 		# plot:
 		neighbournetwork(mydistmat=mysambar$indneimatrix,do_analysis=FALSE,plotname="Phylonetwork_neighbornet_nei",mylwd=0.5,doexport=TRUE,mynetwork=mysambar$phylonetwork,edgecolors=TRUE,silent=TRUE,dolabels=TRUE,mybg="white",labelcex=1,addlegend=TRUE,legendpos="bottomright",legendcex=1.25)
-		dev.off()
 		#
 		# FOR POPULATIONS, NEI:
 		pop_neimatrix(export="pdf")
 		popnetwork(mydistmat=mymat,do_analysis=TRUE,plotname="Phylonetwork_neighbornet_pop_nei",mylwd=0.5,doexport=FALSE,mynetwork=NULL,edgecolors=TRUE,silent=TRUE,dolabels=TRUE,mybg="white",labelcex=1,addlegend=TRUE,legendpos="bottomright",legendcex=1.25)
-		dev.off()
 		}
 	if(!onlyLEA)
 		{
@@ -11527,6 +11524,7 @@ popnetwork<-function(mydistmat=mymat,do_analysis=TRUE,plotname="Phylonetwork_nei
 		mynetwork			<- mysambar$phylonetwork
 		}
 	plot(mynetwork,type="equal angle",edge.width=mylwd,show.tip.label=TRUE,use.edge.length=TRUE,edge.color="black",cex=labelcex,tip.color=tipcolor)
+	dev.off()
 	}
 
 # 05-10-2022:
