@@ -35123,9 +35123,18 @@ outlierinfo<-function(popnames=mysambar$populations,mydataset="pheno",control_da
 	if(!silent){cat("Adding MAF and HWE statistics...",sep="\n")}
 	popmafdf		<- round(snps[snps$name%in%myloci,grep("maf_",colnames(snps))],myround)
 	info2df			<- cbind(info2df,popmafdf)
-	info2df$HWE		<- snps$HWE[snps$name%in%myloci]
-	info2df$HWEchi2	<- round(snps$HWEchi2[snps$name%in%myloci],myround)
-	info2df$Hdeficit<- snps$Hdeficit[snps$name%in%myloci]
+	if("HWE"%in%colnames(snps))
+		{
+		info2df$HWE		<- snps$HWE[snps$name%in%myloci]
+		}
+	if("HWEchi2"%in%colnames(snps))
+		{
+		info2df$HWEchi2	<- round(snps$HWEchi2[snps$name%in%myloci],myround)
+		}
+	if("Hdeficit"%in%colnames(snps))
+		{
+		info2df$Hdeficit<- snps$Hdeficit[snps$name%in%myloci]
+		}
 	if(!silent){info2dftemp	<<- info2df}
 	#
 	# in case no outliers:
