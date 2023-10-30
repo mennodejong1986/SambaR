@@ -9673,10 +9673,9 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 		{
 		# 17-10-2022: experimental:
 		# FOR INDIVIDUALS, ALLELE SHARING:
-		inds$filter	<- TRUE
 		calcpi(pi_per_pop=FALSE)
 		pidf		<- mysambar$pidf_metalist[[1]]
-		mymat		<- df2mat(mydf=pidf,myinds=inds$nr,indnames=inds$name,mypops=inds$pop,myscore="ASD",doheatmap=TRUE,twosided=FALSE,above_diagonal=TRUE,exportprefix="Rawdistance_matrix.ind",plot_title="Raw genetic distance (%)")
+		mymat		<- df2mat(mydf=pidf,myinds=inds$nr[inds$filter],indnames=inds$name[inds$filter],mypops=inds$pop[inds$filter],myscore="ASD",doheatmap=TRUE,twosided=FALSE,above_diagonal=TRUE,exportprefix="Rawdistance_matrix.ind",plot_title="Raw genetic distance (%)")
 		# run analyses:
 		neighbournetwork(mydistmat=mymat,do_analysis=TRUE,plotname="Phylonetwork_neighbornet_pi",mylwd=0.5,doexport=FALSE,mynetwork=NULL,edgecolors=TRUE,silent=TRUE,dolabels=TRUE,mybg="white",labelcex=1,addlegend=TRUE,legendpos="bottomright",legendcex=1.25)
 		# export:
@@ -12082,7 +12081,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			}
 		}
 	#mycolors2 				<- rep("black",Nedge(mytree))	
-	mycolors2 				<- rep("black",nrow(mytree$edgedf))
+	mycolors2 				<- rep("black",nrow(mytree$edge))
 	if(edgecolors)
 		{
 		if(!silent){cat("Defining edge colours...",sep="\n")}
@@ -17223,7 +17222,7 @@ plotfossils<-function(adjustlong=TRUE)
 	}
 
 # Create map using package Maps. Advantage compared to Rworldmap is that this function allows to centre the map around the Pacific ocean, if needed 
-plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xmargin=0.05,ymargin=0.15,mapcol="grey90",mybg="white",msnmatrix=NULL,msnlwd=1.5,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,shapelist=NULL,addshapecol="grey50",legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=21,legendcex=0.75,mycex=1,pchlwd=0.25,dolabels=FALSE,printname=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90",boxlwd=1,linesdf=NULL,rangefilter=NULL)
+plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xmargin=0.05,ymargin=0.15,mapcol="grey90",mybg="white",msnmatrix=NULL,msnlwd=1.5,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,shapelist=NULL,addshapecol="grey50",legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=21,legendcex=0.75,mycex=1,pchlwd=0.25,dolabels=FALSE,printname=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90",boxlwd=1,linesdf=NULL,rangefilter=NULL,mybreaks=c(-0.01,0.05,0.1,0.15,0.2,0.25,1),distdf=NULL,plotbin=4)
 	{
 	if("maps" %in% rownames(installed.packages()) == FALSE) {install.packages("maps",repos='http://cran.us.r-project.org')}
 	if("maps" %in% (.packages()) == FALSE)					{library(maps)}
@@ -17311,7 +17310,6 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xma
 		coord$longitude		<-  as.numeric(sub(",",".",as.character(coord$longitude)))
 		if(!is.null(rangefilter)){allcoord$longitude	<-  as.numeric(sub(",",".",as.character(allcoord$longitude)))}
 		}
-	mygeocoord			<<- coord
 	mygeocols			<<- mycols
 	mysamplenrs			<- inds$nr[indsfilter]
 	mysamplenames		<- inds$name[inds$filter]
@@ -17348,13 +17346,21 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xma
 		cat("Flag 'mydeviation' is set to NULL. Not shuffling.",sep="\n")
 		}
 	#
-	mygeocoord			<- coord
+	geocoord			<- coord
+	if(!is.null(rangefilter))
+		{
+		geocoord$name	<- inds$name[indsfilter&rangefilter]
+		}else{
+		geocoord$name	<- inds$name[indsfilter]
+		}
+	mygeocoord			<<- coord
 	mygeocols			<- mycols
 	# PLOTTING:
 	if(!is.null(export))
 		{
 		plotname		<- ifelse(addaxislabels,paste(exportname,"withaxes",sep="."),paste(exportname,"no_axes",sep="."))
 		plotname		<- ifelse(!is.null(msnmatrix),paste(plotname,"MinimumSpanningTree",sep="."),plotname)
+		plotname		<- ifelse(!is.null(distdf),paste(plotname,"network",distdf$dthres[1],sep="."),plotname)
 		deviationlabel	<- ifelse(is.null(mydeviation),"exactlocation","withdeviation")
 		pointslabel		<- ifelse(dolabels,ifelse(printname,"samplenames","samplenrs"),"points")
 		borderlabel		<- ifelse(showborders,"withborders","withoutborders")
@@ -17417,6 +17423,44 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xma
 			mycol	<- "grey40"
 			segments(x0=coord1[1],y0=coord1[2],x1=coord2[1],y1=coord2[2],lwd=msnlwd,col=mycol)
 			}
+		}
+	if(!is.null(distdf))
+		{
+		# expects dataframe generated with haplodistmat function (from haploblock data)
+		nbins		<- length(mybreaks)-1
+		bincolours	<- c("white","grey90","grey50","yellow","orange","red")
+		mylabels	<- c(0:(nbins-1))
+		mylwds		<- c(c(0,0.25),seq(1,(nbins-2)))
+		#
+		dropinds	<- inds$name[!inds$filter]	
+		distdf		<- distdf[!(distdf$name1%in%dropinds|distdf$name2%in%dropinds),]
+		#
+		distdf$bin	<- as.vector(cut(distdf$prop,mybreaks,labels=mylabels))
+		distdf$col	<- as.vector(cut(distdf$prop,mybreaks,labels=bincolours))
+		distdf$lwd	<- as.vector(cut(distdf$prop,mybreaks,labels=mylwds))
+		#
+		mybins		<- mylabels[mylabels>=plotbin]
+		for(mybin in mybins)
+			{
+			distdf2				<- distdf[distdf$bin==mybin,]
+			if(nrow(distdf2)>0)
+				{
+				for(k in c(1:nrow(distdf2)))
+					{
+					ind1		<- distdf2$name1[k]
+					ind2		<- distdf2$name2[k]
+					#cat(paste(ind1,ind2,sep="_"),sep="\n")
+					ind1x		<- geocoord$longitude[geocoord$name==ind1]
+					ind2x		<- geocoord$longitude[geocoord$name==ind2]
+					ind1y		<- geocoord$latitude[geocoord$name==ind1]
+					ind2y		<- geocoord$latitude[geocoord$name==ind2]
+					segments(x0=ind1x,y0=ind1y,x1=ind2x,y1=ind2y,lwd=0.5,col=distdf2$col[k])
+					}
+				}
+			}
+		points(geocoord$longitude,geocoord$latitude,pch=16,col="grey20",cex=0.5)
+		#mtext(side=3,paste("genetic distance (d) < ",dthres,sep=""),line=0.5,cex=1.25)
+		legend("topright",legend=paste(">",rev(mybreaks[(plotbin+1):nbins]),sep=""),bty="n",fill=rev(bincolours[(plotbin+1):nbins]),cex=legendcex,title="frequency:")
 		}
 	if(dolabels)
 		{
@@ -20803,7 +20847,7 @@ getpoptree<-function(mymatrix=mysambar$popneimatrix,exportlabel="neiD",popnames=
 		return(cat("ERROR: one or more populations specified in popnames vector (by default: mysambar$populations) not present in tree.",sep="\n"))
 		}
 	#mycolors2 				<- rep("black",Nedge(mytree))
-	mycolors2 				<- rep("black",nrow(mytree$edgedf))	#25-10-2023
+	mycolors2 				<- rep("black",nrow(mytree$edge))	#25-10-2023
 	npops					<- length(popnames)
 	#
 	if(edgecolors)
@@ -29145,8 +29189,6 @@ getpops2<-function()
 	pops2	<<- pops2
 	}
 
-
-
 # 22-06-2022: adding information from inds2 dataframe into pops2 dataframe:
 inds2pops<-function(missfilter=NULL)
 	{
@@ -29512,6 +29554,178 @@ plottwisst<-function(doexport=TRUE,myfile=NULL,mycolours=c("grey70","mediumpurpl
 		dev.off()
 		cat("The file 'Twiss_barplot.pdf' has been exported to the directory:",sep="\n")
 		cat(getwd(),sep="\n")
+		}
+	}
+
+# 27-10-2023: create Anacapa chart (or 'evidence board'):
+haplodistmat<-function(mychroms=NULL,exporttype=NULL,myinds=inds$name[inds$filter],dropvec=inds$name[!inds$filter],getdata=TRUE,docombine=TRUE,doplot=TRUE,dthres=0.01,plotbin=4,mysd=0.02,mybreaks=c(-0.01,0.05,0.1,0.15,0.2,0.25,1),mycolours=c("white","grey90","grey50","yellow","orange","red"),legendpos="topright",legendcex=1.25)
+	{
+	if(is.null(mychroms))
+		{
+		return(cat("ERROR: provide a vector with scaffold names to the mychroms flag.",sep="\n"))
+		}
+	nbins			<- length(mybreaks)-1
+	if(length(mycolours)!=nbins)
+		{
+		return(cat("ERROR: length of colours vector should be length of mybreaks vector minus 1.",sep="\n"))
+		}
+	ninds			<- length(myinds)
+	npairs			<- (ninds*(ninds-1))/2
+	nchroms			<- length(mychroms)
+	ntotalloci		<- 0
+	#
+	pairdf			<- as.data.frame(t(combn(myinds,m=2)))
+	colnames(pairdf)<- c("name1","name2") 
+	pairdf			<- rbind(pairdf,data.frame("name1"=myinds,"name2"=myinds))
+	pairdf$pair		<- ifelse(pairdf$name1<pairdf$name2,paste(pairdf$name1,pairdf$name2,sep="_"),paste(pairdf$name2,pairdf$name1,sep="_"))
+	#
+	if(getdata)
+		{
+		if("data.table"%in%(.packages()) == FALSE){library("data.table")}
+		for (chromnr in c(1:nchroms))
+			{
+			mychrom		<- mychroms[chromnr]
+			cat(" ",sep="\n")
+			cat(paste("Reading data for ",mychrom,"...",sep=""),sep="\n")
+			x				<- fread(paste("vcfdist",mychrom,"txt",sep="."),header=FALSE)
+			colnames(x)		<- c("ind1","ind2","name1","name2","nmiss","n0","n1","chrom","startbp")
+			if(any(is.na(x$startbp)))
+				{
+				cat("WARNING: NA-values detected. Omitting locus/loci...",sep="\n")
+				x			<- x[!is.na(x$startbp),]
+				}
+			x$indname1		<- gsub("-2","",(gsub("-1","",x$name1)))
+			x$indname2		<- gsub("-2","",(gsub("-1","",x$name2)))
+			x$pair			<- ifelse(x$indname1<x$indname2,paste(x$indname1,x$indname2,sep="_"),paste(x$indname2,x$indname1,sep="_"))
+			if(!is.null(dropvec))
+				{
+				cat("Removing individuals...",sep="\n")
+				x			<- x[!(x$indname1%in%drop_vec|x$indname2%in%drop_vec),]
+				}
+			x$d				<- x$n1/(x$n0+x$n1)
+			x$block			<- paste(x$chrom,x$startbp,sep="_")
+			x$miss			<- x$nmiss/(x$n0+x$n1+x$nmiss)			# should be zero because of imputation
+			#
+			# for(k in c(1:nrow(x)))
+			#	{
+			#	myind1		<- x$name1[k]
+			#	myind2		<- x$name2[k]
+			#	x$pop1[k]	<- inds$pop[inds$name==myind1]
+			#	x$pop2[k]	<- inds$pop[inds$name==myind2]
+			#	}
+			# x$poppair		<- ifelse(x$pop1<x$pop2,paste(x$pop1,x$pop2,sep="_"),paste(x$pop2,x$pop1,sep="_"))
+			#
+			myloci			<- unique(x$startbp)
+			nloci			<- length(myloci)
+			cat(paste("Total number of loci: ",nloci,".",sep=""),sep="\n")
+			#
+			cat(paste("Aggregating using threshold: ",dthres,sep=""),sep="\n")
+			# Count for each pair of individuals how many haplotypes they share (as defined by a certain maximum genetic distance):
+			y				<- x[x$d<dthres,c("d","pair")]
+			mydistvec		<- y$d
+			mypairs			<- y$pair
+			aggdf			<- aggregate(mydistvec,by=list(mypairs),FUN=length)
+			colnames(aggdf)	<- c("pair","n")
+			if(nrow(aggdf)!=nrow(pairdf))
+				{
+				topupdf		<- data.frame("pair"=pairdf$pair[!pairdf$pair%in%aggdf$pair],"n"=0)
+				aggdf2		<- rbind(aggdf,topupdf)
+				}else{
+				aggdf2		<- aggdf
+				}
+			# because we have 2 haplotypes per individual, there are 4 comparisons per individual
+			# furthermore, each pairwise comparison is represented twice (1 vs 2, 2 vs 1)
+			# hence we have to multiple number of loci with (4x2) 8
+			#
+			if(nrow(aggdf2)!=(npairs+ninds))
+				{
+				x			<<- x
+				pairdf		<<- pairdf
+				topupdf		<<- topupdf
+				aggdf		<<- aggdf
+				aggdf2		<<- aggdf2
+				return(cat("ERROR: number of rows do not correspond (see objects 'pairdf', 'topupdf', 'aggdf' and 'aggdf2'). Are certain individuals not present in inds dataframe? You can drop them from input data using the dropvec flag.",sep="\n"))
+				}
+			for(k in c(1:nrow(aggdf2))){aggdf2$name1[k]	<- strsplit(aggdf2$pair[k],split="_")[[1]][1]}
+			for(k in c(1:nrow(aggdf2))){aggdf2$name2[k]	<- strsplit(aggdf2$pair[k],split="_")[[1]][2]}
+			#
+			distdf				<- aggdf2[aggdf2$name1!=aggdf2$name2,] 
+			distdf$chromnr		<- chromnr
+			distdf$nloci		<- nloci
+			distdf$dthres		<- dthres
+			write.table(distdf,paste("haploblockcounts",dthres,mychrom,"txt",sep="."),row.names=FALSE,col.names=TRUE,quote=FALSE,sep="\t")
+			}
+		}
+	if(docombine)
+		{
+		cat("Searching for file names starting with 'haploblockcounts' in the directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		filenames 	<- list.files(pattern = paste("haploblockcounts.",dthres,".*.txt",sep=""))
+		#filenames 	<- list.files(pattern = "haploblockcounts.*.txt")
+		if(length(filenames)==0)
+			{
+			return(cat("ERROR: the directory does not contain files starting with 'haploblockcounts' and the specified threshold.",sep="\n"))
+			}
+		haplolist 			<- lapply(filenames,function(x)read.table(x,header=TRUE)) 
+		alldistdf 			<- do.call("rbind",haplolist)
+		distdf				<- haplolist[[1]]
+		distdf				<- distdf[order(distdf$pair),]
+		for(k in c(1:npairs))
+			{
+			if(k%%1000==0){cat(k,sep="\n")}
+			mypair			<- distdf$pair[k]
+			distdf$n[k]		<- sum(alldistdf$n[alldistdf$pair==mypair])
+			distdf$nloci[k]	<- sum(alldistdf$nloci[alldistdf$pair==mypair])
+			}
+		cat("Done",sep="\n")
+		#haplolist			<<- haplolist
+		distdf				<<- distdf
+		}
+	if(doplot)
+		{
+		mylabels			<- c(0:(nbins-1))
+		mylwds				<- c(c(0,0.25),seq(1,(nbins-2)))
+		distdf$prop			<- distdf$n/(distdf$nloci*8)
+		distdf$bin			<- as.vector(cut(distdf$prop,mybreaks,labels=mylabels))
+		distdf$col			<- as.vector(cut(distdf$prop,mybreaks,labels=mycolours))
+		distdf$lwd			<- as.vector(cut(distdf$prop,mybreaks,labels=mylwds))
+		for(k in c(1:npairs))
+			{
+			myind1			<- distdf$name1[k]
+			myind2			<- distdf$name2[k]
+			distdf$pop1[k]	<- inds$pop[inds$name==myind1]
+			distdf$pop2[k]	<- inds$pop[inds$name==myind2]
+			}
+		distdf$poppair		<- ifelse(distdf$pop1<distdf$pop2,paste(distdf$pop1,distdf$pop2,sep="_"),paste(distdf$pop2,distdf$pop1,sep="_"))	
+		distdf				<<- distdf
+		#
+		geocoord			<- inds[inds$filter,c("name","longitude","latitude")]
+		geocoord$longitude	<- geocoord$longitude*rnorm(nrow(geocoord),mean=1,sd=mysd)
+		geocoord$latitude	<- geocoord$latitude*rnorm(nrow(geocoord),mean=1,sd=mysd)
+		#
+		cat("Plotting...",sep="\n")
+		plot(geocoord$longitude,geocoord$latitude,pch=16,col="grey20",cex=0.5)
+		mybins					<- mylabels[mylabels>=plotbin]
+		for(mybin in mybins)
+			{
+			distdf2				<- distdf[distdf$bin==mybin,]
+			if(nrow(distdf2)>0)
+				{
+				for(k in c(1:nrow(distdf2)))
+					{
+					ind1		<- distdf2$name1[k]
+					ind2		<- distdf2$name2[k]
+					ind1x		<- geocoord$longitude[geocoord$name==ind1]
+					ind2x		<- geocoord$longitude[geocoord$name==ind2]
+					ind1y		<- geocoord$latitude[geocoord$name==ind1]
+					ind2y		<- geocoord$latitude[geocoord$name==ind2]
+					segments(x0=ind1x,y0=ind1y,x1=ind2x,y1=ind2y,lwd=0.5,col=distdf2$col[k])
+					}
+				}
+			}
+		points(geocoord$longitude,geocoord$latitude,pch=16,col="grey20",cex=0.5)
+		mtext(side=3,paste("genetic distance (d) < ",dthres,sep=""),line=0.5,cex=1.25)
+		legend(legendpos,legend=paste(">",rev(mybreaks[(plotbin+1):nbins]),sep=""),bty="n",fill=rev(mycolours[(plotbin+1):nbins]),cex=legendcex,title="frequency:")
 		}
 	}
 
