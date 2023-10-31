@@ -1967,6 +1967,7 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		mymatrix		<- as.matrix(mygenlight[,order(snpstemp$name)])
 		mygenlight		<<- as.genlight(mymatrix)
 		}
+	
 	# optionally add additional information to snps and inds dataframe about read depth:
 	if(depthfile)
 		{
@@ -2866,6 +2867,16 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 		}
 	cat("Creating snps object...",sep="\n")
 	nrsnps				<- length(mygenlight@loc.names)	
+	if(is.null(mygenlight$chromosome)&!is.null(mygenlight$position))
+		{
+		cat("ERROR: input genlight object has a slot specifying chromosome names (mygl$chromosome) but not a slot specifying positions (mygl$position).",sep="\n")
+		return(cat("SambaR only accepts as input genlight objects in which these slots are either both present or absent.",sep="\n"))
+		}
+	if(!is.null(mygenlight$chromosome)&is.null(mygenlight$position))
+		{
+		cat("ERROR: input genlight object has a slot specifying positions (mygl$positions) but not a slot specifying chromosome names (mygl$chromosome).",sep="\n")
+		return(cat("SambaR only accepts as input genlight objects in which these slots are either both present or absent.",sep="\n"))
+		}
 	if(is.null(mygenlight@chromosome))
 		{
 		cat("WARNING: slot 'chromosome' not found in genlight object. Setting chromosome names to 'un' for unknown.",sep="\n")
@@ -2887,6 +2898,10 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 	snps$uniqpos		<<- TRUE
 	snps$genlightname	<<- mygenlight@loc.names
 	snps$nr_neworder	<<- snps$nr
+	if(length(unique(paste(snps$chr,snps$pos,sep="_")))==1)
+		{
+		return(cat("ERROR: why are all snps on same chromosome/position?",sep="\n"))
+		}
 	#
 	# edit minor/major alleles columns:
 	if(length(minor)==1|length(major)==1)
@@ -3087,6 +3102,14 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 	snps$autosomal		<<- FALSE
 	snps$placedcol		<<- "black"
 	snps$depthfilter	<<- TRUE
+	if(length(unique(paste(snps$chr,snps$pos,sep="_")))==1)
+		{
+		return(cat("ERROR: why are all snps on same chromosome/position?",sep="\n"))
+		}
+	if(nrow(snps[!snps$samepos,])==0)
+		{
+		return(cat("ERROR: why are so many SNPs found on the same position? (see column snps$pos).",sep="\n"))
+		}
 	if(any(!colnames(as.matrix(mygenlight))==snps$genlightname))
 		{	
 		return(cat("ERROR: column names of genlight object do not correspond with snps$genlightname column. Contact developer of SambaR.",sep="\n"))
@@ -13238,7 +13261,7 @@ ape_pcoa_pop<-function(popnames=mysambar$populations,exporttype="pdf",my_method=
 
 # PCoA: Principal Coordinates Analysis (NOTE: this is different from principal component analysis or PCA). Depends on StAMPP (Nei's genetic distance) and Ape (pcoa):
 # ape_pcoa(method="hamming",symbolkey="sex",legendpos="topleft")
-ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="white",axiscol="black",dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,mar4=1,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=3,mylegend=mysambar$poporder,mylegendcol=mysambar$colorder,mylegendtitle=NULL,side4label=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,boxlwd=1,shuffle_par=NULL,addxy=FALSE,use_current_dir=FALSE)
+ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="white",axiscol="black",dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,mar4=1,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=2,mylegend=mysambar$poporder,mylegendcol=mysambar$colorder,mylegendtitle=NULL,side4label=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,boxlwd=1,shuffle_par=NULL,addxy=FALSE,use_current_dir=FALSE)
 	{
 	# method can be "nei" (Nei's genetic distance D), "hamming" (Hamming's genetic distance), "euclidean", "pi", "reynolds", or "edwards", although the latter two produces NA and are therefore not useful.
 	# Note: snpselection and indselection can not be applied when running method 'pi'. You should use calcpi() function to recalculate pi on different snp dataset.
@@ -14117,7 +14140,7 @@ plotmiss_vs_p<-function(mymethod="hamming",exporttype="pdf")
 # Depends on package SNPRelate
 # Note, if you didn't close the genofile before calling it again, you will get this ERROR: ERROR in file(filename, "wb") : cannot open the connection
 # In addition: Warning message: # In file(filename, "wb") : cannot open file 'my.gds': Permission denied
-multisnprelate_pca<-function(dolabels=FALSE,exporttype=NULL,dolegend=TRUE,poslegend="right",cex_legend=4,size_symbol=2.75,maxmiss=0.01)
+multisnprelate_pca<-function(dolabels=FALSE,exporttype=NULL,dolegend=TRUE,poslegend="right",cex_legend=3.5,size_symbol=2.75,maxmiss=0.01)
 	{
 	if(!is.null(exporttype))
 		{
@@ -14158,7 +14181,7 @@ multisnprelate_pca<-function(dolabels=FALSE,exporttype=NULL,dolegend=TRUE,posleg
 	if(!is.null(exporttype)){dev.off()}
 	}
 
-snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,do_mirror=c(FALSE,FALSE),indsfilter=inds$filter,snpsfilter=snps$filter,export=NULL,exportname=NULL,plottitle=NULL,symbolsize=4,labels=FALSE,printname=NULL,addaxislabel=TRUE,mylegend=mysambar$poporder,mylegendcol=mysambar$colorder,mylegendtitle=NULL,addlegend=TRUE,legendpos="right",popnames=mysambar$poporder,popcolours=mysambar$colorder,symboltype=16,legendcex=2.5,dodc=TRUE)
+snprelate_pca<-function(chrom=FALSE,resetgraphics=TRUE,axis1=1,axis2=2,do_mirror=c(FALSE,FALSE),indsfilter=inds$filter,snpsfilter=snps$filter,export=NULL,exportname=NULL,plottitle=NULL,symbolsize=4,labels=FALSE,printname=NULL,addaxislabel=TRUE,mylegend=mysambar$poporder,mylegendcol=mysambar$colorder,mylegendtitle=NULL,addlegend=TRUE,legendpos="right",popnames=mysambar$poporder,popcolours=mysambar$colorder,symboltype=16,legendcex=2.25,dodc=TRUE)
 	{
 	mymatrix	<- as.matrix(mygenlight[indsfilter,snpsfilter])
 	mypops		<- as.factor(inds$pop[indsfilter]) 
