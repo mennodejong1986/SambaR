@@ -9565,7 +9565,7 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 
 
 # This function executes all population structure analyses at once:
-findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="black",legend_pos="bottomright",legend_cex=3,my_legend=mysambar$poporder,my_legendcol=mysambar$colorder,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,plot_nei=TRUE,do_tree=TRUE,dogenindtrees=FALSE,do_MPtree=TRUE,do_MLtree=FALSE,do_pathlength=FALSE,do_perpop=FALSE,do_pi=TRUE,do_dapc=TRUE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,do_genind=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=FALSE,do_phylonetwork=FALSE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
+findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="black",legend_pos="bottomright",legend_cex=3,my_legend=mysambar$poporder,my_legendcol=mysambar$colorder,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,plot_nei=TRUE,do_tree=TRUE,dogenindtrees=FALSE,do_MPtree=TRUE,do_MLtree=FALSE,do_pathlength=FALSE,do_perpop=FALSE,do_pi=TRUE,do_dapc=FALSE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=FALSE,do_phylonetwork=FALSE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
 	{
 	# edit 19-06-2022:
 	if(do_tess|do_network|marine_dataset)	
@@ -10195,11 +10195,8 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 			{
 			cat("Creating dapc plots...",sep="\n")	
 			cat("If you receive an error soon after thin line, set the flag 'do_dapc' to FALSE.",sep="\n")
-			if(do_genind)
-				{
-				genlight2genind()
-				if(!silent){cat("adegenet_dapc",sep="\n")}
-				}
+			genlight2genind()
+			if(!silent){cat("Conversion to genind object finished. Running now adegenet_dapc",sep="\n")}
 			multi_adegenet_dapc(export="pdf",thresvector=c(20,50,80,95),max_clusters=Kmax,add_ellipse=dapc_ellipse,ellipse_level=dapc_ellipse_level,legendadd=add_legend,poslegend=legend_pos,cexlegend=legend_cex,symsize=symbol_size,rundc=do_dc,plot_heatmap=dapc_heatmap)
 			}
 		if(length(mysambar$populations)>1&doBAPT)
@@ -10313,7 +10310,16 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 		}
 	# reset working directory to default:
 	setwd(mysambar$inputdatadir)
-	cat("Finished structure analyses.",sep="\n")
+	cat("STRUCTURE ANALYSES FINISHED.",sep="\n")
+	if(!do_dapc)
+		{
+		cat(" ",sep="\n")
+		cat("WARNING: DAPC analyses have not been performed because the flag 'do_dapc' is set to FALSE (default setting).",sep="\n")	
+		cat("If you want to run DAPC analyses, rerun the findstructure function with the flag do_dapc set to TRUE, i.e.: findstructure(do_dapc=TRUE).",sep="\n")
+		cat("Alternatively, to run DAPC analyses by itself (without having to rerun all other analyses), execute the following two commands:",sep="\n")
+		cat("genlight2genind()",sep="\n")
+		cat("multi_adegenet_dapc(export='pdf',thresvector=c(20,50,80,95),max_clusters=6,add_ellipse=FALSE,legendadd=TRUE,poslegend='bottomright',cexlegend=2,symsize=2,rundc=FALSE,plot_heatmap=TRUE)",sep="\n")
+		}
 	}
 
 # make input for correspondence analysis (I called it factorial correspondence analysis, but actually not sure whether it is factorial indeed)	
@@ -11640,7 +11646,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	}
 
 # 20-01-2023 (Sambar_v1.09.txt onwards): renamed from popprtree to getindtree
-getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,mutrate=NULL,genomeprop=1,interval_col="lightblue",interval_lwd=3,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,tipdots=FALSE,dotcex=3,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=FALSE,calc_likelihood=FALSE,dopathlength=FALSE,matrixlabels=FALSE,pathlengthbreaks=NULL,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE)
+getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,addranges=TRUE,mutrate=NULL,errorrate=NULL,genomeprop=1,interval_col="lightblue",interval_lwd=3,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,tipdots=FALSE,dotcex=3,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=FALSE,calc_likelihood=FALSE,dopathlength=FALSE,matrixlabels=FALSE,pathlengthbreaks=NULL,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE)
 	{
 	# type can be: "phylogram" (default), "cladogram", "fan", "unrooted", "radial"
 	# distance can be 'bitwise.dist' (default, which is Hamming's distance), 'euclidean', 'allele sharing distance', 'pi', 'nei.dist', 'rogers.dist', 'edwards.dist', 'reynolds.dist'
@@ -12215,7 +12221,13 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 				# The proportion is: nr_polymorphic_sites/nr_total_sites
 				return(cat("ERROR: genomeprop needs to be equal or smaller than 1, and bigger than 0.",sep="\n"))  
 				}
-			myplottree[[2]] <- (myplottree[[2]]*genomeprop)/mutrate
+			if(is.null(errorrate))
+				{
+				corr_factor	<- 1
+				}else{
+				corr_factor	<- 1-errorrate
+				}
+			myplottree[[2]] <- (corr_factor*myplottree[[2]]*genomeprop)/mutrate
 			}
 		}else{
 		myplottree		<- mytree
@@ -12353,24 +12365,27 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			# mypvalues	<- round(attr(myplottree,"Pval"),3)
 			# nodelabels(mypvalues,frame="n",cex=0.75,xpd=TRUE,col="red")
 			#
-			# add standard-errors of the node ages
-			cat("Adding standard deviation bars...",sep="\n")
-			mystderr	<- round(attr(myplottree, "stderr"), 3)
-			# nodelabels(mystderr,frame="n",cex=0.75,xpd=TRUE,col="red") 
-			# POSITION OF TIPS AND NODES IN PLOTS ALONG X AND Y-AXIS:
-			xvalues		<- node.depth.edgelength(myplottree)
-			yvalues		<- node.height(myplottree)
-			# SELECT NODES ONLY:
-			ntips		<- length(myplottree$tip.label)
-			xvalues		<- xvalues[(ntips+1):length(xvalues)]
-			yvalues		<- yvalues[(ntips+1):length(yvalues)]
-			nnodes		<- length(xvalues)
-			myrgb		<- as.vector(col2rgb(col=interval_col,alpha = FALSE))
-			mytranscol 	<- rgb(myrgb[1],myrgb[2],myrgb[3],max=255,alpha=125)
-			for(k in c(1:nnodes))
+			if(addranges)
 				{
-				mysd	<- mystderr[k]
-				segments(x0=xvalues[k]-mysd*xvalues[k],y0=yvalues[k],x1=xvalues[k]+mysd*xvalues[k],y1=yvalues[k],col=mytranscol,lwd=interval_lwd)
+				# add standard-errors of the node ages
+				cat("Adding standard deviation bars...",sep="\n")
+				mystderr	<- round(attr(myplottree, "stderr"), 3)
+				# nodelabels(mystderr,frame="n",cex=0.75,xpd=TRUE,col="red") 
+				# POSITION OF TIPS AND NODES IN PLOTS ALONG X AND Y-AXIS:
+				xvalues		<- node.depth.edgelength(myplottree)
+				yvalues		<- node.height(myplottree)
+				# SELECT NODES ONLY:
+				ntips		<- length(myplottree$tip.label)
+				xvalues		<- xvalues[(ntips+1):length(xvalues)]
+				yvalues		<- yvalues[(ntips+1):length(yvalues)]
+				nnodes		<- length(xvalues)
+				myrgb		<- as.vector(col2rgb(col=interval_col,alpha = FALSE))
+				mytranscol 	<- rgb(myrgb[1],myrgb[2],myrgb[3],max=255,alpha=125)
+				for(k in c(1:nnodes))
+					{
+					mysd	<- mystderr[k]
+					segments(x0=xvalues[k]-mysd*xvalues[k],y0=yvalues[k],x1=xvalues[k]+mysd*xvalues[k],y1=yvalues[k],col=mytranscol,lwd=interval_lwd)
+					}
 				}
 			}else{
 			cat("Not a phylogram. Not adding x-axis.",sep="\n")
@@ -12380,7 +12395,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 		}
 	if(addscale)
 		{
-		myylabel	<- ifelse(!is.null(mutrate),"TMCRA (ya)","Genetic distance")
+		myylabel	<- ifelse(!is.null(mutrate)&makelinear,"TMCRA (ya)","Genetic distance")
 		mtext(myylabel,side=1,line=3,cex=2.5)
 		}
 	if(!is.null(ann_df))
@@ -12517,7 +12532,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 
 # 23-08-2022: function to plot dependency of TMCRA on mutation rate
 # depends on getindtree:
-runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome_prop=1,do_analysis=FALSE,mycolours=c("black","grey20","grey40","grey60","grey80"),mynodes=c(127,128,129,147,149),mynodelabels=c("B","C","D","E","A"),export=NULL,plotname="TMCRA_vs_u",plottitle=NULL,mycex=2.5,axiscex=2,labcex=2.5,maincex=2.5,xline=3.5,yline=4,legendpos="topright",legendcex=1.75)
+runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome_prop=1,do_analysis=FALSE,mycolours=c("black","grey20","grey40","grey60","grey80"),mynodes=c(127,128,129,147,149),mynodelabels=c("B","C","D","E","A"),export=NULL,plotname="TMCRA_vs_u",plottitle=NULL,mycex=2.5,axiscex=2,labcex=2.5,maincex=2.5,xline=3.5,yline=4,legendpos="topright",legendcex=1.75,error_rate=NULL)
 	{
 	if(do_analysis)
 		{
@@ -12529,7 +12544,7 @@ runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome
 		ulist		<- list()
 		for(k in c(1:length(mutrates2)))
 			{
-			getindtree(do_analysis=FALSE,mydistance="euclidean",mymethod="bionj",makelinear=TRUE,genomeprop=genome_prop,mutrate=mutrates2[k],inputtree=input_tree,mytype="phylogram",labelangle="axial",export="pdf",dopathlength=FALSE,fullplotname=FALSE,calc_parsimony=FALSE,calc_likelihood=FALSE,heightfac=0.1,labelcex=0.75)
+			getindtree(do_analysis=FALSE,mydistance="euclidean",mymethod="bionj",makelinear=TRUE,genomeprop=genome_prop,mutrate=mutrates2[k],errorrate=error_rate,inputtree=input_tree,mytype="phylogram",labelangle="axial",export="pdf",dopathlength=FALSE,fullplotname=FALSE,calc_parsimony=FALSE,calc_likelihood=FALSE,heightfac=0.1,labelcex=0.75)
 			utree			<- mysambar$plottree 
 			xvalues			<- node.depth.edgelength(utree)
 			ulist[[k]]		<- abs(xvalues-xvalues[1])
@@ -12568,7 +12583,7 @@ runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome
 		}
 	legend(legendpos,legend=mynodelabels[order(mynodelabels)],fill=mycolours,bty="n",cex=legendcex)
 	mtext(side=1,line=xline,"Mutation rate /site /year (10^-9)",cex=labcex)
-	mtext(side=2,line=yline,"TMCRA (My)",cex=labcex)
+	mtext(side=2,line=yline,"TMCRA (Mya)",cex=labcex)
 	if(!is.null(export))
 		{
 		dev.off()
@@ -12582,7 +12597,7 @@ runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome
 # In case you do not not know the number of the branch:
 # Node numbers can be visualized by added to a tree plot, by running the command: nodelabels(frame="none",bg="white",cex=0.25,col="grey50")
 # function 'Subtree' from Martin R. Smith from Durham University
-# First option is extract.clade: extract.clade(phy=mytree,node=307)
+# First option is extract.clade: extract.clade(phy=mytree,node=307) from ape package
 getsubtree<-function(tree,node) 
 	{
 	if(is.null(treeOrder <- attr(tree, 'order')) || treeOrder != 'preorder') 
@@ -17451,7 +17466,7 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,longthreshold=15,xma
 		{
 		# expects dataframe generated with haplodistmat function (from haploblock data)
 		nbins		<- length(mybreaks)-1
-		bincolours	<- c("white","grey90","grey50","yellow","orange","red")
+		bincolours	<- c("white","grey95","grey75","yellow","orange","red")
 		mylabels	<- c(0:(nbins-1))
 		mylwds		<- c(c(0,0.25),seq(1,(nbins-2)))
 		#
@@ -29581,7 +29596,7 @@ plottwisst<-function(doexport=TRUE,myfile=NULL,mycolours=c("grey70","mediumpurpl
 	}
 
 # 27-10-2023: create Anacapa chart (or 'evidence board'):
-haplodistmat<-function(mychroms=NULL,exporttype=NULL,myinds=inds$name[inds$filter],dropvec=inds$name[!inds$filter],getdata=TRUE,docombine=TRUE,doplot=TRUE,dthres=0.01,plotbin=4,mysd=0.02,mybreaks=c(-0.01,0.05,0.1,0.15,0.2,0.25,1),mycolours=c("white","grey90","grey50","yellow","orange","red"),legendpos="topright",legendcex=1.25)
+haplodistmat<-function(mychroms=NULL,exporttype=NULL,myinds=inds$name[inds$filter],dropvec=inds$name[!inds$filter],getdata=TRUE,docombine=TRUE,doplot=TRUE,dmin=0,dmax=0.01,plotbin=4,mysd=0.02,mybreaks=c(-0.01,0.05,0.1,0.15,0.2,0.25,1),mycolours=c("white","grey90","grey50","yellow","orange","red"),legendpos="topright",legendcex=1.25)
 	{
 	if(is.null(mychroms))
 		{
@@ -29642,9 +29657,9 @@ haplodistmat<-function(mychroms=NULL,exporttype=NULL,myinds=inds$name[inds$filte
 			nloci			<- length(myloci)
 			cat(paste("Total number of loci: ",nloci,".",sep=""),sep="\n")
 			#
-			cat(paste("Aggregating using threshold: ",dthres,sep=""),sep="\n")
+			cat(paste("Aggregating using threshold: ",dmax,sep=""),sep="\n")
 			# Count for each pair of individuals how many haplotypes they share (as defined by a certain maximum genetic distance):
-			y				<- x[x$d<dthres,c("d","pair")]
+			y				<- x[x$d>=dmin&x$d<dmax,c("d","pair")]
 			mydistvec		<- y$d
 			mypairs			<- y$pair
 			aggdf			<- aggregate(mydistvec,by=list(mypairs),FUN=length)
@@ -29675,15 +29690,15 @@ haplodistmat<-function(mychroms=NULL,exporttype=NULL,myinds=inds$name[inds$filte
 			distdf				<- aggdf2[aggdf2$name1!=aggdf2$name2,] 
 			distdf$chromnr		<- chromnr
 			distdf$nloci		<- nloci
-			distdf$dthres		<- dthres
-			write.table(distdf,paste("haploblockcounts",dthres,mychrom,"txt",sep="."),row.names=FALSE,col.names=TRUE,quote=FALSE,sep="\t")
+			distdf$dmax			<- dmax
+			write.table(distdf,paste("haploblockcounts",paste(dmin,"_",dmax,sep=""),mychrom,"txt",sep="."),row.names=FALSE,col.names=TRUE,quote=FALSE,sep="\t")
 			}
 		}
 	if(docombine)
 		{
 		cat("Searching for file names starting with 'haploblockcounts' in the directory:",sep="\n")
 		cat(getwd(),sep="\n")
-		filenames 	<- list.files(pattern = paste("haploblockcounts.",dthres,".*.txt",sep=""))
+		filenames 	<- list.files(pattern = paste("haploblockcounts.",paste(dmin,"_",dmax,sep=""),".*.txt",sep=""))
 		#filenames 	<- list.files(pattern = "haploblockcounts.*.txt")
 		if(length(filenames)==0)
 			{
@@ -29732,8 +29747,10 @@ haplodistmat<-function(mychroms=NULL,exporttype=NULL,myinds=inds$name[inds$filte
 		for(mybin in mybins)
 			{
 			distdf2				<- distdf[distdf$bin==mybin,]
+			distdf2				<- distdf2[distdf2$pop1%in%mysambar$populations&distdf2$pop2%in%mysambar$populations,]
 			if(nrow(distdf2)>0)
 				{
+				cat("Plotting segments...",sep="\n")
 				for(k in c(1:nrow(distdf2)))
 					{
 					ind1		<- distdf2$name1[k]
@@ -29747,7 +29764,7 @@ haplodistmat<-function(mychroms=NULL,exporttype=NULL,myinds=inds$name[inds$filte
 				}
 			}
 		points(geocoord$longitude,geocoord$latitude,pch=16,col="grey20",cex=0.5)
-		mtext(side=3,paste("genetic distance (d) < ",dthres,sep=""),line=0.5,cex=1.25)
+		mtext(side=3,paste(dmin," <= d < ",dmax,sep=""),line=0.5,cex=1.25)
 		legend(legendpos,legend=paste(">",rev(mybreaks[(plotbin+1):nbins]),sep=""),bty="n",fill=rev(mycolours[(plotbin+1):nbins]),cex=legendcex,title="frequency:")
 		}
 	}
