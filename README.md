@@ -14,6 +14,9 @@ UPDATE 22-04-2021
 
 By default, the calcdiversity() function of SambaR does no longer generate SFS-vectors. Users can still enable this utility, but are adviced to generate SFS vectors using more established methods (e.g., ANGSD, EasySFS or Popgen Pipeline Platform).     
 
+UPDATE 17-11-2023
+
+A bug in the function for relatedness calculations made that SambaR could mark the wrong individuals pairs as closely related. This bug has been fixed in SambaR version 1.10.  
 
 ## How to cite SambaR
 
