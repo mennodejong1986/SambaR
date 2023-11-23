@@ -16,7 +16,7 @@ By default, the calcdiversity() function of SambaR does no longer generate SFS-v
 
 UPDATE 17-11-2023
 
-A bug in the function for relatedness calculations made that SambaR could mark the wrong individuals pairs as closely related. This bug has been fixed in SambaR version 1.10.  
+A bug in the function for relatedness calculations made that SambaR could mark the wrong pair of individuals as closely related. This bug has been fixed in SambaR version 1.10.  
 
 ## How to cite SambaR
 
