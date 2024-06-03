@@ -8,7 +8,7 @@
 # To run most SambaR functions, you need to run 10 R commands, which roughly look like this:
 example_run<-function()
 	{
-	source("https://github.com/mennodejong1986/SambaR/raw/master/SAMBAR_v1.07.txt")
+	source("https://github.com/mennodejong1986/SambaR/raw/master/SAMBAR_v1.10.txt")
 	# or:
 	# source("SAMBAR_v1.00.txt")
 	setwd("C:/path/to/workingdir")
@@ -12255,15 +12255,18 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 	# str(mysambar$mytree)
 	if(!is.null(drop_ind))
 		{
-		cat("Dropping individual(s):...",sep="\n")
-		for(k in c(1:length(drop_ind)))
+		if(length(drop_ind)>0)
 			{
-			cat(drop_ind[k],sep="\n")
-			if(!drop_ind[k]%in%inds$name)
+			cat("Dropping individual(s):...",sep="\n")
+			for(k in c(1:length(drop_ind)))
 				{
-				return(cat(paste("Sample ",drop_ind[k],", which is specified to drop_ind flag, not present in inds object.",sep=""),sep="\n"))
+				cat(drop_ind[k],sep="\n")
+				if(!drop_ind[k]%in%inds$name)
+					{
+					return(cat(paste("Sample ",drop_ind[k],", which is specified to drop_ind flag, not present in inds object.",sep=""),sep="\n"))
+					}
+				mytree		<- drop.tip(phy=mytree,tip=drop_ind[k])
 				}
-			mytree		<- drop.tip(phy=mytree,tip=drop_ind[k])
 			}
 		}
 	if(length(mytree$tip.label)!=length(inds$name[inds$filter]))
@@ -17437,6 +17440,7 @@ plotlocations<-function(export=NULL,dolabels=FALSE,mygeodf=NULL,mygeofile=NULL,a
 				}
 			}
 		}
+	if("rworldmap"%in%(.packages()) == FALSE){library(rworldmap)}
 	newmap 		<- getMap(resolution = "low")
 	myratio		<- (max(coord$longitude,na.rm=TRUE)-min(coord$longitude,na.rm=TRUE))/(max(coord$latitude,na.rm=TRUE)-min(coord$latitude,na.rm=TRUE))
 	if(!is.null(export))
@@ -18775,6 +18779,7 @@ mapqmatrix<-function(coord=NULL,qmatrix=NULL,popnames=mysambar$populations,mycol
 		mycolours				<- mycols[1:ncolours]
 		}
 	# plot:
+	if("rworldmap"%in%(.packages()) == FALSE){library(rworldmap)}
 	newmap 		<- getMap(resolution = "low")
 	myratio		<- (max(coord$longitude)-min(coord$longitude))/max((coord$latitude)-min(coord$latitude))
 	if(!is.null(export))
@@ -23243,6 +23248,18 @@ f3table<-function(mythres=0)
 		{
 		outdf		<- outdf[outdf$est<=mythres,]
 		write.table(outdf,paste("f3scores.subset",mythres,"txt",sep="."),quote=FALSE,col.names=TRUE,row.names=FALSE,sep="\t")
+		}
+	#
+	for(mypop in mysambar$poporder)
+		{
+		mydf			<- mysambar$f3df
+		mydf2			<- mydf[mydf$pop1==mypop,]
+		mydf2			<- mydf2[order(mydf2$est),c(4,6,8)]
+		colnames(mydf2)	<- c("f3_score","z_value","population_triplet")
+		mydf3			<- head(mydf2,25)
+		mydf3$f3_score	<- round(mydf3$f3_score,4)
+		mydf3$z_value	<- round(mydf3$z_value,2)
+		write.table(mydf3,paste("f3scores",mypop,"bottom25.txt",sep="_"),quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
 		}
 	cat("Table(s) exported to directory: ",sep="\n")
 	cat(getwd(),sep="\n")
@@ -29376,7 +29393,7 @@ batcheffectmat<-function(missdf=inds2[inds$bool,])
 
 # 27-04-2021:
 # depends on calcpi and plotfst 
-popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL)
+popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL,popvec=mysambar$poporder,my_Breaks=NULL,value_cex=4)
 	{
 	if(is.null(mysambar$pidf_metalist)|do_overwrite)
 		{
@@ -29398,6 +29415,28 @@ popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL)
 		dxyvec					<- meandxy$dxy
 		}
 	mysambar$meandxy	<<- meandxy
+	#
+	npop	<- length(popvec)
+	dxymat	<- matrix(NA,nrow=npop,ncol=npop)
+	colnames(dxymat)	<- popvec
+	rownames(dxymat)	<- popvec
+	diag(dxymat)		<- 0
+	for(popnr1 in c(1:npop))
+		{
+		for(popnr2 in c(1:npop))
+			{
+			mypop1	<- popvec[popnr1]
+			mypop2	<- popvec[popnr2]
+			if(popnr1!=popnr2)
+				{
+				dxymat[popnr1,popnr2]	<- meandxy$dxy[(meandxy$pop1==mypop1&meandxy$pop2==mypop2)|(meandxy$pop1==mypop2&meandxy$pop2==mypop1)]
+				}
+			}
+		}
+	mysambar$snpdxymat	<<- dxymat 
+	# 
+	plotpopmatrix(exportname="Dxy_snps",addlabels=TRUE,showvalues=TRUE,popnames=popvec,mymatrix=dxymat,nrbreaks=5,addlegend=FALSE,plotlabelcex=8,export="pdf",myBreaks=my_Breaks,valuecex=value_cex)
+	getpoptree(mymatrix=mysambar$snpdxy,exportlabel="snp_dxy",donj=TRUE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5,popnames=mysambar$poporder,popcolours=mysambar$colorder)
 	#
 	cat("Exporting matrices with mean Dxy values...",sep="\n")
 	plotfst(popnames=mysambar$populations,export="eps",inputvector=dxyvec,exportname="Dxy_pop",plottitle="Mean Dxy")
@@ -31000,7 +31039,7 @@ maf2hudsonfst<-function(q1=0.1,q2=0.15)
 	}
 
 # 22-06-2022:
-hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,donetwork=TRUE,distplots=TRUE,pop_legcex=4.5,bin_legcex=8,pop_legposy=5)
+hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,donetwork=TRUE,distplots=TRUE,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5)
 	{
 	if(!"meanhe"%in%colnames(inds2)|!"d3"%in%colnames(inds2))
 		{
@@ -31115,8 +31154,10 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 			f[i,j]	<- pops2$fst[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
 			}
 		}
+	h	<- 1/10000*(log(1-f)/log(0.9999))	
 	mysambar$damatrix			<<- n
 	mysambar$hudsonfstmatrix	<<- f
+	mysambar$coalunitsmatrix	<<- h
 	mysambar$dxymatrix			<<- m
 	#
 	cat("Plotting distance matrices...",sep="\n")
@@ -31133,36 +31174,45 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 		{
 		cat("Generating population dendrograms...",sep="\n")
 		cat("Net nucleotide divergence...",sep="\n")
-		getpoptree(mymatrix=n,popnames=mysambar$populations,mytype="unrooted",mylwd=0.5,labelcex=0.5,exportlabel="NetNucleotideDivergence",donj=do_nj)	
+		getpoptree(mymatrix=n,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="NetNucleotideDivergence",donj=do_nj)	
 		write.tree(mysambar$poptree,file=paste("Poptree.NetNucleotideDivergence.newick.txt",sep="."),digits=0,tree.names=FALSE)
 		if(!is.null(my_root))
 			{
 			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
-			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=0.5,labelcex=0.5,exportlabel="NetNucleotideDivergence",donj=do_nj)
+			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="NetNucleotideDivergence",donj=do_nj)
 			write.tree(mysambar$poptree,file=paste("Poptree.NetNucleotideDivergence.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
 			}
 		
 		#
 		cat("Hudson Fst...",sep="\n")
-		getpoptree(mymatrix=f,popnames=mysambar$populations,mytype="unrooted",mylwd=0.5,labelcex=0.5,exportlabel="Hudsonfst",donj=do_nj)	
+		getpoptree(mymatrix=f,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="Hudsonfst",donj=do_nj)	
 		write.tree(mysambar$poptree,file=paste("Poptree.HudsonFst.newick.txt",sep="."),digits=0,tree.names=FALSE)
 		if(!is.null(my_root))
 			{
 			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
-			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=0.5,labelcex=0.5,exportlabel="Hudsonfst",donj=do_nj)
+			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="Hudsonfst",donj=do_nj)
 			write.tree(mysambar$poptree,file=paste("Poptree.HudsonFst.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
 			}
-		
+		#
+		cat("Coalescent units...",sep="\n")
+		getpoptree(mymatrix=h,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnits",donj=do_nj)	
+		write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnits.newick.txt",sep="."),digits=0,tree.names=FALSE)
+		if(!is.null(my_root))
+			{
+			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
+			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnits",donj=do_nj)
+			write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnits.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			}
 		#
 		cat("Dxy...",sep="\n")
-		getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="unrooted",mylwd=0.5,labelcex=1.0,exportlabel="Dxy",donj=FALSE)
-		getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="unrooted",mylwd=0.5,labelcex=1.0,exportlabel="Dxy",donj=TRUE)
+		getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=1.0,exportlabel="Dxy",donj=FALSE)
+		getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=1.0,exportlabel="Dxy",donj=TRUE)
 		if(is.null(my_root))
 			{
-			getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="phylogram",mylwd=0.5,labelcex=1.0,exportlabel="Dxy",donj=do_nj)
+			getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="Dxy",donj=do_nj)
 			write.tree(mysambar$poptree,file=paste("Poptree.Dxy.newick.txt",sep="."),digits=0,tree.names=FALSE)
 			}else{
-			getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="phylogram",mylwd=0.5,labelcex=1.0,exportlabel="Dxy",myroot=my_root,donj=do_nj)
+			getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="Dxy",myroot=my_root,donj=do_nj)
 			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
 			write.tree(myrootedtree,file=paste("Poptree.Dxy.newick.rooted.txt",sep="."),digits=0,tree.names=FALSE)
 			}
