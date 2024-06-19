@@ -9925,6 +9925,33 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 					# getindtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mydistance="reynolds.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 					}
 				}
+			if(do_subsets)
+				{
+				# find subsets containing SNPs with highest standard deviation of MAF
+				# create pcoa-plots
+				# export ped and map-files to inputfilesdir
+				if(nrow(snps[snps$filter,])>500)
+					{	
+					cat("Creating pcoa plots based on Hamming's genetic distance using subsets of highly differentiated SNPs...",sep="\n")
+					cat("If you receive an error after this line, rerun the findstructure function with the flag do_subsets set to FALSE (i.e: findstructure(do_subsets=FALSE)).",sep="\n")
+					if(length(mysambar$populations)>1)
+						{
+						plotmulti_pcoa(mymethod="hamming",export="pdf",nloci=c(500,375,250,125),randomsubset=FALSE,do_legend=TRUE,no_fixed=FALSE,no_miss=FALSE,dodc=do_dc)
+						}
+					}
+				# for even smaller subsets:
+				if(nrow(snps[snps$filter,])>100)
+					{	
+					cat("Creating pcoa plots based on Hamming's genetic distance using even even smaller subsets of highly differentiated SNPs...",sep="\n")
+					cat("If you receive an error after this line, rerun the findstructure function with the flag do_subsets set to FALSE (i.e: findstructure(do_subsets=FALSE)).",sep="\n")
+					if(length(mysambar$populations)>1)
+						{
+						# subsets containing SNPs with highest standard deviation of MAF:
+						plotmulti_pcoa(mymethod="hamming",export="pdf",nloci=c(100,50,25,10),randomsubset=FALSE,do_legend=TRUE,no_fixed=FALSE,no_miss=FALSE,dodc=do_dc)
+						}
+					}
+				cat("PED and MAP-files with subsets of highly differentiated SNPs have been exported to the inputfiles directory.",sep="\n")
+				}
 			if("LEA" %in% (.packages()) == FALSE)
 				{
 				cat("Package LEA not installed or loaded. Skipping LEA admixture analyses.",sep="\n")
@@ -10044,7 +10071,7 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 					}
 				if(nrow(snps[snps$filter,])>100)
 					{	
-					cat("Creating pcoa plots based on Hamming's genetic distance using even smaller subsets of loci...",sep="\n")
+					cat("Creating pcoa plots based on Nei's genetic distance using even smaller subsets of loci...",sep="\n")
 					cat("If you receive an error after this line, rerun the findstructure function with the flag do_subsets set to FALSE (i.e: findstructure(do_subsets=FALSE)).",sep="\n")
 					# for even smaller subsets:
 					if(length(mysambar$populations)>1)
@@ -14122,9 +14149,9 @@ plotmulti_pcoa<-function(export=NULL,mymethod="nei",nloci=c(500,375,250,125),ran
 		# create plot:
 		add_legend		<- ifelse(n_subset==nloci[1],ifelse(do_legend,TRUE,FALSE),FALSE)
 		ape_pcoa(snpselection=myselection,method=mymethod,resetgraphics=FALSE,addlegend=add_legend,legendpos=poslegend,makeglobal=TRUE,symbolsize=size_symbol,legendcex=cex_legend,dodc=FALSE)
+		mtext(paste(n_subset," snps",sep=""),cex=3)
 		if(!mysambar$pcoa_error&dodc)
 			{
-			mtext(paste(n_subset," snps",sep=""),cex=3)
 			#cat("Calculating dc_scores...",sep="\n")
 			calc_dc(popnames=mysambar$populations,pscores=p$vectors,axis_1=1,axis_2=2,tablename=NULL)
 			if(length(mysambar$populations)>1)
@@ -20880,7 +20907,7 @@ plotpopmatrix<-function(exportname="Popmatrix",popnames=mysambar$populations,mym
 	# prepare plot:
 	if(is.null(myBreaks))
 		{
-		mymatrix			<- round(mymatrix,3)
+		mymatrix			<- round(mymatrix,ndecimals)
 		floor_dec 			<- function(x, level=1) round(x - 5*10^(-level-1), level)
 		ceiling_dec 		<- function(x, level=1) round(x + 5*10^(-level-1), level)
 		mymin				<- floor_dec(min(mymatrix,na.rm=TRUE),1)
@@ -22303,6 +22330,7 @@ inferdemography<-function(Kmin=2,Kmax=6,my_bg="white",axis_col="black",nchroms=N
 			}else{
 			my_triplets				<- D_triplets
 			}
+		mysambar$triplets			<<- my_triplets
 		colnames(my_triplets)	<- c("p1","p2","p3")
 		popvec					<- unique(c(my_triplets$p1,my_triplets$p2,my_triplets$p3))
 		if(any(!popvec%in%mysambar$populations))
@@ -31039,7 +31067,7 @@ maf2hudsonfst<-function(q1=0.1,q2=0.15)
 	}
 
 # 22-06-2022:
-hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,donetwork=TRUE,distplots=TRUE,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5)
+hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,donetwork=TRUE,distplots=TRUE,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5,n_decimals=3)
 	{
 	if(!"meanhe"%in%colnames(inds2)|!"d3"%in%colnames(inds2))
 		{
@@ -31154,21 +31182,27 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 			f[i,j]	<- pops2$fst[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
 			}
 		}
-	h	<- 1/10000*(log(1-f)/log(0.9999))	
-	mysambar$damatrix			<<- n
-	mysambar$hudsonfstmatrix	<<- f
-	mysambar$coalunitsmatrix	<<- h
-	mysambar$dxymatrix			<<- m
+	h	<- 1/10000*(log(1-f)/log(0.9999))
+	h2	<- f/(1-f)	
+	mysambar$damatrix				<<- n
+	mysambar$hudsonfstmatrix		<<- f
+	mysambar$driftcoalunitsmatrix	<<- h
+	mysambar$mutcoalunitsmatrix		<<- h2
+	mysambar$dxymatrix				<<- m
 	#
 	cat("Plotting distance matrices...",sep="\n")
 	# with values:
-	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dxy",popnames=mysambar$populations,mymatrix=m,export="pdf",ndecimals=3,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
-	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NetDivergence",popnames=mysambar$populations,mymatrix=n,export="pdf",ndecimals=3,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
-	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Hudsonfst",popnames=mysambar$populations,mymatrix=f,export="pdf",ndecimals=3,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dxy",popnames=mysambar$populations,mymatrix=mysambar$dxymatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NetDivergence",popnames=mysambar$populations,mymatrix=mysambar$damatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Hudsonfst",popnames=mysambar$populations,mymatrix=mysambar$hudsonfstmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_drift",popnames=mysambar$populations,mymatrix=mysambar$driftcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_mutations",popnames=mysambar$populations,mymatrix=mysambar$mutcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
 	# without values:
-	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dxy",popnames=mysambar$populations,mymatrix=m,export="pdf",ndecimals=3,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
-	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NetDivergence",popnames=mysambar$populations,mymatrix=n,export="pdf",ndecimals=3,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
-	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Hudsonfst",popnames=mysambar$populations,mymatrix=f,export="pdf",ndecimals=3,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dxy",popnames=mysambar$populations,mymatrix=mysambar$dxymatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NetDivergence",popnames=mysambar$populations,mymatrix=mysambar$damatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Hudsonfst",popnames=mysambar$populations,mymatrix=mysambar$hudsonfstmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_drift",popnames=mysambar$populations,mymatrix=mysambar$driftcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_mutations",popnames=mysambar$populations,mymatrix=mysambar$mutcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
 	#
 	if(dotree)
 		{
@@ -31194,14 +31228,24 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 			write.tree(mysambar$poptree,file=paste("Poptree.HudsonFst.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
 			}
 		#
-		cat("Coalescent units...",sep="\n")
-		getpoptree(mymatrix=h,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnits",donj=do_nj)	
+		cat("Coalescent units estimated using drift...",sep="\n")
+		getpoptree(mymatrix=h,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsDrift",donj=do_nj)	
 		write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnits.newick.txt",sep="."),digits=0,tree.names=FALSE)
 		if(!is.null(my_root))
 			{
 			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
-			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnits",donj=do_nj)
-			write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnits.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsDrift",donj=do_nj)
+			write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnitsDrift.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			}
+		#
+		cat("Coalescent units estimated using mutations...",sep="\n")
+		getpoptree(mymatrix=h2,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsMutations",donj=do_nj)	
+		write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnitsMutations.newick.txt",sep="."),digits=0,tree.names=FALSE)
+		if(!is.null(my_root))
+			{
+			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
+			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsMutations",donj=do_nj)
+			write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnitsMutations.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
 			}
 		#
 		cat("Dxy...",sep="\n")
@@ -34827,7 +34871,7 @@ selectionanalyses<-function(export="pdf",do_meta=TRUE,plothisto=TRUE,dopiechart=
 		if(export_data)
 			{
 			cat("Exporting datasets...",sep="\n")
-			exportneutral(my_dataset="metapop",include_gwds=FALSE,include_pcadapt=do_pcadapt,include_outflank=do_outflank,include_bayescan=add_bayescan,include_fsthet=do_fsthet)
+			exportneutral(my_dataset="metapop",include_gwds=FALSE,include_pcadapt=do_pcadapt,include_outflank=do_outflank,include_bayescan=add_bayescan,include_fsthet=do_fsthet,usetab=TRUE)
 			}
 		cat("Finished all selection analyses for 'metapop'.",sep="\n")
 		}
@@ -35204,7 +35248,7 @@ run_pairwise<-function(dopheno=FALSE,do_analysis=TRUE,only_pooled=FALSE,allpairw
 			if(exportdata)
 				{
 				cat("Exporting datasets...",sep="\n")
-				exportneutral(my_dataset=my_pair,include_gwds=TRUE,include_pcadapt=dopcadapt,include_outflank=dooutflank,include_bayescan=addbayescan,include_fsthet=dofsthet)
+				exportneutral(my_dataset=my_pair,include_gwds=TRUE,include_pcadapt=dopcadapt,include_outflank=dooutflank,include_bayescan=addbayescan,include_fsthet=dofsthet,usetab=TRUE)
 				}
 			}
 		}
@@ -35326,7 +35370,7 @@ run_pairwise<-function(dopheno=FALSE,do_analysis=TRUE,only_pooled=FALSE,allpairw
 		if(exportdata)
 			{
 			cat("Exporting datasets...",sep="\n")
-			exportneutral(my_dataset="pheno",include_gwds=TRUE,include_pcadapt=dopcadapt,include_outflank=dooutflank,include_bayescan=addbayescan,include_fsthet=dofsthet)
+			exportneutral(my_dataset="pheno",include_gwds=TRUE,include_pcadapt=dopcadapt,include_outflank=dooutflank,include_bayescan=addbayescan,include_fsthet=dofsthet,usetab=TRUE)
 			}
 		#cat("Plotting overlap between comparisons...",sep="\n")
 		#multioverlap_approach(doexport="pdf",popnames=mysambar$populations,pmax=11,silent=TRUE,pheno_label=paste(pheno_labels,collapse="_"))
@@ -40231,7 +40275,7 @@ genlight2ped<-function(input=mygenlight,in_snps=snps,in_inds=inds,popvec=NULL,sn
 		}
 	}
 
-exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include_pcadapt=TRUE,include_outflank=TRUE,include_bayescan=FALSE,include_fsthet=FALSE,current_dir=FALSE,export_outlier=TRUE,export_neutral=TRUE)
+exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include_pcadapt=TRUE,include_outflank=TRUE,include_bayescan=FALSE,include_fsthet=FALSE,current_dir=FALSE,export_outlier=TRUE,export_neutral=TRUE,usetab=TRUE)
 	{
 	currentdir	<- getwd()
 	if(!current_dir)
@@ -40315,34 +40359,34 @@ exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include
 	if(export_outlier)
 		{
 		cat("Exporting dataset with all outlier SNPs marked by at least one selection scan, in PED and MAP format...",sep="\n")
-		exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+		exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 		if(any(outlierfilter2))
 			{
 			cat("Exporting dataset with outlier SNPs marked by all (used) selection scans, in PED and MAP format...",sep="\n")
-			exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter2,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.overlap",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=outlierfilter2,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.overlap",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}else{
 			cat("No SNP has been marked by all outlier scans.",sep="\n")
 			}
 		# outliers of individual selection scans:
 		if(any(gwdsout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&gwdsout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&gwdsout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		if(any(pcadaptout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&pcadaptout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&pcadaptout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		if(any(outflankout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&outflankout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&outflankout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		if(any(bayescanout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&bayescanout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&bayescanout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		if(any(fsthetout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&fsthetout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&fsthetout,popnames=mysambar$populations,export_name=paste(my_dataset,"outlierSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		}
 	#
@@ -40350,27 +40394,27 @@ exportneutral<-function(my_dataset="pheno",silent=TRUE,include_gwds=TRUE,include
 		{
 		neutralfilter	<- snps$filter&(!outfilter)
 		cat("Exporting dataset with neutral SNPs in PED and MAP format...",sep="\n")
-		exportdata(indsfilter=inds$filter,snpsfilter=neutralfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+		exportdata(indsfilter=inds$filter,snpsfilter=neutralfilter,popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.allscans",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 		#
 		if(any(gwdsout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!gwdsout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!gwdsout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.GWDS",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		if(any(pcadaptout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!pcadaptout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!pcadaptout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.PCadapt",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		if(any(outflankout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!outflankout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!outflankout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.OutFLANK",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		if(any(bayescanout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!bayescanout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!bayescanout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.Bayescan",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		if(any(fsthetout))
 			{
-			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!fsthetout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=do_tab)
+			exportdata(indsfilter=inds$filter,snpsfilter=snps$filter&(!fsthetout),popnames=mysambar$populations,export_name=paste(my_dataset,"neutralSNPs.FstHet",sep="."),geno_nr=TRUE,quiet2=FALSE,do_all=FALSE,do_pheno=FALSE,misschar="0",silent=TRUE,dotab=usetab)
 			}
 		}
 	setwd(currentdir)
