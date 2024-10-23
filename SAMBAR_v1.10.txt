@@ -1184,7 +1184,7 @@ importdata<-function(inputprefix=NULL,sumstatsfile=FALSE,snpinfofile=NULL,sample
 		}
 	#
 	# define colours:
-	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4","gold3","darkcyan","dodgerblue","deepskyblue1","mediumpurple2","tan4","lightseagreen","deepskyblue3","gold3","khaki2","springgreen3","steelblue2","yellowgreen","plum1","mediumblue","royalblue3","yellow2")
+	defaultcolours				<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","limegreen","gray80","steelblue3","gray40","darkorange3","aquamarine4","burlywood4","gold3","darkcyan","dodgerblue","deepskyblue1","mediumpurple2","tan4","lightseagreen","deepskyblue3","khaki2","springgreen3","steelblue2","yellowgreen","plum1","mediumblue","royalblue3","yellow2")
 	# 30-08-2020: new default colours:
 	# defaultcolours			<- c("mediumblue","darkred","steelblue3","grey50","deepskyblue1","grey20","darkorchid4","#654321","midnightblue","ivory2","#009595","darkgreen","greenyellow","indianred1","orange","lavenderblush3","aquamarine4","burlywood4")
 	if(is.null(colourvector))
@@ -2835,7 +2835,8 @@ genlight2sambar<-function(genlight_object=NULL,do_confirm=FALSE,colourvector=NUL
 	popnames	<- popnames[order(popnames)] 	
 	npops		<- length(popnames)
 	if(!silent){cat(paste("Number of populations: ",npops,sep=""),sep="\n")}
-	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
+	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","forestgreen","gray80","midnightblue","lavenderblush3","darkorange3","aquamarine4","burlywood4","gold3","darkcyan","dodgerblue","deepskyblue1","mediumpurple2","tan4","lightseagreen","deepskyblue3","khaki2","springgreen3","steelblue2","yellowgreen","plum1","mediumblue","royalblue3","yellow2")
+	#defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
 	if(is.null(colourvector))
 		{
 		colourvector	<- defaultcolours
@@ -3787,7 +3788,8 @@ replacepop_old<-function(samplefile=NULL,mycolours=c("blue","darkgreen","darkred
 importmultidata<-function(structurefile="allsamples.stru",colourvector=NULL,onerow=TRUE,popfile=NULL,nloc=NULL,locusinfo=NULL,silent=TRUE,popcol_by_alphabetical_order_popname=TRUE,pop_order=NULL,qcplot=TRUE)
 	{
 	# define colours:
-	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
+	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","forestgreen","gray80","midnightblue","lavenderblush3","darkorange3","aquamarine4","burlywood4","gold3","darkcyan","dodgerblue","deepskyblue1","mediumpurple2","tan4","lightseagreen","deepskyblue3","khaki2","springgreen3","steelblue2","yellowgreen","plum1","mediumblue","royalblue3","yellow2")
+	#defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
 	if(is.null(colourvector))
 		{
 		colourvector	<- defaultcolours	
@@ -4832,7 +4834,7 @@ filtermultidata<-function(indmiss=0.65,snpmiss=0.4,silent=TRUE)
 	}
 
 # This function executes all steps of the data preparation at once: 
-filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_hefilter=0.05,snpdepthfilter=TRUE,min_spacing=500,kinship_thres=NULL,silent=TRUE,nchroms=NULL,do_calckin=FALSE,TsTvfilter=NULL,ychrom=NULL,do_distplot=TRUE,do_highestsd=TRUE,do_mafdiff=FALSE,F_correct_maf=TRUE,plot_inbreeding=TRUE,paralog_threshold1=0.5,paralog_threshold2=0.05,stop_correctmaf=FALSE,legend_cex=3,old_distfilter=FALSE,do_genoheatmap=FALSE,redo_kinship=FALSE)
+filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_hefilter=0.05,snpdepthfilter=TRUE,min_spacing=500,kinship_thres=NULL,silent=TRUE,nchroms=NULL,do_calckin=FALSE,TsTvfilter=NULL,ychrom=NULL,do_distplot=TRUE,do_highestsd=TRUE,do_mafdiff=FALSE,F_correct_maf=TRUE,plot_inbreeding=TRUE,paralog_threshold1=0.5,paralog_threshold2=0.05,stop_correctmaf=FALSE,legend_cex=3,old_distfilter=FALSE,do_genoheatmap=FALSE,redo_kinship=FALSE,plot_transits=TRUE)
 	{
 	if(!exists("inds"))
 		{
@@ -5234,11 +5236,15 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 				#calcpairmiss(exporttype="pdf",definebreaks=TRUE,use_currentdir=TRUE,silent=TRUE,snpsfilter=FALSE,legendcex=1.4,nrbins=20,addmiss=TRUE)
 				}
 			}
-		if(!silent){cat("plotHe_perind",sep="\n")}
-		plotHe_perind(export="eps")
-		plotHe_perind(export="pdf")
-		plotHe_perind(export="png")
-		if(mysambar$os=="Windows"){plotHe_perind(export="wmf")}
+		# to prevent error relating to plot margins
+		if(nrow(inds)>10)
+			{
+			if(!silent){cat("plotHe_perind",sep="\n")}
+			plotHe_perind(export="eps")
+			plotHe_perind(export="pdf")
+			plotHe_perind(export="png")
+			if(mysambar$os=="Windows"){plotHe_perind(export="wmf")}
+			}
 		if(!silent){cat("plotgenocounts_ind",sep="\n")}
 		plotgenocounts_inds(export=TRUE,addlabels=TRUE,metapop=TRUE)
 		plotgenocounts_inds(export=TRUE,addlabels=FALSE,metapop=TRUE)
@@ -5311,20 +5317,24 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 		#	{
 		#	cat("Skipping GC-content table and transition-vs-transition plot because data has been converted from a genlight object, and this information got lost.",sep="\n")
 		#	}else{
-			if(!silent){cat("plotminor",sep="\n")}
-			plotminor(export="eps")
-			plotminor(export="pdf")
-			plotminor(export="png")
-			if(mysambar$os=="Windows"){plotminor(export="wmf")}
-			if(!silent){cat("plottransits",sep="\n")}
-			plottransits(filter=FALSE,export="eps")
-			plottransits(filter=FALSE,export="pdf")
-			plottransits(filter=FALSE,export="png")
-			if(mysambar$os=="Windows"){plottransits(filter=FALSE,export="wmf")}
-			plottransits(filter=TRUE,export="eps")
-			plottransits(filter=TRUE,export="pdf")
-			plottransits(filter=TRUE,export="png")
-			if(mysambar$os=="Windows"){plottransits(filter=TRUE,export="wmf")}
+			if(plot_transits)
+				{
+				cat("If you receive an error soon after this line, set the flag plot_transits to FALSE.",sep="\n")
+				if(!silent){cat("plotminor",sep="\n")}
+				plotminor(export="eps")
+				plotminor(export="pdf")
+				plotminor(export="png")
+				if(mysambar$os=="Windows"){plotminor(export="wmf")}
+				if(!silent){cat("plottransits",sep="\n")}
+				plottransits(filter=FALSE,export="eps")
+				plottransits(filter=FALSE,export="pdf")
+				plottransits(filter=FALSE,export="png")
+				if(mysambar$os=="Windows"){plottransits(filter=FALSE,export="wmf")}
+				plottransits(filter=TRUE,export="eps")
+				plottransits(filter=TRUE,export="pdf")
+				plottransits(filter=TRUE,export="png")
+				if(mysambar$os=="Windows"){plottransits(filter=TRUE,export="wmf")}
+				}
 		#	}
 		if(!silent){cat("plotfiltermaf",sep="\n")}
 		if(length(mysambar$populations)<9){plotfiltermaf(export="eps")}	# figure margins too large if 10 pops
@@ -9654,6 +9664,9 @@ plotmapping<-function(export=FALSE,input1="alignmentscores.reinasref.txt",input2
 ############################################################################################################
 # Population structure analyses
 
+# 22-0-2024: still to be implemented:
+# Rphylip: Rcontml
+# Felsenstein, J. (1981) Maximum likelihood estimation of evolutionary trees from continuous characters. American Journal of Human Genetics, 25, 471-492.
 
 # This function executes all population structure analyses at once:
 findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="black",legend_pos="bottomright",legend_cex=3,my_legend=mysambar$poporder,my_legendcol=mysambar$colorder,Kmin=2,Kmax=6,pop_order=mysambar$poporder,short_pop=NULL,print_name=inds$name,do_nei=TRUE,plot_nei=TRUE,do_maps=FALSE,do_tree=TRUE,dogenindtrees=FALSE,do_MPtree=TRUE,do_MLtree=FALSE,do_pathlength=FALSE,do_perpop=FALSE,do_pi=TRUE,do_dapc=FALSE,dapc_ellipse=FALSE,dapc_ellipse_level=0.5,do_subsets=FALSE,doBAPT=TRUE,do_indca=TRUE,do_popca=TRUE,do_pca=TRUE,do_mds=TRUE,onlyLEA=FALSE,max_node_label=80,symbol_size=3,colour_vector=NULL,silent=TRUE,do_tess=FALSE,do_phylonetwork=FALSE,do_network=FALSE,do_continue=FALSE,axis_1=1,axis_2=2,domirroraxis=c(FALSE,FALSE),LEAperpop=FALSE,LEAheightfactor=0.75,LEAwidthfactor=0.1,LEAaxiscex=1.5,LEAlabelcex=1.75,LEAyaxiscex=1.25,LEAylabel=NULL,shortpop_nr_chars=3,do_dc=TRUE,marine_dataset=FALSE,dapc_heatmap=TRUE)
@@ -11192,7 +11205,7 @@ df2mat<-function(mydf=inds2,myinds=inds$nr,indnames=inds$name,nr_bins=6,mypops=i
 
 # expects as input a MATRIX, with number of columns and rows equalling number of RETAINED individuals, in alphabetical order of sample names (similar as in inds dataframe).
 # for example: mysambar$indneimatrix (generated with ind_neimatrix function) and mysambar$pimatrix (generated with calcpi and subsequently pidf2matrix function)  
-plotindmatrix<-function(n_bins=5,do_filter=TRUE,show_values=FALSE,noteround=2,notecex=1,export=NULL,alphabet_order=FALSE,my_Breaks=NULL,bincol1="orange",bincol2="white",midbincol=NULL,add_lab=FALSE,legendcex=2,ind_matrix=mysambar$indneimatrix,export_name="Neimatrix.ind",plottitle=NULL,title_cex=2,title_line=1,silent=TRUE,print_name=FALSE)
+plotindmatrix<-function(n_bins=5,do_filter=TRUE,show_values=FALSE,noteround=2,notecex=1,export=NULL,alphabet_order=FALSE,my_Breaks=NULL,bincol1="orange",bincol2="white",midbincol=NULL,add_lab=FALSE,legendcex=2,ind_matrix=mysambar$indneimatrix,export_name="Neimatrix.ind",plottitle=NULL,title_cex=2,title_line=1,silent=TRUE,print_name=FALSE,editordervec=NULL)
 		{
 		if(is.null(ind_matrix)){return(cat("ERROR: Please specify an existing matrix using the 'ind_matrix'-flag. In case you specified 'mysambar$indneimatrix', did you run the ind_neimatrix function?",sep="\n"))}
 		if(is.null(export_name)){return(cat("ERROR: Please specify the name of the plot using the 'plotname'-flag.",sep="\n"))}
@@ -11232,6 +11245,12 @@ plotindmatrix<-function(n_bins=5,do_filter=TRUE,show_values=FALSE,noteround=2,no
 				ind_matrix[lower.tri(ind_matrix,diag=FALSE)]	<- tmat[lower.tri(tmat,diag=FALSE)]
 				}
 			inputmat			<- ind_matrix[indstemp$filterorder,indstemp$filterorder]
+			}
+		mysambar$indordermat	<<- inputmat 
+		if(!is.null(editordervec))
+			{
+			cat("WARNING: reordering using user-specified vector to editordervec flag.")
+			inputmat	<- inputmat[editordervec,editordervec]
 			}
 		export_name	<- paste(export_name,paste(n_bins,"bins",sep=""),sep=".")
 		if(!silent){cat("Running do_heatmap function...",sep="\n")}
@@ -12708,27 +12727,28 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			mtext(mytext,side=3,cex=labelcex)
 			}
 		}else{
+		tree_error	<- round(mean(abs(mysambar$mytree_diffmat),na.rm=TRUE),4)
 		if(calc_parsimony&calc_likelihood)
 			{
 			if(silent){cat("Adding tree scores...",sep="\n")}
-			mytext	<- paste("parsimony score per site: ",round(parsimony_persite,3),"; -log(likelihood): ",round(myloglik),";\n|(pathlength - genetic distance)/pathlength|: ",round(mysambar$mytree_diffscore),sep="")
+			mytext	<- paste("parsimony score per site: ",round(parsimony_persite,3),"; -log(likelihood): ",round(myloglik),";\n|(pathlength - genetic distance)/pathlength|: ",tree_error,sep="")
 			mtext(mytext,side=3,cex=labelcex)
 			}
 		if(calc_parsimony&!calc_likelihood)
 			{
 			if(silent){cat("Adding tree scores...",sep="\n")}
-			mytext	<- paste("parsimony score per site: ",round(parsimony_persite,3),";\n|(pathlength - genetic distance)/pathlength|: ",round(mysambar$mytree_diffscore),sep="")
+			mytext	<- paste("parsimony score per site: ",round(parsimony_persite,3),";\n|(pathlength - genetic distance)/pathlength|: ",tree_error,sep="")
 			mtext(mytext,side=3,cex=labelcex)
 			}
 		if(!calc_parsimony&calc_likelihood)
 			{
 			if(silent){cat("Adding tree scores...",sep="\n")}
-			mytext	<- paste("-log(likelihood): ",round(myloglik),";\n|(pathlength - genetic distance)/pathlength|: ",round(mysambar$mytree_diffscore),sep="")
+			mytext	<- paste("-log(likelihood): ",round(myloglik),";\n|(pathlength - genetic distance)/pathlength|: ",tree_error,sep="")
 			mtext(mytext,side=3,cex=labelcex)
 			}
 		if(!calc_parsimony&!calc_likelihood&dopathlength)
 			{
-			mytext	<- paste("|(pathlength - genetic distance)/pathlength|: ",round(mysambar$mytree_diffscore),sep="")
+			mytext	<- paste("|(pathlength - genetic distance)/pathlength|: ",tree_error,sep="")
 			mtext(mytext,side=3,cex=labelcex)
 			}
 		}
@@ -13575,6 +13595,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 				mysambar$pcoa_error	<<- TRUE
 				return(cat("ERROR: Pcoa plot can not be generated due to missing data in input distance matrix.",sep="\n"))
 				}else{
+				mysambar$pcoamatrix	<<- inputdistmat
 				mysambar$pcoa_error	<<- FALSE
 				}
 			if(any(is.infinite(distmat)))
@@ -13601,6 +13622,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 					mysambar$pcoa_error	<<- TRUE
 					return(cat("ERROR: Pcoa plot can not be generated due to missing data in neimatrix.",sep="\n"))
 					}else{
+					mysambar$pcoamatrix	<<- neimatrix
 					mysambar$pcoa_error	<<- FALSE
 					}
 				if(any(is.infinite(neimatrix)))
@@ -13626,6 +13648,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 					mysambar$pcoa_error	<<- TRUE
 					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
 					}else{
+					mysambar$pcoamatrix	<<- hammingmatrix
 					mysambar$pcoa_error	<<- FALSE
 					}
 				# sambarfunction_findstructure:
@@ -13644,6 +13667,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 					mysambar$pcoa_error	<<- TRUE
 					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
 					}else{
+					mysambar$pcoamatrix	<<- eucmatrix
 					mysambar$pcoa_error	<<- FALSE
 					}
 				# sambarfunction_findstructure:
@@ -13683,6 +13707,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 					mysambar$pcoa_error	<<- TRUE
 					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
 					}else{
+					mysambar$pcoamatrix	<<- pimatrix
 					mysambar$pcoa_error	<<- FALSE
 					}
 				if(!silent){cat("Executing pcoa analyses...",sep="\n")}
@@ -13722,6 +13747,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 					mysambar$pcoa_error	<<- TRUE
 					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
 					}else{
+					mysambar$pcoamatrix	<<- mymatrix
 					mysambar$pcoa_error	<<- FALSE
 					}
 				# sambarfunction_findstructure:
@@ -13753,6 +13779,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 					mysambar$pcoa_error	<<- TRUE
 					return(cat("Pcoa plot can not be generated due to missing data.",sep="\n"))
 					}else{
+					mysambar$pcoamatrix	<<- mymatrix
 					mysambar$pcoa_error	<<- FALSE
 					}
 				# sambarfunction_findstructure:
@@ -13767,7 +13794,8 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 		}else{
 		cat("Plotting p-scores provided to pscores flag...",sep="\n")
 		p	<- pscores
-		}
+		} 	
+	mysambar$myp		<<- p
 	#
 	if(doplot)
 		{
@@ -13951,6 +13979,38 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 		return(p)
 		}
 	}
+
+# 04-09-2024:
+# compare distances in pcoa to distances in underlying distance matrix:
+pcoadistances<-function(mymethod="pi",ndim=NULL)
+	{
+	ape_pcoa(method=mymethod)
+	dev.off()
+	distmat			<<- mysambar$pcoamatrix			# distance matrix underlying pcoa analyses
+	if(mymethod=="pi"){diag(distmat)<<-0}
+	loadingdf		<- mysambar$myp$vectors			# loadings of pcoa-axes
+	#
+	ninds			<- ncol(distmat)
+	popcolmat1		<- matrix(rep(inds$popcol,times=ninds),ncol=ninds,nrow=ninds)
+	popcolmat2		<- matrix(rep(inds$popcol,each=ninds),ncol=ninds,nrow=ninds)
+	#
+	ndim			<- ifelse(is.null(ndim),ncol(loadingdf),ndim)
+	errorvec		<<- vector()
+	for(k in c(1:ndim))
+		{
+		loadingmat	<<- as.matrix(dist(loadingdf[,c(1:k)]))				# euclidean distances of loadings
+		diffmat		<<- (distmat-loadingmat)/distmat
+		plot(distmat[upper.tri(distmat)],loadingmat[upper.tri(loadingmat)],pch=21,cex=1,ylim=c(0,max(distmat)),xlim=c(0,max(distmat)),col=popcolmat1[upper.tri(popcolmat1)],bg=popcolmat2[upper.tri(popcolmat2)],xlab="True distance",ylab="PCoA distance",las=1)
+		lines(c(0,max(distmat)),c(0,max(distmat)),col="red",lty=2)
+		errorvec[k]	<<- mean(abs(diffmat[upper.tri(diffmat)]))
+		}
+	if(ndim==ncol(loadingdf))
+		{
+		plot(errorvec,xlab="# axes",ylab="residual error",las=1,ylim=c(0,1),pch=16)
+		#lines(1-mysambar$myp$values$Cumul_eig,lwd=2,col="red")
+		}
+	}
+
 
 poppcoa<-function(pscores=NULL,popmat=mysambar$popneimatrix,method="nei",mypopnames=mysambar$populations,mypopcols=mysambar$mycolours,axis1=1,axis2=2,doplot=TRUE,mybg="white",axiscol="black",do_mirror=c(FALSE,FALSE),popselection=TRUE,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,mar1=5,mar2=6.5,mar3=3.5,mar4=1,symbolsize=3.5,addlegend=TRUE,legendpos="bottomright",legendcex=1.5,side4label=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addbox=TRUE,boxlwd=1,shuffle_par=NULL,addxy=FALSE,use_current_dir=TRUE)
 	{
@@ -20494,6 +20554,7 @@ runWrightFst<-function(popnames=mysambar$populations,popcols=mysambar$mycolours)
 	varfstvector	<- vector()
 	Wrightfstvector	<- vector()
 	pops2$wrightfst	<<- NA
+	#
 	for(i in 1:ncol(combitable))
 		{
 		pop1		<- combitable[1,i]
@@ -20556,11 +20617,33 @@ runWrightFst<-function(popnames=mysambar$populations,popcols=mysambar$mycolours)
 		# varfst = E( MAFmeta - MAFpop )^2 / npops
 		# varmeta = pq = p(1-p)
 		}
+	#
 	pops2$fst2				<<- pops2$wrightfst/(1-pops2$wrightfst)
 	varfstvector			<- round(varfstvector,4)
 	Wrightfstvector			<- round(Wrightfstvector,4)
+	#
+	wfstmat				<- matrix(NA,nrow=npops,ncol=npops)
+	rownames(wfstmat)	<- popnames
+	colnames(wfstmat)	<- popnames
+	varfstmat			<- wfstmat
+	for(i in c(1:npops))
+		{
+		for(j in c(1:npops))
+			{
+			if(i!=j)
+				{
+				mypop1			<- popnames[i]
+				mypop2			<- popnames[j]
+				wfstmat[i,j]	<- Wrightfstvector[(mysambar$pairpop1==mypop1&mysambar$pairpop2==mypop2)|(mysambar$pairpop1==mypop2&mysambar$pairpop2==mypop1)]
+				varfstmat[i,j]	<- varfstvector[(mysambar$pairpop1==mypop1&mysambar$pairpop2==mypop2)|(mysambar$pairpop1==mypop2&mysambar$pairpop2==mypop1)]
+				}
+			}
+		}
+	#
 	mysambar$varfstvector	<<- varfstvector
 	mysambar$Wrightfstvector<<- Wrightfstvector
+	mysambar$varfstmatrix	<<- varfstmat
+	mysambar$Wrightfstmatrix<<- wfstmat
 	mysambar$pearsonvector	<<- pearsonvector
 	snps <<- snps[, !duplicated(colnames(snps), fromLast = TRUE)]
 	}
@@ -20923,10 +21006,16 @@ plotpopmatrix<-function(exportname="Popmatrix",popnames=mysambar$populations,mym
 	myColours			<- c(mycolfunc(length(myBreaks)-1))
 	#
 	# reorder populations (27-04-2021):
-	ordermat			<- mymatrix
-	ordermat			<- ordermat[mysambar$popordernr,mysambar$popordernr]
-	ordermat[lower.tri(ordermat,diag=FALSE)] <-	0
-	ordermat			<- round(ordermat,ndecimals)
+	if(any(colnames(mymatrix)!=mysambar$poporder))
+		{
+		ordermat			<- mymatrix
+		ordermat			<- ordermat[mysambar$popordernr,mysambar$popordernr]
+		ordermat[lower.tri(ordermat,diag=FALSE)] <-	0
+		ordermat			<- round(ordermat,ndecimals)
+		}else{
+		ordermat			<- round(mymatrix,ndecimals)
+		ordermat[lower.tri(ordermat,diag=FALSE)] <-	0
+		}
 	#
 	graphics.off()
 	if(!is.null(export))
@@ -26117,11 +26206,14 @@ calcdiversity<-function(nrsites=NULL,nrsegsites=NULL,nrsnps=NULL,legend_cex=2.5,
 			}else{
 			cat("Plotting genome wide heterozygosity and pi...",sep="\n")
 			getgenomepi(nsites=inds$allseqsites,nsnps=nrsnps)
-			if(!silent){cat("plotHe_perind",sep="\n")}
-			plotHe_perind(export="eps",genomehe=TRUE)
-			plotHe_perind(export="pdf",genomehe=TRUE)
-			plotHe_perind(export="png",genomehe=TRUE)
-			if(mysambar$os=="Windows"){plotHe_perind(export="wmf",genomehe=TRUE)}
+			if(nrow(inds)>10)
+				{
+				if(!silent){cat("plotHe_perind",sep="\n")}
+				plotHe_perind(export="eps",genomehe=TRUE)
+				plotHe_perind(export="pdf",genomehe=TRUE)
+				plotHe_perind(export="png",genomehe=TRUE)
+				if(mysambar$os=="Windows"){plotHe_perind(export="wmf",genomehe=TRUE)}
+				}
 			if(!silent){cat("plotgenomehe",sep="\n")}
 			plotgenomehe(nsites=nrsites,nsegsites=nrsegsites,export="eps",do_stripchart=TRUE)
 			plotgenomehe(nsites=nrsites,nsegsites=nrsegsites,export="pdf",do_stripchart=TRUE)
@@ -29421,7 +29513,7 @@ batcheffectmat<-function(missdf=inds2[inds$bool,])
 
 # 27-04-2021:
 # depends on calcpi and plotfst 
-popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL,popvec=mysambar$poporder,my_Breaks=NULL,value_cex=4)
+popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL,popvec=mysambar$poporder,my_Breaks=NULL,value_cex=4,addpi=FALSE)
 	{
 	if(is.null(mysambar$pidf_metalist)|do_overwrite)
 		{
@@ -29430,9 +29522,15 @@ popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL,popvec=mysambar$poporder,my
 		}
 	pidf				<- mysambar$pidf_metalist[[1]]
 	pidf$poppair		<- ifelse(pidf$pop1<pidf$pop2,paste(pidf$pop1,pidf$pop2,sep="_"),paste(pidf$pop2,pidf$pop1,sep="_"))
+	pidf				<- pidf[(!pidf$name1%in%inds$name[!inds$filter])&(!pidf$name2%in%inds$name[!inds$filter]),]
 	pidf2				<- pidf[pidf$pop1!=pidf$pop2,]
+	pidf3				<- pidf[pidf$pop1==pidf$pop2,]	
+	#
 	meandxy 			<- aggregate(pidf2$ndiffpersite,by=list(pidf2$poppair),FUN=mean,na.rm=TRUE)
 	colnames(meandxy)	<- c("poppair","dxy")
+	poppi				<- aggregate(pidf3$ndiffpersite,by=list(pidf3$poppair),FUN=mean,na.rm=TRUE)
+	for(k in c(1:nrow(poppi))){poppi$Group.1[k]	<- strsplit(poppi$Group.1[k], "_")[[1]][1]}
+	colnames(poppi)		<- c("pop","pi")
 	meandxy$pop1		<- sapply(strsplit(meandxy$poppair,"_"),"[",1)
 	meandxy$pop2		<- sapply(strsplit(meandxy$poppair,"_"),"[",2)
 	if(!is.null(nrsites))
@@ -29444,11 +29542,12 @@ popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL,popvec=mysambar$poporder,my
 		}
 	mysambar$meandxy	<<- meandxy
 	#
-	npop	<- length(popvec)
-	dxymat	<- matrix(NA,nrow=npop,ncol=npop)
+	npop				<- length(popvec)
+	dxymat				<- matrix(NA,nrow=npop,ncol=npop)
 	colnames(dxymat)	<- popvec
 	rownames(dxymat)	<- popvec
-	diag(dxymat)		<- 0
+	damat				<- dxymat
+	fstmat				<- dxymat
 	for(popnr1 in c(1:npop))
 		{
 		for(popnr2 in c(1:npop))
@@ -29457,11 +29556,25 @@ popmeandxy<-function(do_overwrite=FALSE,nrsites=NULL,popvec=mysambar$poporder,my
 			mypop2	<- popvec[popnr2]
 			if(popnr1!=popnr2)
 				{
-				dxymat[popnr1,popnr2]	<- meandxy$dxy[(meandxy$pop1==mypop1&meandxy$pop2==mypop2)|(meandxy$pop1==mypop2&meandxy$pop2==mypop1)]
+				poppairdxy				<- meandxy$dxy[(meandxy$pop1==mypop1&meandxy$pop2==mypop2)|(meandxy$pop1==mypop2&meandxy$pop2==mypop1)]
+				poppairpixy				<- mean(poppi$pi[poppi$pop==mypop1|poppi$pop==mypop2])				
+				dxymat[popnr1,popnr2]	<- poppairdxy
+				damat[popnr1,popnr2]	<- poppairdxy-poppairpixy 
+				fstmat[popnr1,popnr2]	<- (poppairdxy-poppairpixy)/poppairdxy
 				}
 			}
 		}
+	if(addpi)
+		{
+		for(popnr1 in c(1:npop))
+			{
+			mypop1					<- popvec[popnr1]
+			dxymat[popnr1,popnr1]	<- mean(pidf$ndiffpersite[pidf$pop1==mypop1&pidf$pop2==mypop1],na.rm=TRUE)
+			}
+		}
 	mysambar$snpdxymat	<<- dxymat 
+	mysambar$snpdamat	<<- damat
+	mysambar$snpfstmat	<<- fstmat	
 	# 
 	plotpopmatrix(exportname="Dxy_snps",addlabels=TRUE,showvalues=TRUE,popnames=popvec,mymatrix=dxymat,nrbreaks=5,addlegend=FALSE,plotlabelcex=8,export="pdf",myBreaks=my_Breaks,valuecex=value_cex)
 	getpoptree(mymatrix=mysambar$snpdxy,exportlabel="snp_dxy",donj=TRUE,edgecolors=TRUE,mytype="unrooted",labelcex=1.5,popnames=mysambar$poporder,popcolours=mysambar$colorder)
@@ -29782,7 +29895,7 @@ calc_rawdistance<-function(error_rate=0,mut_rate=1*10^-8,gen_time=NULL,missfilte
 	# n1	=	AT	AA			
 	# n2he	=	AT	AT			
 	# n2ho	=	AA	TT	
-	# For haploid data, input file contains counts for three scenarios:
+	# For haplodiploid data, input file contains counts for three scenarios:
 	# hd0	=	A	AA
 	# hd1	= 	A	AT
 	# hd2	= 	A	TT
@@ -29866,6 +29979,7 @@ calc_rawdistance<-function(error_rate=0,mut_rate=1*10^-8,gen_time=NULL,missfilte
 		{
 		pdf("Distance_versus_ploidy.boxplot.pdf")
 		boxplot(inds2$d3~inds2$ploidy,xlab="Ploidy",ylab="Genetic distance (%)")
+		#stripchart(d3~ploidy,data=inds2,vertical=TRUE,method="jitter",pch=16,cex=1,bg="bisque",las=2,xlab="",ylab="",add=TRUE)
 		dev.off()
 		}
 	cat("Raw genetic distances added to inds2 dataframe.",sep="\n")
@@ -31067,7 +31181,7 @@ maf2hudsonfst<-function(q1=0.1,q2=0.15)
 	}
 
 # 22-06-2022:
-hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,donetwork=TRUE,distplots=TRUE,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5,n_decimals=3)
+hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,donetwork=TRUE,distplots=TRUE,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5,n_decimals=3,docoalunits=TRUE)
 	{
 	if(!"meanhe"%in%colnames(inds2)|!"d3"%in%colnames(inds2))
 		{
@@ -31133,6 +31247,7 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 	pops2$pi1			<<- NA
 	pops2$pi2			<<- NA
 	pops2$dxy			<<- NA
+	pops2$Dsd			<<- NA
 	pops2$pvalue1		<<- NA
 	pops2$pvalue2		<<- NA
 	for(j in c(1:nrow(pops2)))
@@ -31145,8 +31260,19 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 			{
 			dxyvec			<- inds2$d3[inds2$filter&((as.character(inds2$pop1)==pop1&as.character(inds2$pop2)==pop2)|(as.character(inds2$pop1)==pop2&as.character(inds2$pop2)==pop1))]
 			pops2$dxy[j]	<<- mean(dxyvec,na.rm=TRUE)
+			pops2$Dsd[j]	<<- sd(dxyvec,na.rm=TRUE)/mean(dxyvec,na.rm=TRUE)
+			# poppivec		<-  inds2$d3[inds2$filter&(((!inds2$sameind)&(inds2$samepop)&(as.character(inds2$pop1)==pop1))|((!inds2$sameind)&(inds2$samepop)&(as.character(inds2$pop1)==pop2)))]
+			# if(length(poppivec)>1)
+			#	{
+			#	pops2$Dsd[j]	<<- (sd(dxyvec,na.rm=TRUE)-sd(poppivec,na.rm=TRUE))/mean(dxyvec,na.rm=TRUE)
+			#	}else{
+			#	pops2$Dsd[j]	<<- sd(dxyvec,na.rm=TRUE)/mean(dxyvec,na.rm=TRUE)
+			#	}
 			}else{
 			pops2$dxy[j]	<<- pops2$pi1[j]
+			#poppivec		<-  inds2$d3[inds2$filter&(inds2$name1!=inds2$name2)&((as.character(inds2$pop1)==pop1&as.character(inds2$pop2)==pop2)|(as.character(inds2$pop1)==pop2&as.character(inds2$pop2)==pop1))]
+			#pops2$Dsd[j]	<<- sd(poppivec,na.rm=TRUE)/
+			pops2$Dsd[j]	<<- 0
 			}
 		}
 	pops2$meanpi		<<- (pops2$pi1+pops2$pi2)/2
@@ -31158,6 +31284,12 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 	# net divergence (Da): 
 	# Dxy - (pi_x + pi_y)/2	# Nei & Li (1979), as calculated by DnaSP, and also defined in Presa et al. 2022, Genetic Divergence and Connectivity among Gene Pools of Polyprion americanus
 	pops2$da			<<- (pops2$dxy - pops2$meanpi)				# Note: in percentage	
+	#
+	# 20-09-2024:
+	# Nei's D:
+	cat("Calculating Nei's genetic distance...",sep="\n")
+	pops2$neiD			<<- -log((1-pops2$dxy)/sqrt((1-pops2$pi1)*(1-pops2$pi2)))		
+	#
 	# Jukes-Cantor correction:
 	pops2$pi1_jk 		<<- -3/4*log(1-4/3*pops2$pi1/100)*100		# formula does not work on percentages, so therefore divided by 100 and then multiplied by 100 again
 	pops2$pi2_jk 		<<- -3/4*log(1-4/3*pops2$pi2/100)*100
@@ -31171,6 +31303,8 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 	rownames(m)	<- mysambar$populations
 	n			<- m
 	f			<- m
+	g			<- m
+	d			<- m
 	for(i in c(1:nrow(m)))
 		{
 		pop1	<- mysambar$populations[i]
@@ -31180,15 +31314,20 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 			m[i,j]	<- pops2$dxy[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
 			n[i,j]	<- pops2$da[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
 			f[i,j]	<- pops2$fst[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
+			g[i,j]	<- pops2$Dsd[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
+			d[i,j]	<- pops2$neiD[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
 			}
 		}
+	# Note (01-09-2024): fst measures the mean proportion of drift in either population.
+	# That is: the distance of each population to the population split.
+	# Hence, in order to obtain the distance between the two populations, we need to multiply by 2:
 	h	<- 1/10000*(log(1-f)/log(0.9999))
-	h2	<- f/(1-f)	
+	mysambar$dxymatrix				<<- m
 	mysambar$damatrix				<<- n
 	mysambar$hudsonfstmatrix		<<- f
+	mysambar$Dsdmatrix				<<- g
 	mysambar$driftcoalunitsmatrix	<<- h
-	mysambar$mutcoalunitsmatrix		<<- h2
-	mysambar$dxymatrix				<<- m
+	mysambar$neiDmatrix				<<- d
 	#
 	cat("Plotting distance matrices...",sep="\n")
 	# with values:
@@ -31196,13 +31335,15 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NetDivergence",popnames=mysambar$populations,mymatrix=mysambar$damatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
 	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Hudsonfst",popnames=mysambar$populations,mymatrix=mysambar$hudsonfstmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
 	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_drift",popnames=mysambar$populations,mymatrix=mysambar$driftcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
-	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_mutations",popnames=mysambar$populations,mymatrix=mysambar$mutcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dsd",popnames=mysambar$populations,mymatrix=mysambar$Dsdmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NeiD",popnames=mysambar$populations,mymatrix=mysambar$neiDmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
 	# without values:
 	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dxy",popnames=mysambar$populations,mymatrix=mysambar$dxymatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
 	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NetDivergence",popnames=mysambar$populations,mymatrix=mysambar$damatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
 	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Hudsonfst",popnames=mysambar$populations,mymatrix=mysambar$hudsonfstmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
 	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_drift",popnames=mysambar$populations,mymatrix=mysambar$driftcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
-	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_mutations",popnames=mysambar$populations,mymatrix=mysambar$mutcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dsd",popnames=mysambar$populations,mymatrix=mysambar$Dsdmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NeiD",popnames=mysambar$populations,mymatrix=mysambar$neiDmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
 	#
 	if(dotree)
 		{
@@ -31228,24 +31369,17 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 			write.tree(mysambar$poptree,file=paste("Poptree.HudsonFst.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
 			}
 		#
-		cat("Coalescent units estimated using drift...",sep="\n")
-		getpoptree(mymatrix=h,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsDrift",donj=do_nj)	
-		write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnits.newick.txt",sep="."),digits=0,tree.names=FALSE)
-		if(!is.null(my_root))
+		if(docoalunits)
 			{
-			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
-			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsDrift",donj=do_nj)
-			write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnitsDrift.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
-			}
-		#
-		cat("Coalescent units estimated using mutations...",sep="\n")
-		getpoptree(mymatrix=h2,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsMutations",donj=do_nj)	
-		write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnitsMutations.newick.txt",sep="."),digits=0,tree.names=FALSE)
-		if(!is.null(my_root))
-			{
-			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
-			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsMutations",donj=do_nj)
-			write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnitsMutations.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			cat("Coalescent units estimated using drift...",sep="\n")
+			getpoptree(mymatrix=h,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsDrift",donj=do_nj)	
+			write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnits.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			if(!is.null(my_root))
+				{
+				myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
+				getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsDrift",donj=do_nj)
+				write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnitsDrift.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
+				}
 			}
 		#
 		cat("Dxy...",sep="\n")
@@ -40810,7 +40944,8 @@ subset_pop<-function(include_pops=NULL)
 # create a targetted subset of SNP dataset:
 subselectdata<-function(snp_names=NULL,name2=TRUE,name3=FALSE)
 	{
-	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
+	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","forestgreen","gray80","midnightblue","lavenderblush3","darkorange3","aquamarine4","burlywood4","gold3","darkcyan","dodgerblue","deepskyblue1","mediumpurple2","tan4","lightseagreen","deepskyblue3","khaki2","springgreen3","steelblue2","yellowgreen","plum1","mediumblue","royalblue3","yellow2")
+	#defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
 	#
 	if(is.null(snp_names))
 		{
@@ -40894,7 +41029,8 @@ subselectdata<-function(snp_names=NULL,name2=TRUE,name3=FALSE)
 # create a random subset of SNP dataset (subset can be based on snps and/or inds):
 subsampledata<-function(nrinds=NULL,nrsnps=NULL,exportprefix=NULL,remove_stats=TRUE,popcolours=NULL)
 	{
-	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
+	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","forestgreen","gray80","midnightblue","lavenderblush3","darkorange3","aquamarine4","burlywood4","gold3","darkcyan","dodgerblue","deepskyblue1","mediumpurple2","tan4","lightseagreen","deepskyblue3","khaki2","springgreen3","steelblue2","yellowgreen","plum1","mediumblue","royalblue3","yellow2")
+	#defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
 	#
 	if(is.null(nrinds)&is.null(nrsnps))
 		{
@@ -41014,7 +41150,8 @@ subsampledata<-function(nrinds=NULL,nrsnps=NULL,exportprefix=NULL,remove_stats=T
 #be sure to first back up your data using the backupdata function
 dummydata<-function(nind=2,nsnp=4,q=0.15,popname="pop1",popcol="blue",mygeno=NULL,major=1,minor=4,colourvector=NULL,mafvec=NULL,silent=TRUE)
 	{
-	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
+	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","forestgreen","gray80","midnightblue","lavenderblush3","darkorange3","aquamarine4","burlywood4","gold3","darkcyan","dodgerblue","deepskyblue1","mediumpurple2","tan4","lightseagreen","deepskyblue3","khaki2","springgreen3","steelblue2","yellowgreen","plum1","mediumblue","royalblue3","yellow2")
+	#defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
 	if(is.null(colourvector))
 		{
 		colourvector	<- defaultcolours
@@ -41181,7 +41318,8 @@ findoverlap<-function(mylist1=NULL,mylist2=NULL,mycolours=NULL,silent=TRUE,combi
 			}
 		}
 	# Note: provide input to mylist1 and mylist2 without quotes
-	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
+	defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","forestgreen","gray80","midnightblue","lavenderblush3","darkorange3","aquamarine4","burlywood4","gold3","darkcyan","dodgerblue","deepskyblue1","mediumpurple2","tan4","lightseagreen","deepskyblue3","khaki2","springgreen3","steelblue2","yellowgreen","plum1","mediumblue","royalblue3","yellow2")
+	#defaultcolours		<- c("blue","darkgreen","darkred","orange","darkorchid4","indianred1","deepskyblue","greenyellow","#654321","#009595","gray20","gray50","gray80","midnightblue","lavenderblush3","ivory2","aquamarine4","burlywood4")
 	if(is.null(mycolours))
 		{
 		return(cat("ERROR: You have to provide the colours of all populations to combine, in alphabetical order of population names",sep="\n"))
