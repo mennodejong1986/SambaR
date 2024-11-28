@@ -11880,7 +11880,7 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	}
 
 # 20-01-2023 (Sambar_v1.09.txt onwards): renamed from popprtree to getindtree
-getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,addranges=TRUE,mutrate=NULL,errorrate=NULL,genomeprop=1,interval_col="lightblue",interval_lwd=3,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,addaxis=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="axial",tiplabels=TRUE,tipdots=FALSE,dotcex=3,dotpch=21,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=FALSE,calc_likelihood=FALSE,dopathlength=FALSE,pathlength_domean=FALSE,matrixlabels=FALSE,pathlengthbreaks=NULL,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE)
+getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,addranges=TRUE,mutrate=NULL,errorrate=NULL,genomeprop=1,interval_col="lightblue",interval_lwd=3,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,addaxis=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="axial",tiplabels=TRUE,tipdots=FALSE,dotcex=3,dotpch=21,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=FALSE,calc_likelihood=FALSE,dopathlength=FALSE,pathlength_domean=FALSE,matrixlabels=FALSE,pathlengthbreaks=NULL,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE,rotatevec=NULL)
 	{
 	# type can be: "phylogram" (default), "cladogram", "fan", "unrooted", "radial"
 	# distance can be 'bitwise.dist' (default, which is Hamming's distance), 'euclidean', 'allele sharing distance', 'pi', 'nei.dist', 'rogers.dist', 'edwards.dist', 'reynolds.dist'
@@ -12325,6 +12325,14 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 		mytree				<<- mytree
 		return(cat("ERROR: one or more labels in tree (mytree$tip.label) do not correspond with names of retained individuals in inds dataframe (inds$name[inds$filter]).",sep="\n"))
 		}
+	#
+	if(!is.null(rotatevec))
+		{
+		# rotatevec should be a vector with node numbers
+		cat("Rotating node(s). If you receive an error after this line, please set the flag rotatevec to NULL, or provide other node number(s).",sep="\n")  
+		mytree		<- ape::rotate(mytree,rotatevec)
+		}
+	#
 	if(any(!(as.character(mytree$tip.label)==as.character(inds$name[inds$filter]))))
 		{
 		cat("WARNING: order of labels in tree (mytree$tip.label) does not correspond with order of retained individuals in inds dataframe (inds$name[inds$filter]). Reordering my_colours vector accordingly...",sep="\n")
@@ -12377,7 +12385,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 		cat("Calculating pathlength and optionally (if distance matrix is present) difference between path length and genetic distance...",sep="\n")
 		cat("This may take a while depending on the number of samples...",sep="\n")
 		cat("If you receive an error after this line, or if the calculation takes too long, set the flag do_pathlength to FALSE.",sep="\n") 
-		pathlength(mytree=mytree,exporttype="pdf",plot_name=paste("Pathlengths",mydistance,mymethod,sep="."),distancemat=as.matrix(mydistmat),heatmapbreaks=pathlengthbreaks,addlabels=matrixlabels,domean=pathlength_domean)
+		pathlength(mytree=mytree,exporttype="pdf",plot_name=paste("Pathlengths",mymethod,sep="."),distancemat=as.matrix(mydistmat),heatmapbreaks=pathlengthbreaks,addlabels=matrixlabels,domean=pathlength_domean)
 		}else{
 		cat("Not calculating path lengths.",sep="\n")
 		}
@@ -12637,7 +12645,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 		}
 	if(addscale)
 		{
-		myylabel	<- ifelse(!is.null(mutrate)&makelinear,"TMCRA (ya)","Genetic distance")
+		myylabel	<- ifelse(!is.null(mutrate)&makelinear,"TMRCA (ya)","Genetic distance")
 		mtext(myylabel,side=1,line=3,cex=2.5)
 		}
 	if(!is.null(ann_df))
@@ -12786,9 +12794,9 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 		}
 	}
 
-# 23-08-2022: function to plot dependency of TMCRA on mutation rate
+# 23-08-2022: function to plot dependency of TMRCA on mutation rate
 # depends on getindtree:
-runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome_prop=1,do_analysis=FALSE,mycolours=c("black","grey20","grey40","grey60","grey80"),mynodes=c(127,128,129,147,149),mynodelabels=c("B","C","D","E","A"),export=NULL,plotname="TMCRA_vs_u",plottitle=NULL,mycex=2.5,axiscex=2,labcex=2.5,maincex=2.5,xline=3.5,yline=4,legendpos="topright",legendcex=1.75,error_rate=NULL)
+runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome_prop=1,do_analysis=FALSE,mycolours=c("black","grey20","grey40","grey60","grey80"),mynodes=c(127,128,129,147,149),mynodelabels=c("B","C","D","E","A"),export=NULL,plotname="TMRCA_vs_u",plottitle=NULL,mycex=2.5,axiscex=2,labcex=2.5,maincex=2.5,xline=3.5,yline=4,legendpos="topright",legendcex=1.75,error_rate=NULL)
 	{
 	if(do_analysis)
 		{
@@ -12810,7 +12818,7 @@ runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome
 		}else{
 		if(is.null(mysambar$tmrcadf))
 			{
-			return(cat("ERROR: mysambar$tmcradf not found. Perhaps set the flag do_analysis to TRUE?",sep="\n"))
+			return(cat("ERROR: mysambar$tmrcadf not found. Perhaps set the flag do_analysis to TRUE?",sep="\n"))
 			}
 		}
 	cat("Subselecting nodes...",sep="\n")
@@ -12839,7 +12847,7 @@ runlineartree<-function(input_tree=myrootedtree,mutrates=seq(0.5,2.0,0.1),genome
 		}
 	legend(legendpos,legend=mynodelabels[order(mynodelabels)],fill=mycolours,bty="n",cex=legendcex)
 	mtext(side=1,line=xline,"Mutation rate /site /year (10^-9)",cex=labcex)
-	mtext(side=2,line=yline,"TMCRA (Mya)",cex=labcex)
+	mtext(side=2,line=yline,"TMRCA (Mya)",cex=labcex)
 	if(!is.null(export))
 		{
 		dev.off()
@@ -13551,7 +13559,7 @@ ape_pcoa_pop<-function(popnames=mysambar$populations,exporttype="pdf",my_method=
 
 # PCoA: Principal Coordinates Analysis (NOTE: this is different from principal component analysis or PCA). Depends on StAMPP (Nei's genetic distance) and Ape (pcoa):
 # ape_pcoa(method="hamming",symbolkey="sex",legendpos="topleft")
-ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="white",axiscol="black",dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,mar4=1,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=2,mylegend=mysambar$poporder,mylegendcol=mysambar$colorder,mylegendtitle=NULL,side4label=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,boxlwd=1,shuffle_par=NULL,addxy=FALSE,use_current_dir=FALSE)
+ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,doplot=TRUE,mybg="white",axiscol="black",dodc=TRUE,do_mirror=c(FALSE,FALSE),indselection=inds$filter,snpselection=snps$filter,colourcode=inds$popcol,popcolours=mysambar$mycolours,labcex=3,axiscex=2,axisdistance=NULL,labeldistance=3.75,ylabeldistance=3.75,export=NULL,exportname=NULL,popnames=mysambar$populations,mypch=16,symbolkey=NULL,use_symboltype2=FALSE,mar1=5,mar2=6.5,mar3=3.5,mar4=1,symbolsize=2.5,addlegend=TRUE,legendpos="bottomright",legendcex=2,mylegend=mysambar$poporder,mylegendcol=mysambar$colorder,mylegendtitle=NULL,side4label=NULL,addtitle=NULL,title_cex=NULL,titledistance=1,labels=FALSE,label_size=0.75,printname=NULL,printpop2=FALSE,missvector=NULL,resetgraphics=TRUE,silent=TRUE,makeglobal=FALSE,return_object=FALSE,addellipse=FALSE,ellipselevel=0.5,addbox=TRUE,boxlwd=1,shuffle_par=NULL,addxy=FALSE,use_current_dir=FALSE)
 	{
 	# method can be "nei" (Nei's genetic distance D), "hamming" (Hamming's genetic distance), "euclidean", "pi", "reynolds", or "edwards", although the latter two produces NA and are therefore not useful.
 	# Note: snpselection and indselection can not be applied when running method 'pi'. You should use calcpi() function to recalculate pi on different snp dataset.
@@ -13900,7 +13908,12 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 				}else{
 				if(is.null(symbolkey))
 					{
-					points(myp1,myp2,col=colourcode[indselection],pch=16,cex=symbolsize)
+					if(mypch==21)	
+						{
+						points(myp1,myp2,col="grey50",bg=colourcode[indselection],pch=mypch,cex=symbolsize)
+						}else{
+						points(myp1,myp2,col=colourcode[indselection],pch=mypch,cex=symbolsize)
+						}
 					}else{
 					symbolvector	<- c(16,17,18,20,15,0,1,2,6,3,4,5,8)
 					mypch			<<- symbolvector[as.factor(symbolkeyvec)]
@@ -18042,6 +18055,8 @@ mapsingleshape<-function(export=NULL,plotratios=1,plottitle=NULL,exportname=NULL
 			}
 		if(!is.null(shapelist))
 			{
+			# is it really necessary to use a for-loop? Might also work simply as follows:
+			# plot(shapelist[[1],col=addshapecol,border=addshapecol,add=T)		
 			for(k in c(1:length(shapelist)))
 				{
 				plot(shapelist[[k]],col=addshapecol[k],border=addshapecol[k],add=T)
@@ -21345,7 +21360,8 @@ getpoptree<-function(mymatrix=mysambar$popneimatrix,exportlabel="neiD",popnames=
 		#mytree				<- root(mytree,outgroup=myroot,resolve.root=TRUE)
 		}
 	# plot:
-	plotname	<- ifelse(donj,paste("Poptree",exportlabel,mytype,"NJ.pdf",sep="."),paste("Poptree",exportlabel,mytype,"UPGMA.pdf",sep="."))
+	treemethod	<- ifelse(donj,"NJ","UPGMA")
+	plotname	<- ifelse(donj,paste("Poptree",exportlabel,treemethod,mytype,"pdf",sep="."),paste("Poptree",exportlabel,treemethod,mytype,"pdf",sep="."))
 	if(doexport)
 		{
 		if(is.null(myheight)&is.null(mywidth))
@@ -21400,7 +21416,7 @@ getpoptree<-function(mymatrix=mysambar$popneimatrix,exportlabel="neiD",popnames=
 	mysambar$poptree		<<- mytree
 	if(writetree)
 		{
-		write.tree(mysambar$poptree,file="Poptree.neiD.newick.txt",append=FALSE)
+		write.tree(mysambar$poptree,file=paste("Poptree",exportlabel,treemethod,"newick.txt",sep="."),append=FALSE)
 		}
 	}
 
@@ -23354,7 +23370,7 @@ runadmixtools<-function(calcf3=TRUE,calcf4=TRUE,silent=TRUE,tripletdf=NULL,mypre
 		}
 	}
 
-f3table<-function(mythres=0)
+f3table<-function(mythres=0,ntriplets=8,popvec=mysambar$populations)
 	{
 	outdf		<- mysambar$f3df
 	outdf$logp	<- round(-log10(outdf$p),2)
@@ -23367,17 +23383,25 @@ f3table<-function(mythres=0)
 		write.table(outdf,paste("f3scores.subset",mythres,"txt",sep="."),quote=FALSE,col.names=TRUE,row.names=FALSE,sep="\t")
 		}
 	#
-	for(mypop in mysambar$poporder)
+	f3list		<- list()
+	npops		<- length(popvec)
+	maxtriplets	<- ((npops-1)*(npops-2))/2
+	ntriplets	<- ifelse(maxtriplets<ntriplets,maxtriplets,ntriplets)
+	for(j in c(1:npops))
 		{
+		mypop			<- popvec[j]
 		mydf			<- mysambar$f3df
 		mydf2			<- mydf[mydf$pop1==mypop,]
 		mydf2			<- mydf2[order(mydf2$est),c(4,6,8)]
 		colnames(mydf2)	<- c("f3_score","z_value","population_triplet")
-		mydf3			<- head(mydf2,25)
+		mydf3			<- head(mydf2,ntriplets)
 		mydf3$f3_score	<- round(mydf3$f3_score,4)
 		mydf3$z_value	<- round(mydf3$z_value,2)
-		write.table(mydf3,paste("f3scores",mypop,"bottom25.txt",sep="_"),quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
+		f3list[[j]]		<- mydf3
 		}
+	mydf4 <- do.call("rbind",f3list)
+	mydf5 <- mydf4[,c(3,1,2)]
+	write.table(mydf5,paste("f3scores",paste("bottom",ntriplets,"eachpop",sep=""),"txt",sep="."),quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
 	cat("Table(s) exported to directory: ",sep="\n")
 	cat(getwd(),sep="\n")
 	}
@@ -23469,7 +23493,7 @@ genomef3heatmap<-function(exporttype=NULL,myscore="f3",thresvec=c(0.55,0.56,0.57
 # above diagonal: f3<0 (always)
 # below diagonal: f3<0.01 (value specified to f3thres argument)
 # Or, alternatively, if a second dataframe is specified to f3df2 flag, different test-scores (e.g. prop) below diagonal.
-f3heatmap2<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heatmap",f3thres=c(0.001,0.001),f3df=mysambar$f3df,f3df2=NULL,addlabels=TRUE,plottitle="f3-score<0",mybg="white",subtitle=NULL,subtitlecex=2,NAcolour=NULL,addlegend=TRUE,fillsquare=FALSE,legendcex=1.25)
+f3heatmap2<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3heatmap",f3thres=c(0.001,0.001),f3df=mysambar$f3df,f3df2=NULL,addlabels=TRUE,plottitle=NULL,mybg="white",subtitle=NULL,subtitlecex=2,NAcolour=NULL,addlegend=TRUE,fillsquare=FALSE,legendcex=1.25)
 	{
 	if(length(f3thres)==1){f3thres<-c(f3thres,f3thres)}
 	if(is.null(f3df))
@@ -23481,6 +23505,10 @@ f3heatmap2<-function(creatematrix=TRUE,pthres=0.05,export=NULL,exportname="f3hea
 		cat("Input dataframe specified to f3df2 flag. Attempting to plot these scores below diagonal...",sep="\n")
 		}else{
 		f3df2		<- f3df
+		}
+	if(is.null(plottitle)&length(f3thres)==1)
+		{	
+		plottitle	<- paste("f3-score < ",f3thres,sep="")
 		}
 	popnames<- unique(f3df$pop1)
 	npop	<- length(popnames)
@@ -27096,7 +27124,7 @@ wintajd<-function(my_chrom=25,winsize=1000000,winstep=200000,popnames=mysambar$p
 	}
 	
 # depends on output of calcpi with flag pi_per_pop set to TRUE:
-plottajd<-function(tajdtable=NULL,genome_wide=FALSE,nsites=NULL,nsegsites=NULL,popnames=mysambar$populations,export=TRUE,insetbarplot=TRUE,legendcex=2)
+plottajd<-function(tajdtable=NULL,genome_wide=FALSE,nsites=NULL,nsegsites=NULL,popnames=mysambar$poporder,export=TRUE,insetbarplot=TRUE,legendcex=2,symbolsize=2)
 	{
 	# if genome_wide is set to FALSE, nucleotide diversity (pi) and Watterson theta are for snp dataset only 
 	# if genome_wide is set to TRUE, nucleotide diversity (pi) and Watterson theta are genome wide (i.e. * segregating/sequenced sites)
@@ -27111,7 +27139,7 @@ plottajd<-function(tajdtable=NULL,genome_wide=FALSE,nsites=NULL,nsegsites=NULL,p
 		return(cat("Populations present with only 1 individual. Not generating Tajima's D plots.",sep="\n"))
 		}
 	npops	<- length(popnames)
-	mycols	<- mysambar$mycolours[1:npops]
+	mycols	<- mysambar$colorder
 	if(!is.null(tajdtable))
 		{
 		if(nrow(tajdtable)!=length(popnames))
@@ -27175,7 +27203,7 @@ plottajd<-function(tajdtable=NULL,genome_wide=FALSE,nsites=NULL,nsegsites=NULL,p
 		pdf(plotname,height=8,width=8)		
 		}
 	par(fig = c(0,1,0,1),cex.axis=1.5,cex.lab=2,mar=c(5,6,2,1))
-	plot(mywatt,mypi,xlim=myrange,ylim=myrange,las=1,col=mycols,pch=16,cex=2,ylab="",xlab="")
+	plot(mywatt,mypi,xlim=myrange,ylim=myrange,las=1,col=mycols,pch=16,cex=symbolsize,ylab="",xlab="")
 	lines(x=c(0,1),y=c(0,1),lty=2)
 	#text(0.11,0.105,"Excess of rare alleles",srt=45,adj=c(0,1),cex=1.5) 	
 	#text(0.105,0.11,"Lack of rare alleles",srt=45,adj=c(0,0),cex=1.5) 
@@ -29812,7 +29840,7 @@ inds2pops<-function(missfilter=NULL)
 	}
 
 # 20-06-2022: add results to inds2 dataframe. For example, output from VCF_calcdist.sh.
-add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,miss_filter=NULL)
+add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,miss_filter=NULL,ntotalsites=NULL)
 	{
 	if(is.null(myfile))
 		{
@@ -29823,6 +29851,7 @@ add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,miss_filte
 		cat("ERROR: specified file not found in directory:",sep="\n")
 		return(cat(getwd(),sep="\n"))
 		}
+	# following lines are needed to process output from old VCF_calcdist script: 
 	inds2$h0	<<- NULL
 	inds2$h1	<<- NULL
 	inds2$d0	<<- NULL
@@ -29877,8 +29906,18 @@ add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,miss_filte
 	cat("Information added to inds2 dataframe.",sep="\n")
 	if("n0"%in%colnames(inds2)|"hd0"%in%colnames(inds2))
 		{
+		# following lines are needed to process output from old VCF_calcdist script: 
 		inds2		<- inds2temp
 		calc_rawdistance(error_rate=errorrate,mut_rate=mutrate,gen_time=gentime,missfilter=miss_filter)
+		}
+	if(!is.null(ntotalsites))
+		{
+		if(!"d_snps"%in%colnames(inds2))
+			{
+			return(cat("ERROR: column 'd_snps' not present in inds2 dataframe.",sep="\n"))
+			}
+		inds2$d		<<- inds2$d_snps*inds2$nsites/ntotalsites	
+		inds2$dperc	<<- inds2$d*100
 		}
 	inds2pops(missfilter=miss_filter)
 	}
@@ -31180,6 +31219,429 @@ maf2hudsonfst<-function(q1=0.1,q2=0.15)
 	return(myfst)
 	}
 
+# 07-11-2024: admixture proportions:
+# more complicated formula:
+# pianc=0.00185
+# inds$admixprop[j]	<- (dmax-max(inddf$d,na.rm=TRUE))/(dmax-pianc)
+calcadmix<-function(refpop1=NULL,refpop2=NULL)
+	{
+	if(is.null(refpop1)|is.null(refpop2))
+		{
+		cat("WARNING: refpop1 and refpop2 not defined. Selecting pair with highest Dxy-estimate.",sep="\n")
+		refpop1	<- pops2$pop1[pops2$filter&pops2$d==max(pops2$d[pops2$filter])]
+		refpop2	<- pops2$pop2[pops2$filter&pops2$d==max(pops2$d[pops2$filter])]
+		cat(paste("Selected: ", refpop1," versus ",refpop2,sep=""),sep="\n")
+		}
+	poppair			<- paste(refpop1,refpop2,sep="_")
+	dmax			<- mean(inds2$d[inds2$filter&inds2$poppair==poppair])
+	#
+	ninds			<- nrow(inds)
+	inds$admixprop	<<- NA
+	for(j in c(1:ninds))
+		{
+		myind				<- inds$name[j]
+		inddf				<- inds2[(inds2$pop1%in%c(refpop1,refpop2)&inds2$name2==myind)|(inds2$pop2%in%c(refpop1,refpop2)&inds2$name1==myind),]
+		inds$admixprop[j]	<<- (dmax-max(inddf$d,na.rm=TRUE))/dmax
+		}
+	if("longitude"%in%colnames(inds))
+		{
+		pdf("Admixprop_vs_longitude.pdf",height=6,width=8)
+		plot(inds$longitude[inds$filter],inds$admixprop[inds$filter],bg=inds$popcol[inds$filter],col=inds$popcol[inds$filter],pch=21,cex=3,xlab="Longitude",ylab="(d_max - max(d1,d2))/(dmax)")
+		abline(h=0,lty=2)
+		dev.off()
+		}
+	popboxplot(myscore=inds$admixprop[inds$filter],popvector=inds$pop[inds$filter],addstripchart=TRUE,yline=0,ylabel="Admixture proportion",export="pdf",exportname="AdmixtureProportion",mycex=3,labcex=2.5,y_lim=NULL)
+	}
+
+# 25-11-2024:
+# excludepop(c("polar","Black","Europe","Magadan"))
+# removeinds	<- c("ABC11","Kamtschatka3")
+mylegend2	<- rev(c("2a","3a","3b","4"))
+legend2pch	<- rev(c(8,21,23,22))
+legend2pch	<- rev(c(8,21,23,22))
+mypchdf		<- data.frame("name"=mylegend2,"pch"=legend2pch)
+
+# plotibd(removeinds=NULL,refpop="Kamtchatka",reflat=65,reflong=195)
+plotibd<-function(removeinds=NULL,refpop=NULL,reflat=NULL,reflong=NULL,x_lab=NULL,y_lab=NULL,y_lines=NULL,usesymbols=FALSE,pchdf=NULL,mytitle=NULL,legendpos="topleft")
+	{
+	x_lab	<- ifelse(is.null(x_lab),"Geographical distance (100 km)",x_lab)
+	y_lab	<- ifelse(is.null(y_lab),"Genetic distance (d)",y_lab)
+	if(!is.null(removeinds))
+		{
+		inds$filter[inds$name%in%removeinds] 	<- FALSE
+		inds2$filter[inds2$name1%in%removeinds|inds2$name2%in%removeinds] 	<- FALSE
+		}
+	mydf			<- inds2[((inds2$pop1==refpop&inds2$pop2!=refpop)|(inds2$pop2==refpop&inds2$pop1!=refpop))&inds2$filter,]
+	mydf$mypop		<- ifelse(mydf$pop1==refpop,mydf$pop2,mydf$pop1)
+	mydf$mypopcol	<- ifelse(mydf$pop1==refpop,mydf$popcol2,mydf$popcol1)
+	mydf$mylong		<- ifelse(mydf$pop1==refpop,mydf$long2,mydf$long1)
+	mydf$mylat		<- ifelse(mydf$pop1==refpop,mydf$lat2,mydf$lat1)
+	mydf$mypch		<- 21
+	if(usesymbols)
+		{
+		mydf$mypch[mydf$mypop%in%c("WestcoastC","WestcoastS")]	<- 22
+		mydf$mypch[mydf$mypop%in%c("Yukon","Nunavut","HudsonBay","ABCcoastN","ABCcoastS","WestcoastN","AlaskaSE1","AlaskaSE2")]	<- 23
+		mydf$mypch[mydf$mypop%in%c("ABCbc","ABCa")]	<- 8
+		}
+	if(!is.null(reflat)&!is.null(reflong))
+		{
+		reflat									<- reflat*pi/180
+		reflong									<- reflong*pi/180
+		mydf$mylat								<- mydf$mylat*pi/180
+		mydf$mylong								<- mydf$mylong*pi/180
+		mydf$geodist							<- acos(sin(reflat)*sin(mydf$mylat) + cos(reflat)*cos(mydf$mylat) * cos(reflong-mydf$mylong)) * 6371	# 6371 is estimate of earth mean radius in km
+		mydf$geodist[!is.finite(mydf$geodist)]	<- NA
+		mydf$geodist							<- mydf$geodist/100		# unit: 100 km
+		pdf("ILS.pdf",height=6,width=5.5)
+		plot(mydf$geodist,mydf$dperc,pch=mydf$mypch,bg=mydf$mypopcol,col="grey50",cex=3,lwd=0.5,xlab=x_lab,ylab="",cex.lab=1.75,cex.axis=1.5)
+		if(any(mydf$mypch<21))
+			{
+			points(mydf$geodist[mydf$mypch==8],mydf$dperc[mydf$mypch==8],pch=8,col=mydf$mypopcol[mydf$mypch==8],cex=3)
+			points(mydf$geodist[!mydf$mypch<21],mydf$dperc[!mydf$mypch<21],pch=mydf$mypch[!mydf$mypch<21],bg=mydf$mypopcol[!mydf$mypch<21],col="grey50",cex=3)
+			}
+		mtext(y_lab,side=2,line=2.5,cex=1.75)
+		if(!is.null(mytitle)){mtext(mytitle,line=0.5,side=3,cex=1.5)}
+		if(!is.null(pchdf)){legend(legendpos,legend=pchdf$name,pch=pchdf$pch,bty="n",cex=1.5,col="black")}
+		if(!is.null(y_lines)){abline(h=y_lines,lty=2)}
+		dev.off()
+		}else{
+		pdf("ILS.pdf")
+		plot(mydf$mylong,mydf$dperc,pch=21,bg=mydf$mypopcol,col="grey50",cex=3,lwd=1,xlab=x_lab,ylab="Genetic distance (d)")
+		dev.off()
+		}
+	}
+
+
+# 27_10_2024: rewrite and rename hudsonfst function, to process output of new VCF_calcdist script.
+calcdxy<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=TRUE,dopoptree=TRUE,dopoppcoa=TRUE,indtreeangle=0,n_shorten=0,donetwork=TRUE,distplots=TRUE,dxybreaks=NULL,fstbreaks=NULL,legpos="topleft",legcex=1.25,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5,n_decimals=3,docoalunits=TRUE,pcoamirror=c(TRUE,TRUE))
+	{
+	if(!"d"%in%colnames(inds2))
+		{
+		return(cat("ERROR: column 'd' absent from inds2 dataframe. Did you already add the data generated by VCF_calcdist script to inds2 dataframe using add2inds function?",sep="\n"))
+		}
+	mymat		<- df2mat(mydf=inds2,myinds=inds$nr,indnames=inds$name,mypops=inds$pop,myscore="d",doheatmap=TRUE)
+	mymat2		<- as.dist(t(mymat[inds$filter,inds$filter]))
+	#
+	if(doindpcoa)
+		{
+		cat("PCoA analyses for individuals...",sep="\n")
+		mysambar$p	<- ape_pcoa(return_object=TRUE,method="pi",inputdistmat=mymat2,addlegend=TRUE,legendpos=legpos,legendcex=legcex,do_mirror=pcoamirror,axis1=1,axis2=2,export="pdf",mypch=21,symbolsize=4.5,use_current_dir=TRUE,addtitle=NULL)			
+		mysambar$p	<- ape_pcoa(return_object=TRUE,method="pi",inputdistmat=mymat2,addlegend=TRUE,legendpos=legpos,legendcex=legcex,do_mirror=pcoamirror,axis1=1,axis2=3,export="pdf",mypch=21,symbolsize=4.5,use_current_dir=TRUE,addtitle=NULL)	
+		mysambar$p	<- ape_pcoa(return_object=TRUE,method="pi",inputdistmat=mymat2,addlegend=TRUE,legendpos=legpos,legendcex=legcex,do_mirror=pcoamirror,axis1=2,axis2=3,export="pdf",mypch=21,symbolsize=4.5,use_current_dir=TRUE,addtitle=NULL)	
+		plotloadings(exporttype="pdf",myloadings=mysambar$p$vectors,myperc=mysambar$pcoaperc,plotname="PCoA_pi")	
+		}
+	if(doindtree)
+		{
+		cat("Hierarchical structure analyses for individuals...",sep="\n")
+		dropvec		<- inds$name[!inds$filter]
+		getindtree(plotname="Tree_bioNJ",inputdistmat=mymat2,mymethod="bionj",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=FALSE,dopathlength=FALSE,edgecolors=FALSE,tipdots=TRUE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle)
+		getindtree(plotname="Tree_bioNJ",inputdistmat=mymat2,mymethod="bionj",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=TRUE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle)
+		getindtree(plotname="Tree_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=FALSE,dopathlength=FALSE,edgecolors=FALSE,tipdots=TRUE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle)
+		getindtree(plotname="Tree_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=TRUE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle)
+		}
+	# Hudson Fst: (pi_between - pi_within)/pi_between
+	popnames			<- mysambar$populations2
+	npops				<- length(popnames)
+	# PI:
+	# derive nucleotide diversity per population:
+	pophe				<- rep(NA,npops)
+	names(pophe)		<- popnames
+	poppi				<- pophe
+	poppi2				<- pophe
+	cat("Calculating nucleotide diversity per population...",sep="\n")
+	for (j in c(1:npops))
+		{
+		mypop			<- as.character(popnames[j])
+		cat(mypop,sep="\n")
+		#hevec			<- inds2$meanhe[as.character(inds2$pop1)==mypop&(inds2$name1==inds2$name2)&inds2$filter]
+		hevec			<- inds2$d[as.character(inds2$pop1)==mypop&(inds2$name1==inds2$name2)&inds2$filter]
+		if(length(hevec)>0)
+			{
+			hevec			<- hevec[is.finite(hevec)]
+			pophe[j]		<- mean(hevec,na.rm=TRUE)
+			}else{
+			cat("WARNING: Zero retained individuals. Not possible to calculate heterozygosity.",sep="\n")
+			pophe[j]		<- NA
+			}
+		if(!silent){cat(paste("he: ",round(pophe[j],3),sep=""),sep="\n")}
+		#
+		pibool			<- as.character(inds2$pop1)==mypop&as.character(inds2$pop2)==mypop&(inds2$name1!=inds2$name2)&inds2$filter
+		if(length(pibool[pibool])==0)
+			{
+			poppi2[j]	<- NA
+			if(is.na(pophe[j]))
+				{
+				cat("WARNING: Zero retained individuals, and thus impossible to estimate nucleotide diversity. This will result in NA-values for pairwise comparisons involving this population.",sep="\n")
+				}
+			poppi[j]	<- pophe[j]
+			}else{
+			if(length(pibool[pibool])>0)
+				{
+				if(!silent){cat("At least one pairwise comparison (so at least two retained individuals).",sep="\n")}
+				pivec		<- inds2$d[pibool]
+				pivec		<- pivec[is.finite(pivec)]
+				poppi2[j]	<- mean(pivec,na.rm=TRUE)
+				poppi[j]	<- mean(c(hevec,pivec),na.rm=TRUE)
+				}else{
+				cat("WARNING: No pairwise comparison, which suggests only 1 individual for this population. Nucleotide diversity is set equal to heterozygosity.",sep="\n")
+				poppi2[j]	<- NA
+				if(is.na(pophe[j]))
+					{
+					cat("WARNING: heterozygosity is NA. (Haploid data?) Impossible to estimate nucleotide diversity. This will result in NA-values for pairwise comparisons involving this population.",sep="\n")
+					}
+				poppi[j]	<- pophe[j]
+				}
+			}
+		if(!silent){cat(paste("pi: ",round(poppi[j],3),sep=""),sep="\n")}
+		}
+	# DXY AND FST:
+	# fstdf		<<- data.frame("pop1"=mysambar$pairpop1,"pop2"=mysambar$pairpop2,"popcol1"=mysambar$pairpopcol1,"popcol2"=mysambar$pairpopcol2,"pi1"=NA,"pi2"=NA,"dxy"=NA,"geodist"=NA)
+	cat("Calculating Dxy per population pair...",sep="\n")
+	pops2$npairs		<<- NA
+	pops2$pi1			<<- NA
+	pops2$pi2			<<- NA
+	pops2$dxy			<<- NA
+	pops2$Dsd			<<- NA
+	pops2$Dsdnorm		<<- NA
+	pops2$Z				<<- NA
+	pops2$pvalue1		<<- NA
+	pops2$pvalue2		<<- NA
+	for(j in c(1:nrow(pops2)))
+		{
+		pop1			<- as.character(pops2$pop1[j])
+		pop2			<- as.character(pops2$pop2[j])
+		pops2$pi1[j]	<<- poppi[names(poppi)==pop1]
+		pops2$pi2[j]	<<- poppi[names(poppi)==pop2]
+		if(pop1!=pop2)
+			{
+			dxyvec			<- inds2$d[inds2$filter&((as.character(inds2$pop1)==pop1&as.character(inds2$pop2)==pop2)|(as.character(inds2$pop1)==pop2&as.character(inds2$pop2)==pop1))]
+			pops2$npairs[j]	<<- length(dxyvec)
+			pops2$dxy[j]	<<- mean(dxyvec,na.rm=TRUE)
+			pops2$Dsd[j]	<<- sd(dxyvec,na.rm=TRUE)
+			pops2$Dsdnorm[j]<<- sd(dxyvec,na.rm=TRUE)/mean(dxyvec,na.rm=TRUE)
+			pops2$Z[j]		<<- mean(dxyvec,na.rm=TRUE)/sd(dxyvec,na.rm=TRUE)
+			# poppivec		<-  inds2$d[inds2$filter&(((!inds2$sameind)&(inds2$samepop)&(as.character(inds2$pop1)==pop1))|((!inds2$sameind)&(inds2$samepop)&(as.character(inds2$pop1)==pop2)))]
+			# if(length(poppivec)>1)
+			#	{
+			#	pops2$Dsd[j]	<<- (sd(dxyvec,na.rm=TRUE)-sd(poppivec,na.rm=TRUE))/mean(dxyvec,na.rm=TRUE)
+			#	}else{
+			#	pops2$Dsd[j]	<<- sd(dxyvec,na.rm=TRUE)/mean(dxyvec,na.rm=TRUE)
+			#	}
+			}else{
+			pops2$dxy[j]	<<- pops2$pi1[j]
+			#poppivec		<-  inds2$d[inds2$filter&(inds2$name1!=inds2$name2)&((as.character(inds2$pop1)==pop1&as.character(inds2$pop2)==pop2)|(as.character(inds2$pop1)==pop2&as.character(inds2$pop2)==pop1))]
+			#pops2$Dsd[j]	<<- sd(poppivec,na.rm=TRUE)/
+			}
+		}
+	pops2$meanpi		<<- (pops2$pi1+pops2$pi2)/2
+	pops2$fst			<<- (pops2$dxy - pops2$meanpi)/pops2$dxy
+	# pops2$perc1		<<- (pops2$dxy-pops2$pi1)/pops2$dxy*100
+	# pops2$perc2		<<- (pops2$dxy-pops2$pi2)/pops2$dxy*100
+	#
+	# 23-03-2023:
+	# net divergence (Da): 
+	# Dxy - (pi_x + pi_y)/2	# Nei & Li (1979), as calculated by DnaSP, and also defined in Presa et al. 2022, Genetic Divergence and Connectivity among Gene Pools of Polyprion americanus
+	pops2$da			<<- (pops2$dxy - pops2$meanpi)				# Note: in percentage	
+	#
+	# 20-09-2024:
+	# Nei's D:
+	cat("Calculating Nei's genetic distance...",sep="\n")
+	pops2$neiD			<<- -log((1-pops2$dxy)/sqrt((1-pops2$pi1)*(1-pops2$pi2)))		
+	#
+	# Jukes-Cantor correction:
+	pops2$pi1_jk 		<<- -3/4*log(1-4/3*pops2$pi1/100)*100		# formula does not work on percentages, so therefore divided by 100 and then multiplied by 100 again
+	pops2$pi2_jk 		<<- -3/4*log(1-4/3*pops2$pi2/100)*100
+	pops2$dxy_jk		<<- -3/4*log(1-4/3*pops2$dxy/100)*100
+	pops2$da_jk			<<- (pops2$dxy_jk - (pops2$pi1_jk+pops2$pi2_jk)/2)	
+	cat("Results stored in pops2 dataframe.",sep="\n")
+	cat("Generating population distance matrices...",sep="\n")
+	m			<-matrix(NA,nrow=length(mysambar$populations),ncol=length(mysambar$populations))
+	colnames(m)	<- mysambar$populations
+	rownames(m)	<- mysambar$populations
+	n			<- m
+	f			<- m
+	g			<- m
+	h			<- m
+	d			<- m
+	for(i in c(1:nrow(m)))
+		{
+		pop1	<- mysambar$populations[i]
+		for(j in c(1:ncol(m)))
+			{
+			pop2	<- mysambar$populations[j]
+			m[i,j]	<- pops2$dxy[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
+			n[i,j]	<- pops2$da[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
+			f[i,j]	<- pops2$fst[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
+			g[i,j]	<- pops2$Dsd[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
+			h[i,j]	<- pops2$Dsdnorm[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
+			d[i,j]	<- pops2$neiD[(pops2$pop1==pop1&pops2$pop2==pop2)|(pops2$pop1==pop2&pops2$pop2==pop1)]
+			}
+		}
+	# Note (01-09-2024): fst measures the mean proportion of drift in either population.
+	# That is: the distance of each population to the population split.
+	# Hence, in order to obtain the distance between the two populations, we need to multiply by 2:
+	k	<- 1/10000*(log(1-f)/log(0.9999))
+	mysambar$dxymatrix				<<- m*100
+	mysambar$damatrix				<<- n
+	mysambar$hudsonfstmatrix		<<- f
+	mysambar$Dsdmatrix				<<- g
+	mysambar$Dsdnormmatrix			<<- h
+	mysambar$driftcoalunitsmatrix	<<- k
+	mysambar$neiDmatrix				<<- d
+	#
+	cat("Plotting distance matrices...",sep="\n")
+	# with values:
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dxy",popnames=mysambar$populations,mymatrix=mysambar$dxymatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=dxybreaks,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Hudsonfst",popnames=mysambar$populations,mymatrix=mysambar$hudsonfstmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=fstbreaks,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NetDivergence",popnames=mysambar$populations,mymatrix=mysambar$damatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_drift",popnames=mysambar$populations,mymatrix=mysambar$driftcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dsd",popnames=mysambar$populations,mymatrix=mysambar$Dsdmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_DsdNorm",popnames=mysambar$populations,mymatrix=mysambar$Dsdnormmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NeiD",popnames=mysambar$populations,mymatrix=mysambar$neiDmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=TRUE,addlegend=FALSE,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=TRUE,addlabels=FALSE,poplegposx=0.15,poplegposy=pop_legposy,poplegcex=pop_legcex)
+	#
+	# without values:
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dxy",popnames=mysambar$populations,mymatrix=mysambar$dxymatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=dxybreaks,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Hudsonfst",popnames=mysambar$populations,mymatrix=mysambar$hudsonfstmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=fstbreaks,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NetDivergence",popnames=mysambar$populations,mymatrix=mysambar$damatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=fstbreaks,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Coalescentunits_drift",popnames=mysambar$populations,mymatrix=mysambar$driftcoalunitsmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_Dsd",popnames=mysambar$populations,mymatrix=mysambar$Dsdmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_DsdNorm",popnames=mysambar$populations,mymatrix=mysambar$Dsdnormmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	plotpopmatrix(addsidebars=TRUE,exportname="Popmatrix_NeiD",popnames=mysambar$populations,mymatrix=mysambar$neiDmatrix,export="pdf",ndecimals=n_decimals,plotlabel=NULL,labelline=-6,plotlabelcex=10,showvalues=FALSE,addlegend=TRUE,legcex=bin_legcex,legendtitle=NULL,myBreaks=NULL,nrbreaks=5,addpoplegend=FALSE,addlabels=FALSE,poplegposx=0.15,poplegposy=0.675,poplegcex=5.75)
+	#
+	cat("Creating boxplot depicting within versus between populations...",sep="\n")
+	pops2$type	<<- ifelse(pops2$samepop,"within","between")
+	pops2$dperc	<<- pops2$d*100
+	grouppopboxplot(export="pdf",yscore="dperc",plotlabel="dxy_vs_pi",groupvector="type",grouplevels=c("within","between"),popfilter=pops2$filter,symbolcex=2,yrange=NULL,ylabel="Absolute distance (%)",mywidth=1.25,plottitle="  pi       Dxy",mybg="orange",axiscex=2.5,myline=4.5)
+	#
+	if(dopoptree)
+		{
+		cat("Generating population dendrograms...",sep="\n")
+		cat("Net nucleotide divergence...",sep="\n")
+		getpoptree(mymatrix=n,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="NetNucleotideDivergence",donj=do_nj)	
+		write.tree(mysambar$poptree,file=paste("Poptree.NetNucleotideDivergence.newick.txt",sep="."),digits=0,tree.names=FALSE)
+		if(!is.null(my_root))
+			{
+			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
+			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="NetNucleotideDivergence",donj=do_nj)
+			write.tree(mysambar$poptree,file=paste("Poptree.NetNucleotideDivergence.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			}
+		
+		#
+		cat("Hudson Fst...",sep="\n")
+		getpoptree(mymatrix=f,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="Hudsonfst",donj=do_nj)	
+		write.tree(mysambar$poptree,file=paste("Poptree.HudsonFst.newick.txt",sep="."),digits=0,tree.names=FALSE)
+		if(!is.null(my_root))
+			{
+			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
+			getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="Hudsonfst",donj=do_nj)
+			write.tree(mysambar$poptree,file=paste("Poptree.HudsonFst.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			}
+		#
+		if(docoalunits)
+			{
+			cat("Coalescent units estimated using drift...",sep="\n")
+			getpoptree(mymatrix=h,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsDrift",donj=do_nj)	
+			write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnits.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			if(!is.null(my_root))
+				{
+				myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
+				getpoptree(mytree=myrootedtree,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="CoalescentUnitsDrift",donj=do_nj)
+				write.tree(mysambar$poptree,file=paste("Poptree.CoalescentUnitsDrift.rooted.newick.txt",sep="."),digits=0,tree.names=FALSE)
+				}
+			}
+		#
+		cat("Dxy...",sep="\n")
+		getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=1.0,exportlabel="Dxy",donj=TRUE)
+		getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="unrooted",mylwd=treelwd,labelcex=1.0,exportlabel="Dxy",donj=FALSE)
+		getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="phylogram",mylwd=treelwd,labelcex=1.0,exportlabel="Dxy",donj=TRUE)
+		write.tree(mysambar$poptree,file=paste("Poptree.Dxy.NJ.newick.txt",sep="."),digits=0,tree.names=FALSE)
+		getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="phylogram",mylwd=treelwd,labelcex=1.0,exportlabel="Dxy",donj=FALSE)
+		write.tree(mysambar$poptree,file=paste("Poptree.Dxy.UPGMA.newick.txt",sep="."),digits=0,tree.names=FALSE)
+		if(is.null(my_root))
+			{
+			getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="Dxy",donj=do_nj)
+			write.tree(mysambar$poptree,file=paste("Poptree.Dxy.newick.txt",sep="."),digits=0,tree.names=FALSE)
+			}else{
+			getpoptree(mymatrix=m,popnames=mysambar$populations,mytype="phylogram",mylwd=treelwd,labelcex=treelabelcex,exportlabel="Dxy",myroot=my_root,donj=do_nj)
+			myrootedtree	<- root(mysambar$poptree,outgroup=my_root,resolve.root=TRUE)
+			write.tree(myrootedtree,file=paste("Poptree.Dxy.newick.rooted.txt",sep="."),digits=0,tree.names=FALSE)
+			}
+		}
+	if(dopoppcoa)
+		{
+		cat("Generating pcoa-plots...",sep="\n")
+		poppcoa(popmat=mysambar$dxymatrix,method="dxy",export="pdf",axis1=1,axis2=2)
+		poppcoa(popmat=mysambar$dxymatrix,method="dxy",export="pdf",axis1=1,axis2=3)
+		poppcoa(popmat=mysambar$dxymatrix,method="dxy",export="pdf",axis1=2,axis2=3)
+		}
+	if(distplots)
+		{
+		# boxplot depicting within and between-population genetic distances:
+		grouppopboxplot(export="pdf",yscore="d",groupvector="samepop",grouplevels=c(TRUE,FALSE),popfilter=pops2$filter,symbolcex=2)
+		#
+		cat("Generating scatter plots...",sep="\n")
+		# pi versus nucleotide divergence:
+		popscatter(hline=c(0.4,2),export="pdf",plottitle=NULL,score1="meanpi",score2="da",legendpos="right",ylabel="Net nucleotide divergence (%)",xlabel="Mean nucleotide diversity (%)",addregression=FALSE,yline=2.5)
+		# pi versus nucleotide divergence (with Jukes Cantor correction):
+		popscatter(hline=c(0.4,2),export="pdf",plottitle=NULL,score1="meanpi",score2="da_jk",legendpos="top",ylabel="Net nucleotide divergence (%)",xlabel="Mean nucleotide diversity (%)",addregression=FALSE,yline=2.5)
+		#
+		# Dxy vs Fst:
+		popscatter(addlegend=FALSE,export="pdf",plottitle=NULL,score1="fst",score2="d",legendpos="bottomright",legendcex=1.1,ylabel="Dxy (%)",xlabel="Hudson Fst",addregression=FALSE)
+		}
+	if(donetwork)
+		{
+		cat("Generating neighbour network...",sep="\n")
+		popnetwork(mydistmat=mysambar$dxymatrix,do_analysis=TRUE,plotname="Phylonetwork_neighbornet_pop_dxy",mylwd=0.25,doexport=TRUE,mynetwork=NULL,edgecolors=TRUE,silent=TRUE,dolabels=TRUE,mybg="white",labelcex=1.5)
+		#
+		cat("Population dendrograms and pcoa plot have been exported to the directory:",sep="\n")
+		cat(getwd(),sep="\n")
+		}
+	}
+
+comparedxy<-function(refpop=NULL,popvec=mysambar$poporder,doplot=TRUE,returnobject=FALSE,plotlabel=NULL)
+	{
+	if(is.null(refpop)){return(cat("ERROR: Specify a population to the refpop flag.",sep="\n"))}
+	if(!refpop%in%mysambar$poporder2){return(cat("ERROR: Specify an existing population to the refpop flag.",sep="\n"))}
+	#
+	npops				<- length(popvec)
+	pmatrix				<- matrix(NA,nrow=npops,ncol=npops)
+	colnames(pmatrix)	<- popvec
+	rownames(pmatrix)	<- popvec
+	for(i in c(1:npops))
+		{
+		for(j in c(1:npops))
+			{
+			if(i<j)
+				{
+				p1a				<- refpop
+				p1b				<- mysambar$poporder[i]
+				p2a				<- refpop
+				p2b				<- mysambar$poporder[j]
+				if(p1b==refpop|p2b==refpop)
+					{
+					myp			<- 0
+					}else{
+					dxyvec1		<- inds2$d[inds2$filter&((as.character(inds2$pop1)==p1a&as.character(inds2$pop2)==p1b)|(as.character(inds2$pop1)==p1b&as.character(inds2$pop2)==p1a))]
+					dxyvec2		<- inds2$d[inds2$filter&((as.character(inds2$pop1)==p2a&as.character(inds2$pop2)==p2b)|(as.character(inds2$pop1)==p2b&as.character(inds2$pop2)==p2a))]
+					myp			<- round(t.test(x=dxyvec1,y=dxyvec2)$p.value,5)
+					}
+				pmatrix[i,j]	<- myp
+				pmatrix[j,i]	<- myp
+				}
+			}
+		}
+	diag(pmatrix)	<- 0
+	if(doplot)
+		{
+		myplotname		<- paste("Dxy_Ttest_matrix",refpop,sep=".")
+		plotpopmatrix(exportname=myplotname,addlabels=TRUE,showvalues=TRUE,plotlabel=paste("Relative to ",refpop,sep=""),popnames=popvec,mymatrix=pmatrix,nrbreaks=4,addlegend=FALSE,plotlabelcex=5,export="pdf",myBreaks=c(0,0.001,0.01,0.05,1),valuecex=3.5,addsidebars=TRUE)
+		}
+	if(returnobject)
+		{
+		return(pmatrix)
+		}
+	}
+		
 # 22-06-2022:
 hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,donetwork=TRUE,distplots=TRUE,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5,n_decimals=3,docoalunits=TRUE)
 	{
@@ -31430,7 +31892,7 @@ hudsonfst<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,dotree=TRUE,dopcoa=TRUE,
 # 25-06-2022: negative correlation between he and fst is a fingerprint of genetic drift
 # integrate with function 'pops2scatter'?
 #
-popscatter<-function(logaxis="",indmin=1,export=NULL,plottitle=NULL,plotwidth=8,plotlabel=NULL,ylabel=NULL,ref_pop=NULL,refpop2=NULL,mylas=2,xlabel=NULL,score1="meanhe",score2="fst",mycex=3,mylwd=4,myxlim=NULL,myylim=NULL,axiscex=1.5,labcex=2,maincex=2,xline=4,yline=4.75,addlegend=TRUE,legendpos="bottomleft",legend2pos="topright",legendcex=0.9,hline=NULL,vline=NULL,addregression=TRUE,addrleg=TRUE,addlm=FALSE)
+popscatter<-function(logaxis="",indmin=1,export=NULL,plottitle=NULL,plotwidth=8,plotlabel=NULL,ylabel=NULL,ref_pop=NULL,refpop2=NULL,mylas=2,xlabel=NULL,score1="meanhe",score2="fst",mycex=3,mylwd=4,myxlim=NULL,myylim=NULL,axiscex=1.5,labcex=2,maincex=2,xline=4,yline=4.75,addlegend=TRUE,legendpos="bottomleft",legend2pos="topright",legendcex=0.9,hline=NULL,vline=NULL,addregression=TRUE,addrleg=TRUE,addlm=FALSE,add_diag=FALSE,predictdf=NULL,predictdf2=NULL)
 	{
 	if(!(logaxis==""|logaxis=="xy"|logaxis=="x"|logaxis=="y"))
 		{
@@ -31531,7 +31993,7 @@ popscatter<-function(logaxis="",indmin=1,export=NULL,plottitle=NULL,plotwidth=8,
 			{
 			myintercept	<- round(summary(myfit)$coefficients[1,1],2)
 			myslope		<- round(summary(myfit)$coefficients[2,1],2)
-			legend(legend2pos,legend=c(paste("r = ",myr,sep=""),paste("p = ",myp,sep=""),paste("intercept = ",myintercept,sep=""),paste("slope = ",myslope,sep="")),cex=legendcex,bty='n',col=NA,lty=2)
+			legend(legend2pos,legend=c(paste("intercept = ",myintercept,sep=""),paste("slope = ",myslope,sep=""),paste("r = ",myr,sep=""),paste("p = ",myp,sep="")),cex=legendcex,bty='n',col=NA,lty=2)
 			}
 		}
 	if(!is.null(hline))
@@ -31541,6 +32003,18 @@ popscatter<-function(logaxis="",indmin=1,export=NULL,plottitle=NULL,plotwidth=8,
 	if(!is.null(vline))
 		{
 		abline(v=vline,lty=2,lwd=2,col="grey50")
+		}
+	if(add_diag)
+		{
+		lines(x=c(-10000,10000),y=c(-10000,10000),col="grey80",lwd=1)
+		}
+	if(!is.null(predictdf))
+		{
+		lines(predictdf[,1],predictdf[,2],lwd=3.5,lty=2)
+		}
+	if(!is.null(predictdf2))
+		{
+		lines(predictdf2[,1],predictdf2[,2],lwd=3.5,lty=2,col="grey50")
 		}
 	if(!is.null(export))
 		{
@@ -31728,7 +32202,7 @@ hudsonfst_old<-function(popnames=mysambar$populations2,mydf=mydistdf,excludepops
 	}
 
 
-# function to create a histogram with rough tmcra estimate:
+# function to create a histogram with rough tmrca estimate:
 dxyhisto<-function(mydf=mydistdf,pairdf=NULL,export=NULL,mybreaks=seq(-1,10000,500),xmax=70000,plotwidth=8,ymax=0.15,legendpos="topright",plotname="Dxy_histo",silent=TRUE,per_year=TRUE,mycolours=NULL)
 	{
 	if(is.null(mycolours))
@@ -31756,7 +32230,7 @@ dxyhisto<-function(mydf=mydistdf,pairdf=NULL,export=NULL,mybreaks=seq(-1,10000,5
 	# outline of plot:
 	par(mar=c(6,7,2,2),cex.axis=2,cex.lab=2.5)
 	hist(myscore,breaks=mybreaks/1000,xlim=c(0,xmax/1000),freq=TRUE,col="white",border=NA,ylim=c(0,ymax),xlab="",ylab="",main="",las=2)
-	mtext(side=1,"Y-chrom TMCRA (kya)",line=4.5,cex=2.5)
+	mtext(side=1,"Y-chrom TMRCA (kya)",line=4.5,cex=2.5)
 	mtext(side=2,"Sample pair frequency",line=4.75,cex=2.5)
 	# add LGM:
 	if(per_year)
