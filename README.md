@@ -12,7 +12,7 @@ However, you will need the manual for further instructions. Therefore, if you ar
 UPDATE 08-01-2024
 
 SambaR now also accepts input dataframes with pairwise sequence dissimilarity estimates, for whole-genome distance-based phylogenetics. For further instructions, see:
-https://github.com/mennodejong1986/VCF_pairwise_distances
+https://github.com/mennodejong1986/DIST
 
 UPDATE 17-11-2023
 
