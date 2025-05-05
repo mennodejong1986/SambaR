@@ -31857,14 +31857,17 @@ runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=T
 	if(dopoppcoa)
 		{
 		cat("Generating pcoa-plots...",sep="\n")
+		cat("Dxy",sep="\n")
 		poppcoa(popmat=mysambar$dxymatrix,method="dxy",export="pdf",axis1=1,axis2=2,legendpos=legpos)
 		poppcoa(popmat=mysambar$dxymatrix,method="dxy",export="pdf",axis1=1,axis2=3,legendpos=legpos)
 		poppcoa(popmat=mysambar$dxymatrix,method="dxy",export="pdf",axis1=2,axis2=3,legendpos=legpos)
 		#
+		cat("Net divergence",sep="\n")
 		poppcoa(popmat=mysambar$damatrix,method="da",export="pdf",axis1=1,axis2=2,legendpos=legpos)
 		poppcoa(popmat=mysambar$damatrix,method="da",export="pdf",axis1=1,axis2=3,legendpos=legpos)
 		poppcoa(popmat=mysambar$damatrix,method="da",export="pdf",axis1=2,axis2=3,legendpos=legpos)
 		#
+		cat("Hudson Fst.",sep="\n")
 		poppcoa(popmat=mysambar$hudsonfstmatrix,method="fst",export="pdf",axis1=1,axis2=2,legendpos=legpos)
 		poppcoa(popmat=mysambar$hudsonfstmatrix,method="fst",export="pdf",axis1=1,axis2=3,legendpos=legpos)
 		poppcoa(popmat=mysambar$hudsonfstmatrix,method="fst",export="pdf",axis1=2,axis2=3,legendpos=legpos)
