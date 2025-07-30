@@ -9983,6 +9983,10 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 				getindtree(export="pdf",do_analysis=TRUE,mymethod="OLS",mydistance="pi",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards",dopathlength=do_pathlength)
 				pi_OLS_tree		<- mysambar$mytree
 				#
+				# 02-07-2025:
+				# Dendrogram with dots indicating distances:  
+				getindtree(mydistance="pi",mymethod="upgma",mytype="phylogram",export="pdf",labelcex=1.25,edgecolors=FALSE,tiplabels=TRUE,myylabel="Sequence dissimilarity",mylwd=1,add_distances=TRUE,dist_cex=0.4,dist_spacing=0.3)
+				#
 				plotindmatrix(n_bins=6,export="pdf",add_lab=FALSE,ind_matrix=mysambar$pimatrix,export_name="Pimatrix.ind",plottitle="Sequence dissimilarity (pi)")
 				plotindmatrix(n_bins=8,export="pdf",add_lab=FALSE,ind_matrix=mysambar$pimatrix,export_name="Pimatrix.ind",plottitle="Sequence dissimilarity (pi)")
 				#
@@ -10020,14 +10024,14 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 					# getindtree(export="pdf",do_analysis=TRUE,nbootstrap=100,mymethod="NJ",mydistance="nei.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 					# getindtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mydistance="nei.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 					#
-					# Rogers genetic distance (not used here, because of high computation time):
+					# Rogers genetic distance:
 					# cat("Creating NJ tree based on Rogers genetic distance (i.e. using rogers.dist function of poppr package)...",sep="\n")
 					# cat("If you receive an error after this line (for example about 'ploidy' issues), rerun the findstructure function with the 'dogenindtrees' flag set to false (i.e. findstructure(dogenindtrees=FALSE)).",sep="\n")
 					# getindtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="rogers.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 					# getindtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mydistance="rogers.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 					#
 					# Reynold's distance (not used here, because very long tip branch lengths (even for duplicated samples), obscures internal nodes (perhaps because not suitable for sample data, only for allele frequencies?):
-					# cat("Creating NJ tree based on Rogers genetic distance (i.e. using rogers.dist function of poppr package)...",sep="\n")
+					# cat("Creating NJ tree based on Reynolds genetic distance (i.e. using reynolds.dist function of poppr package)...",sep="\n")
 					# cat("If you receive an error after this line (for example about 'ploidy' issues), rerun the findstructure function with the 'dogenindtrees' flag set to false (i.e. findstructure(dogenindtrees=FALSE)).",sep="\n")
 					# getindtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="reynolds.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 					# getindtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mydistance="reynolds.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
@@ -10322,7 +10326,7 @@ findstructure<-function(quickrun=TRUE,add_legend=TRUE,my_bg="white",axis_col="bl
 				cat("If you receive an error after this line (for example about 'ploidy' issues), rerun the findstructure function with the 'dogenindtrees' flag set to false (i.e. findstructure(dogenindtrees=FALSE)).",sep="\n")
 				getindtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="edwards.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 				getindtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mydistance="edwards.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
-				# Rogers genetic distance (not used here, because of high computation time):
+				# Rogers genetic distance (not used here, because for some reason creates NA-values):
 				# getindtree(export="pdf",do_analysis=TRUE,mymethod="NJ",mydistance="rogers.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 				# getindtree(export="pdf",do_analysis=TRUE,mymethod="upgma",mydistance="rogers.dist",mytype="unrooted",labelangle="axial",labelcex=1.25,edgecolors=TRUE,tiplabels=TRUE,mylwd=3,addnodelabels=TRUE,maxnodelabel=max_node_label,nodelabelcex=1.5,showpop=FALSE,mydirection="upwards")
 				# Reynold's distance (not used here, because very long tip branch lengths (even for duplicated samples), obscures internal nodes:
@@ -11985,7 +11989,8 @@ popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bi
 	}
 
 # 20-01-2023 (Sambar_v1.09.txt onwards): renamed from popprtree to getindtree
-getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,addranges=TRUE,mutrate=NULL,errorrate=NULL,genomeprop=1,interval_col="lightblue",interval_lwd=3,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,addaxis=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_Of_Individuals",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="axial",tiplabels=TRUE,tipdots=FALSE,dotcex=3,dotpch=21,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=FALSE,calc_likelihood=FALSE,dopathlength=FALSE,pathlength_domean=FALSE,matrixlabels=FALSE,pathlengthbreaks=NULL,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE,rotatevec=NULL,myylabel="Genetic distance",nodenumbers=FALSE,rotatenodes=NULL)
+# still to be included: ape::boot.phylo(). Currently only using poppr: aboot.
+getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,edgecol="black",legendcex=1.5,makelinear=FALSE,addranges=TRUE,mutrate=NULL,errorrate=NULL,genomeprop=1,interval_col="lightblue",interval_lwd=3,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,addaxis=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,bootstrap_cutoff=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_Of_Individuals",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="axial",tiplabels=TRUE,tipdots=FALSE,dotcex=3,dotpch=21,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=FALSE,calc_likelihood=FALSE,dopathlength=FALSE,pathlength_domean=FALSE,matrixlabels=FALSE,pathlengthbreaks=NULL,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE,rotatevec=NULL,myylabel="Genetic distance",nodenumbers=FALSE,rotatenodes=NULL,add_distances=FALSE,dist_cex=0.2,dist_spacing=0.2)
 	{
 	# type can be: "phylogram" (default), "cladogram", "fan", "unrooted", "radial"
 	# distance can be 'bitwise.dist' (default, which is Hamming's distance), 'euclidean', 'allele sharing distance', 'pi', 'nei.dist', 'rogers.dist', 'edwards.dist', 'reynolds.dist'
@@ -12340,21 +12345,21 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			#### WITH BOOTSTRAPPING ####
 			if(mydistance=="pi"|mydistance=="ASD")
 				{
-				return(cat("ERROR: currently SambaR does not yet offer the possibility to calculate bootstrap support when mydistance is set to 'pi' to 'ASD'. Either set nbootstrap to zero or use a different distance estimate.",sep="\n"))
+				return(cat("ERROR: currently SambaR does NOT yet offer the possibility to calculate bootstrap support when mydistance is set to 'pi' or 'ASD'. Either set nbootstrap to zero or use a different distance estimate.",sep="\n"))
 				}
 			if(mymethod=="ward.D"|mymethod=="ward.D2"|mymethod=="complete"|mymethod=="single"|mymethod=="mcquitty"|mymethod=="average"|mymethod=="median"|mymethod=="centroid")
 				{
-				return(cat("ERROR: currently SambaR does not yet offer the possibility to calculate bootstrap support for hclust phylogenies.",sep="\n"))
+				return(cat("ERROR: currently SambaR does NOT yet offer the possibility to calculate bootstrap support for hclust phylogenies.",sep="\n"))
 				#mytreefunction <- function(x) as.phylo(hclust(as.dist(poppr::bitwise.dist(x)),method=mymethod) 	
 				}
 			if(mymethod=="BME")
 				{
-				return(cat("ERROR: currently SambaR does not yet offer the possibility to calculate bootstrap support for BME phylogenies.",sep="\n"))
+				return(cat("ERROR: currently SambaR does NOT yet offer the possibility to calculate bootstrap support for BME phylogenies.",sep="\n"))
 				#mytreefunction	<- function(x) ape::fastme.bal(poppr::bitwise.dist(x),nni=TRUE,spr=TRUE)
 				}
 			if(mymethod=="OLS")
 				{
-				return(cat("ERROR: currently SambaR does not yet offer the possibility to calculate bootstrap support for OLS phylogenies.",sep="\n"))
+				return(cat("ERROR: currently SambaR does NOT yet offer the possibility to calculate bootstrap support for OLS phylogenies.",sep="\n"))
 				#mytreefunction	<- function(x) ape::fastme.ols(poppr::bitwise.dist(x),nni=TRUE)
 				}
 			#if(mymethod=="NJ")
@@ -12364,7 +12369,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			#	}
 			if(mymethod=="bionj")
 				{
-				return(cat("ERROR: currently SambaR does not yet offer the possibility to calculate bootstrap support for bionj phylogenies.",sep="\n"))
+				return(cat("ERROR: currently SambaR does NOT yet offer the possibility to calculate bootstrap support for bionj phylogenies.",sep="\n"))
 				mytreefunction	<- function(x) ape::bionj(poppr::bitwise.dist(x))
 				}
 			#if(mymethod=="upgma")
@@ -12373,8 +12378,8 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			#	mytreefunction	<- function(x) phangorn::upgma(poppr::bitwise.dist(x))
 			#	}
 			cat("Generating phylogeny including bootstrap support using the aboot function of the poppr package...",sep="\n")
-			mytree 			<- poppr::aboot(my_gl,tree=mymethod,distance=mydistance,sample=100,showtree=F,cutoff=50,quiet=F)
-			#mytree 		<- poppr::aboot(my_gl,tree=mytreefunction,distance=mydistance,sample=100,showtree=F,cutoff=50,quiet=F)
+			mytree 			<- poppr::aboot(my_gl,tree=mymethod,distance=mydistance,sample=100,showtree=F,cutoff=bootstrap_cutoff,quiet=F)
+			#mytree 		<- poppr::aboot(my_gl,tree=mytreefunction,distance=mydistance,sample=100,showtree=F,cutoff=bootstrap_cutoff,quiet=F)
 			}
 		mysambar$mytree	<<- mytree
 		cat("Phylo object stored at mysambar$mytree.",sep="\n")
@@ -12445,6 +12450,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 	if(!is.null(rotatevec))
 		{
 		# rotatevec should be a vector with node numbers
+		# 03-07-2025: WARNING: ONLY SEEMS TO WORK WELL FOR UNROOTED FORMAT
 		cat("Rotating node(s). If you receive an error after this line, please set the flag rotatevec to NULL, or provide other node number(s).",sep="\n")  
 		for(k in c(1:length(rotatevec)))
 			{
@@ -12473,8 +12479,8 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			ann_colours		<- ann_df$col
 			}
 		}
-	#mycolors2 				<- rep("black",Nedge(mytree))	
-	mycolors2 				<- rep("black",nrow(mytree$edge))
+	#mycolors2 				<- rep(edgecol,Nedge(mytree))	
+	mycolors2 				<- rep(edgecol,nrow(mytree$edge))
 	if(edgecolors)
 		{
 		if(!silent){cat("Defining edge colours...",sep="\n")}
@@ -12609,7 +12615,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 		{
 		plotname2	<- paste(plotname,mydistance,mymethod,mytype,labelstr,labelstr2,colorstr,sep=".")
 		}else{
-		plotname2	<- paste(plotname,mytype,labelstr,labelstr2,colorstr,sep=".")
+		plotname2	<- paste(plotname,mymethod,mytype,labelstr,labelstr2,colorstr,sep=".")
 		}
 	plotname2		<- ifelse(makelinear,paste(plotname2,"linearized",sep="."),plotname2)
 	plotname2		<- ifelse(mybg=="white",plotname2,paste(plotname2,mybg,sep="."))
@@ -12733,7 +12739,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 				mtext(side=3,paste("mutation rate = ",formatC(mutrate,format="e",digits=1)," per site per year",sep=""),line=-1)
 				}
 			cat("Adding x-axis...",sep="\n")
-			if(addaxis){axisPhylo(side=1,backward=TRUE)}
+			if(addaxis){axisPhylo(side=1,backward=TRUE,cex=1.5)}
 			# add p-values of molecular clock test per branch:
 			# mypvalues	<- round(attr(myplottree,"Pval"),3)
 			# nodelabels(mypvalues,frame="n",cex=0.75,xpd=TRUE,col="red")
@@ -12764,7 +12770,73 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			cat("Not a phylogram. Not adding x-axis.",sep="\n")
 			}
 		}else{
-		if(addaxis){axis(side=1,cex=2)}
+		if(addaxis)
+			{
+			if(mytype=="phylogram")
+				{
+				axisPhylo(side=1,,backward=TRUE,cex=1.5)
+				}else{
+				axis(side=1,cex=2)
+				}
+			}
+		}
+	if(add_distances)
+		{
+		if(mytype=="phylogram"&mymethod=="upgma")
+			{
+			n_inds		<- length(mysambar$plottree$tip.label)
+			xvalues		<- node.depth.edgelength(mysambar$plottree)
+			yvalues		<- node.height(mysambar$plottree)
+			yvalues2	<- yvalues[order(yvalues)]
+			ydist		<- yvalues2[2]-yvalues2[1]
+			axispos		<- axisPhylo(side=1,outer=TRUE)
+			maxx		<- max(axispos)
+			mydistmat	<- as.matrix(mysambar$mytree_distmat)
+			#previous and slightly incorrect method to infer the x-coordinates:
+			#minx		<- min(xvalues)
+			#maxx		<- max(xvalues)
+			#myrange	<- maxx-minx
+			#mydistmat	<- as.matrix(mysambar$mytree_distmat)/max(as.matrix(mysambar$mytree_distmat))
+			#						
+			cat("Adding dots to denote distances...",sep="\n")
+			for(ind1 in c(1:n_inds))
+				{
+				name1		<- mysambar$plottree$tip.label[ind1]
+				xvalue1		<- xvalues[ind1]
+				yvalue1		<- yvalues[ind1]
+				indpop1		<- inds$pop[inds$name==name1]
+				indcol1		<- inds$popcol[inds$name==name1]
+				#
+				for (ind2 in c(1:n_inds))
+					{
+					name2		<- mysambar$plottree$tip.label[ind2]
+					xvalue2		<- xvalues[ind2]
+					yvalue2		<- yvalues[ind2]
+					indpop2		<- inds$pop[inds$name==name2]
+					indcol2		<- inds$popcol[inds$name==name2]
+					#
+					if(indpop1!=indpop2)
+						{
+						xvaluemid	<- mydistmat[rownames(mydistmat)==name1,colnames(mydistmat)==name2]
+						xvaluemid	<- maxx-(xvaluemid/2)
+						#xvaluemid	<- maxx-(myrange*xvaluemid)	# previous and slightly incorrect method to infer the x-coordinates: 
+						#
+						mymrca		<- getMRCA(mysambar$plottree,tip=c(ind1,ind2))
+						yvaluemid	<- yvalues[mymrca] 
+						#					
+						#segments(x0=xvaluemid,y0=yvaluemid,x1=xvalue1,y1=yvalue1,col=indcol1)
+						#segments(x0=xvaluemid,y0=yvaluemid,x1=xvalue2,y1=yvalue2,col=indcol2)
+						#points(x=xvaluemid,y=yvaluemid,col="red",cex=0.2)
+						uppercol	<- ifelse(yvalue1<yvalue2,indcol2,indcol1)
+						lowercol	<- ifelse(yvalue1<yvalue2,indcol1,indcol2)
+						points(x=xvaluemid,y=yvaluemid+ydist*dist_spacing,col=uppercol,cex=dist_cex,pch=16)
+						points(x=xvaluemid,y=yvaluemid-ydist*dist_spacing,col=lowercol,cex=dist_cex,pch=16)
+						}
+					}
+				}
+			}else{
+			cat("Not a UPGMA-phylogram. Not adding dots denoting distances.",sep="\n")
+			}
 		}
 	if(addscale)
 		{
@@ -18252,7 +18324,8 @@ mapsingleshape<-function(export=NULL,plotratios=1,plottitle=NULL,exportname=NULL
 				{
 				filterrgb		<- col2rgb("grey80")
 				filtertranscol	<- rgb(filterrgb[1],filterrgb[2],filterrgb[3],max=255,alpha=transparency_level*255)
-				#plot(mygenusshape[selection&!myfilter,],add=TRUE,border=rgb(0,0,0,0),lwd=1,col=filtertranscol)
+				# 06-05-2025: needed to add historical range, perhaps not for if combining multiple species ranges:
+				plot(mygenusshape[selection&!myfilter,],add=TRUE,border=rgb(0,0,0,0),lwd=1,col=filtertranscol)
 				plot(mygenusshape[selection&myfilter,],add=TRUE,border=rgb(0,0,0,0),lwd=1,col=mytranscol)
 				}else{
 				plot(mygenusshape[selection,],add=TRUE,border=rgb(0,0,0,0),lwd=1,col=mytranscol)
@@ -18286,14 +18359,15 @@ mapsingleshape<-function(export=NULL,plotratios=1,plottitle=NULL,exportname=NULL
 			}
 		if(!is.null(shapelist))
 			{
+			plot(riversshape,add=TRUE,col=addshapecol)
 			# is it really necessary to use a for-loop? Might also work simply as follows:
 			# plot(shapelist[[1],col=addshapecol,border=addshapecol,add=T)		
-			for(k in c(1:length(shapelist)))
-				{
-				cat("Adding shape...",sep="\n")
-				plot(shapelist[[k]],col=addshapecol[k],border=addshapecol[k],add=T)
-				#lines(shapelist@lines[[k]]@Lines[[1]]@coords,col=addshapecol[k],lwd=4)
-				}
+			#for(k in c(1:length(shapelist)))
+			#	{
+			#	cat("Adding shape...",sep="\n")
+			#	#plot(shapelist[[k]],col=addshapecol[k],border=addshapecol[k],add=T)
+			#	lines(shapelist@lines[[k]]@Lines[[1]]@coords,col=addshapecol[k],lwd=4)
+			#	}
 			}
 		if(!is.null(mycoord))
 			{
@@ -30079,7 +30153,7 @@ inds2pops<-function(missfilter=NULL)
 	}
 
 # 20-06-2022: add results to inds2 dataframe. For example, output from VCF_calcdist.sh.
-add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,miss_filter=NULL,ntotalsites=NULL)
+add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,ntotalsites=NULL,miss_filter=NULL)
 	{
 	if(is.null(myfile))
 		{
@@ -31494,36 +31568,50 @@ calcadmix<-function(refpop1=NULL,refpop2=NULL)
 	popboxplot(myscore=inds$admixprop[inds$filter],popvector=inds$pop[inds$filter],addstripchart=TRUE,yline=0,ylabel="Admixture proportion",export="pdf",exportname="AdmixtureProportion",mycex=3,labcex=2.5,y_lim=NULL)
 	}
 
-# 25-11-2024:
-# excludepop(c("polar","Black","Europe","Magadan"))
-# removeinds	<- c("ABC11","Kamtschatka3")
-mylegend2	<- rev(c("2a","3a","3b","4"))
-legend2pch	<- rev(c(8,21,23,22))
-legend2pch	<- rev(c(8,21,23,22))
-mypchdf		<- data.frame("name"=mylegend2,"pch"=legend2pch)
-
-# plotibd(removeinds=NULL,refpop="Kamtchatka",reflat=65,reflong=195)
 plotibd<-function(removeinds=NULL,refpop=NULL,reflat=NULL,reflong=NULL,x_lab=NULL,y_lab=NULL,y_lines=NULL,usesymbols=FALSE,pchdf=NULL,mytitle=NULL,legendpos="topleft")
 	{
+	if(!"dperc"%in%colnames(inds2))
+		{
+		return(cat("ERROR: column 'dperc' absent from inds2 dataframe. Did you already add the data generated by VCF_calcdist script to inds2 dataframe using add2inds function?",sep="\n"))
+		}
 	x_lab	<- ifelse(is.null(x_lab),"Geographical distance (100 km)",x_lab)
-	y_lab	<- ifelse(is.null(y_lab),"Genetic distance (d)",y_lab)
+	y_lab	<- ifelse(is.null(y_lab),"Sequence dissimilarity",y_lab)
 	if(!is.null(removeinds))
 		{
 		inds$filter[inds$name%in%removeinds] 	<- FALSE
 		inds2$filter[inds2$name1%in%removeinds|inds2$name2%in%removeinds] 	<- FALSE
 		}
-	mydf			<- inds2[((inds2$pop1==refpop&inds2$pop2!=refpop)|(inds2$pop2==refpop&inds2$pop1!=refpop))&inds2$filter,]
-	mydf$mypop		<- ifelse(mydf$pop1==refpop,mydf$pop2,mydf$pop1)
-	mydf$mypopcol	<- ifelse(mydf$pop1==refpop,mydf$popcol2,mydf$popcol1)
-	mydf$mylong		<- ifelse(mydf$pop1==refpop,mydf$long2,mydf$long1)
-	mydf$mylat		<- ifelse(mydf$pop1==refpop,mydf$lat2,mydf$lat1)
+	if(!is.null(refpop))
+		{
+		mydf			<- inds2[((inds2$pop1==refpop&inds2$pop2!=refpop)|(inds2$pop2==refpop&inds2$pop1!=refpop))&inds2$filter,]
+		}else{
+		mydf			<- inds2[inds2$filter,]
+		}
+	mydf$mypop		<- NA
+	mydf$mypopcol	<- NA
+	mydf$mylong		<- NA
+	mydf$mylat		<- NA
 	mydf$mypch		<- 21
+	if(!is.null(refpop))
+		{
+		for(k in c(1:nrow(mydf)))
+			{
+			mydf$mypop[k]	<- ifelse(mydf$pop1[k]==refpop,mydf$pop2[k],mydf$pop1[k])
+			mydf$mypopcol[k]<- ifelse(mydf$pop1[k]==refpop,mydf$popcol2[k],mydf$popcol1[k])
+			mydf$mylong[k]	<- ifelse(mydf$pop1[k]==refpop,mydf$long2[k],mydf$long1[k])
+			mydf$mylat[k]	<- ifelse(mydf$pop1[k]==refpop,mydf$lat2[k],mydf$lat1[k])
+			}
+		}
 	if(usesymbols)
 		{
-		mydf$mypch[mydf$mypop%in%c("WestcoastC","WestcoastS")]	<- 22
-		mydf$mypch[mydf$mypop%in%c("Yukon","Nunavut","HudsonBay","ABCcoastN","ABCcoastS","WestcoastN","AlaskaSE1","AlaskaSE2")]	<- 23
+		#mydf$mypch[mydf$mypop%in%c("WestcoastC","WestcoastS")]	<- 22
+		#mydf$mypch[mydf$mypop%in%c("Yukon","Nunavut","HudsonBay","ABCcoastN","ABCcoastS","WestcoastN","AlaskaSE1","AlaskaSE2")]	<- 23
+		#mydf$mypch[mydf$mypop%in%c("ABCbc","ABCa")]	<- 8
+		mydf$mypch[mydf$mypop%in%c("BorderArea","Yellowstone")]	<- 22
+		mydf$mypch[mydf$mypop%in%c("Yukon","NunavutSE","NunavutWest","ABCcoastN","ABCcoastS","BritishColumbia","AlaskaSE1","AlaskaSE2","NWTnorth","YukonNorth")]	<- 23
 		mydf$mypch[mydf$mypop%in%c("ABCbc","ABCa")]	<- 8
 		}
+	ibddf	<<- mydf
 	if(!is.null(reflat)&!is.null(reflong))
 		{
 		reflat									<- reflat*pi/180
@@ -31533,7 +31621,10 @@ plotibd<-function(removeinds=NULL,refpop=NULL,reflat=NULL,reflong=NULL,x_lab=NUL
 		mydf$geodist							<- acos(sin(reflat)*sin(mydf$mylat) + cos(reflat)*cos(mydf$mylat) * cos(reflong-mydf$mylong)) * 6371	# 6371 is estimate of earth mean radius in km
 		mydf$geodist[!is.finite(mydf$geodist)]	<- NA
 		mydf$geodist							<- mydf$geodist/100		# unit: 100 km
-		pdf("ILS.pdf",height=6,width=5.5)
+		#
+		mydf$geodist[mydf$poppair=="Kamchatka_YukonNorth"]<-mydf$geodist[mydf$poppair=="Kamchatka_YukonNorth"]-2
+		#
+		pdf("IBD_refpop.pdf",height=6,width=5.5)
 		plot(mydf$geodist,mydf$dperc,pch=mydf$mypch,bg=mydf$mypopcol,col="grey50",cex=3,lwd=0.5,xlab=x_lab,ylab="",cex.lab=1.75,cex.axis=1.5)
 		if(any(mydf$mypch<21))
 			{
@@ -31546,10 +31637,14 @@ plotibd<-function(removeinds=NULL,refpop=NULL,reflat=NULL,reflong=NULL,x_lab=NUL
 		if(!is.null(y_lines)){abline(h=y_lines,lty=2)}
 		dev.off()
 		}else{
-		pdf("ILS.pdf")
-		plot(mydf$mylong,mydf$dperc,pch=21,bg=mydf$mypopcol,col="grey50",cex=3,lwd=1,xlab=x_lab,ylab="Genetic distance (d)")
+		pdf("IBD_NOrefpop.pdf")
+		par(cex.lab=1.5)
+		mydf	<- mydf[!mydf$samepop,]
+		plot(mydf$geodist,mydf$dperc,pch=21,bg=mydf$popcol1,col=mydf$popcol2,cex=3,lwd=2,xlab=x_lab,ylab="Sequence dissimilarity",log="x")
+		if(!is.null(legendpos)){legend(legendpos,legend=mysambar$poporder,fill=mysambar$colorder,bty="n",cex=1.5)}
 		dev.off()
 		}
+	ibddf	<<- mydf
 	}
 
 
@@ -31595,10 +31690,16 @@ runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=T
 		{
 		cat("Hierarchical structure analyses for individuals...",sep="\n")
 		dropvec		<- inds$name[!inds$filter]
-		getindtree(plotname="Tree_Of_Individuals_bioNJ",inputdistmat=mymat2,mymethod="bionj",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=FALSE,dopathlength=FALSE,edgecolors=FALSE,tipdots=TRUE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle)
-		getindtree(plotname="Tree_Of_Individuals_bioNJ",inputdistmat=mymat2,mymethod="bionj",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=TRUE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle)
-		getindtree(plotname="Tree_Of_Individuals_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=FALSE,dopathlength=FALSE,edgecolors=FALSE,tipdots=TRUE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle)
-		getindtree(plotname="Tree_Of_Individuals_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=TRUE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle)
+		# UNROOTED FORMAT:
+		getindtree(plotname="Tree_Of_Individuals_bioNJ",inputdistmat=mymat2,mymethod="bionj",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=FALSE,dopathlength=FALSE,edgecolors=FALSE,tipdots=TRUE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle,myylabel="Sequence dissimilarity (%)")
+		getindtree(plotname="Tree_Of_Individuals_bioNJ",inputdistmat=mymat2,mymethod="bionj",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=TRUE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle,myylabel="Sequence dissimilarity (%)")
+		getindtree(plotname="Tree_Of_Individuals_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=FALSE,dopathlength=FALSE,edgecolors=FALSE,tipdots=TRUE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle,myylabel="Sequence dissimilarity (%)")
+		getindtree(plotname="Tree_Of_Individuals_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=TRUE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,tree_angle=indtreeangle,myylabel="Sequence dissimilarity (%)")
+		# PHYLOGRAM FORMAT
+		getindtree(plotname="Tree_Of_Individuals_bioNJ",inputdistmat=mymat2,mymethod="bionj",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=FALSE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,myylabel="Sequence dissimilarity (%)")
+		getindtree(plotname="Tree_Of_Individuals_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=FALSE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=NULL,fullplotname=FALSE,myylabel="Sequence dissimilarity (%)")
+		# UPGMA-PHYLOGRAM WITH DISTANCE DOTS:
+		getindtree(inputdistmat=mymat2,mymethod="upgma",drop_ind=dropvec,mytype="phylogram",fullplotname=FALSE,myylabel="Sequence dissimilarity (%)",export="pdf",labelcex=1.25,edgecolors=FALSE,tiplabels=TRUE,mylwd=1,add_distances=TRUE,dist_cex=1.3,dist_spacing=0.8,legendpos="topleft",legendcex=1.2)
 		}
 	# Hudson Fst: (pi_between - pi_within)/pi_between
 	popnames			<- mysambar$populations2
@@ -31857,6 +31958,7 @@ runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=T
 	if(dopoppcoa)
 		{
 		cat("Generating pcoa-plots...",sep="\n")
+		cat("If you receive an error shortly after this line, set the flag 'dopoppcoa' to FALSE.",sep="\n")
 		cat("Dxy",sep="\n")
 		poppcoa(popmat=mysambar$dxymatrix,method="dxy",export="pdf",axis1=1,axis2=2,legendpos=legpos)
 		poppcoa(popmat=mysambar$dxymatrix,method="dxy",export="pdf",axis1=1,axis2=3,legendpos=legpos)
@@ -31884,7 +31986,8 @@ runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=T
 		popscatter(hline=c(0.4,2),export="pdf",plottitle=NULL,score1="meanpi",score2="da_jk",legendpos="top",ylabel="Net nucleotide divergence (%)",xlabel="Mean nucleotide diversity (%)",addregression=FALSE,yline=2.5)
 		#
 		# Dxy vs Fst:
-		popscatter(addlegend=FALSE,export="pdf",plottitle=NULL,score1="fst",score2="d",legendpos="bottomright",legendcex=1.1,ylabel="Dxy (%)",xlabel="Hudson Fst",addregression=FALSE)
+		#popscatter(addlegend=FALSE,export="pdf",plottitle=NULL,score1="fst",score2="dperc",legendpos="bottomright",legendcex=1.1,ylabel="Dxy (%)",xlabel="Hudson Fst",addregression=FALSE)
+		popscatter(addlegend=FALSE,export="pdf",plottitle=NULL,score2="fst",score1="dperc",legendpos="bottomright",legendcex=1.1,xlabel="Dxy (%)",ylabel="Hudson Fst",addregression=FALSE,mylas=1,yline=3,xline=3)
 		}
 	if(donetwork)
 		{
