@@ -5,6 +5,7 @@
 # R package for SNP data management and analyses
 
 
+
 # To run most SambaR functions, you need to run 10 R commands, which roughly look like this:
 example_run<-function()
 	{
@@ -4969,6 +4970,15 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 		{
 		return(cat("ERROR: value to min_spacing flag should be positive.",sep="\n"))
 		}
+	if(min_spacing==0)
+		{
+		cat("Not thinning the data, as min_spacing is set to 0.",sep="\n")
+		}else{
+		if(min_spacing<100)
+			{
+			return(cat("ERROR: set min_spacing either to 0 or to a value above 100, to increase calculation speed.",sep="\n"))
+			}
+		}
 	if(is.null(inds$poporder))
 		{
 		return(cat("ERROR: inds$poporder is NULL. Was the data succesfully imported?",sep="\n"))
@@ -5121,7 +5131,7 @@ filterdata<-function(indmiss=0.25,snpmiss=0.1,min_mac=2,dohefilter=TRUE,maxprop_
 		cat("You have three options:",sep="\n")
 		cat("Option 1: Change filter settings (i.e. choose a higher value for indmiss) and run the filterdata() again.",sep="\n")
 		cat("Option 2: Use SambaR's mergepop(sourcepop='...',targetpop='...') function to merge a population (the 'sourcepop') into another population (the 'targetpop') and afterwards rerun the filterdata() function.",sep="\n")
-		cat("Option 3: Alternatively, remove samples/populations from input file (i.e. ped file) and rerun the plink --make-bed --recode A and Sambar importdata() function to import reduced dataset.",sep="\n")
+		cat("Option 3: Alternatively, import the data again, but with certain populations removed from the sample-file or even samples removed from input files (i.e. ped file). In the case of the latter, rerun the plink --make-bed --recode A before importing the data again.",sep="\n")
 		return(cat("For an overview of missing data per population, have a look at the 'Missingdata.perpop' plot in the QC subdirectory.",sep="\n"))
 		}
 	if(!stop_correctmaf)
@@ -5716,6 +5726,62 @@ mergepop<-function(sourcepop=NULL,targetpop=NULL)
 	npopsafter	<- length(mysambar$populations2)
 	cat(paste("Number of populations before merging: ",npopsbefore,".",sep=""),sep="\n")
 	cat(paste("Number of populations after merging: ",npopsafter,".",sep=""),sep="\n")
+	}
+
+# 19-08-2025:
+excludeind<-function(myinds=NULL,do_exclude=TRUE)
+	{
+	if((!exists("inds"))|(!exists("mysambar")))
+		{
+		return(cat("ERROR: objects inds and/or mysambar not found.",sep="\n"))
+		}
+	if(any(!(inds2$name1%in%inds$name|inds2$name2%in%inds$name)))
+		{
+		return(cat("ERROR: Unexpected sample names in inds2 dataframe.",sep="\n"))
+		}
+	if(any(!(inds$name%in%inds2$name1|inds$name%in%inds$name2)))
+		{
+		return(cat("ERROR: sample names missing in inds2 dataframe.",sep="\n"))
+		}
+	if(!"filter2"%in%colnames(inds))
+		{
+		return(cat("ERROR: Column filter2 not present in inds dataframe. Did you run the filterdata() function?",sep="\n"))
+		}
+	#
+	#####
+	if(is.null(myinds))
+		{
+		return(cat("ERROR: No individuals specified to myinds flag.",sep="\n"))
+		}
+	if(any(!myinds%in%inds$name))
+		{
+		return(cat("ERROR: One or more individuals specified to myinds flag not present inds dataframe.",sep="\n"))
+		}
+	npops		<- length(mysambar$populations)
+	for(popnr in c(1:npops))
+		{
+		mypop	<- mysambar$populations[popnr]
+		popinds	<- inds$name[inds$pop==mypop]
+		if(all(popinds%in%myinds))
+			{
+			return(cat(paste("ERROR: It is not allowed to use the excludeind() function to remove all individuals of a certain populations (",mypop,"). Use instead the excludepop function.",sep=""),sep="\n"))
+			}
+		}
+	if(do_exclude)
+		{
+		cat("Setting specified individuals to FALSE in inds and inds2 dataframes.",sep="\n")
+		inds$filter[inds$name%in%myinds]	<<-FALSE
+		inds2$filter1[inds2$name1%in%myinds]<<-FALSE
+		inds2$filter2[inds2$name2%in%myinds]<<-FALSE
+		inds2$filter	<<- inds2$filter1&inds2$filter2
+		}else{
+		cat("Setting specified individuals to TRUE in inds and inds2 dataframes.",sep="\n")
+		inds$filter[inds$name%in%myinds]	<<-TRUE
+		inds2$filter1[inds2$name1%in%myinds]<<-TRUE
+		inds2$filter2[inds2$name2%in%myinds]<<-TRUE
+		inds2$filter	<<- inds2$filter1&inds2$filter2
+		}
+	cat("Filter settings in the inds and inds2 dataframe have been updated.",sep="\n")
 	}
 
 excludepop<-function(popvector=NULL,do_exclude=NULL,retain=FALSE)
@@ -30218,7 +30284,7 @@ add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,ntotalsite
 		inds2		<<- inds2temp
 		}
 	cat("Information added to inds2 dataframe.",sep="\n")
-	if("n0"%in%colnames(inds2)|"hd0"%in%colnames(inds2))
+	if(("n0"%in%colnames(inds2)|"hd0"%in%colnames(inds2))&!"d_snps"%in%colnames(inds2))
 		{
 		# following lines are needed to process output from old VCF_calcdist script: 
 		inds2		<- inds2temp
@@ -30230,10 +30296,20 @@ add2inds2<-function(myfile=NULL,mutrate=NULL,errorrate=0,gentime=NULL,ntotalsite
 			{
 			return(cat("ERROR: column 'd_snps' not present in inds2 dataframe.",sep="\n"))
 			}
-		inds2$d		<<- inds2$d_snps*inds2$nsites/ntotalsites	
-		inds2$dperc	<<- inds2$d*100
-		inds2$dperc2<<- inds2$dperc
+		inds2$allsites	<<- ntotalsites
+		inds2$d			<<- inds2$d_snps*inds2$nsites/ntotalsites	
+		inds2$dperc		<<- inds2$d*100
+		inds2$dperc2	<<- inds2$dperc
 		inds2$dperc2[inds2$pop1==inds2$pop2]<<- 0
+		}else{
+		inds2$allsites	<<- NA
+		}
+	#
+	if(is.null(miss_filter))
+		{
+		miss_filter	<- inds2$filter
+		}else{
+		miss_filter	<- inds2$filter&miss_filter	
 		}
 	inds2pops(missfilter=miss_filter)
 	}
@@ -31656,8 +31732,39 @@ calcdxy<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=T
 	cat("As of 10-04-2024, this function has been renamed to runDIST().",sep="\n") 
 	}
 
+exportdxytable<-function(mydataset=NA)
+	{
+	if(any(!(c("pop1","pop2","allsites","nsites","nmiss","pmiss","dperc","fst","da","neiD","meanpi")%in%colnames(pops2))))
+		{
+		return(cat("ERROR: one or more columns missing.",sep="\n"))
+		}
+	cat("Creating table with population-level statistics...",sep="\n")
+	mydf			<- pops2[!pops2$samepop,c("pop1","pop2","allsites","nsites","nmiss","pmiss","dperc","fst","da","neiD","meanpi")]
+	colnames(mydf)	<- c("lineage1","lineage2","nsites","nsnps","nmiss","pmiss","Dxy","HudsonFst","Da","NeiD","pixy")
+	mydf$nmiss		<- round(mydf$nmiss)
+	mydf$pmiss		<- round(mydf$pmiss,4)
+	mydf$Dxy		<- round(mydf$Dxy,4)
+	mydf$HudsonFst	<- round(mydf$HudsonFst,3)
+	mydf$Da			<- round(mydf$Da,5)
+	mydf$NeiD		<- round(mydf$NeiD,5)
+	mydf$pixy		<- round(100*mydf$pixy,4)
+	mydf$dataset	<- mydataset
+	mysambar$dxyfst	<<- mydf
+	exportname		<- ifelse(is.na(mydataset),"dxy_fst.txt",paste("dxy_fst",mydataset,"txt",sep="."))
+	write.table(mydf,exportname,quote=FALSE,row.names=FALSE,col.names=TRUE,sep="\t")
+	#
+	cat("Creating table with individual-level statistics...",sep="\n")
+	mydf			<- inds2[inds2$filter,c("name1","name2","pop1","pop2","allsites","nsites","pmiss","nmiss","d_snps","dperc")]
+	mydf$dataset	<- mydataset
+	exportname2		<- ifelse(is.na(mydataset),"dxy_fst_ind.txt",paste("dxy_fst_ind",mydataset,"txt",sep="."))
+	write.table(mydf,exportname2,quote=FALSE,row.names=FALSE,col.names=TRUE,sep="\t")
+	#
+	cat(paste("Files called ",exportname," have been exported to the directory:",sep=""),sep="\n")
+	cat(getwd(),sep="\n")
+	}
+
 # 10_04_2024: renamed from calcdxy, previously hudsonfst:
-runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=TRUE,dopoptree=TRUE,dopoppcoa=TRUE,domatrix=TRUE,plotmiss=TRUE,do_sd=TRUE,indtreeangle=0,n_shorten=0,calcd3=TRUE,Ttest=TRUE,donetwork=TRUE,distplots=TRUE,dxybreaks=NULL,fstbreaks=NULL,legpos="topleft",legcex=1.25,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5,n_decimals=3,docoalunits=TRUE,pcoamirror=c(TRUE,TRUE))
+runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=TRUE,dopoptree=TRUE,dopoppcoa=TRUE,domatrix=TRUE,plotmiss=FALSE,do_sd=TRUE,indtreeangle=0,n_shorten=0,calcd3=TRUE,Ttest=TRUE,donetwork=TRUE,distplots=TRUE,dxybreaks=NULL,fstbreaks=NULL,legpos="topleft",legcex=1.25,pop_legcex=4.5,bin_legcex=8,pop_legposy=5,treelabelcex=1,treelwd=0.5,n_decimals=3,docoalunits=TRUE,pcoamirror=c(TRUE,TRUE),my_dataset=NA)
 	{
 	if(!"d"%in%colnames(inds2))
 		{
@@ -31805,7 +31912,7 @@ runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=T
 	if(calcd3)
 		{
 		cat("If you receive an error shortly after this line, set the flag 'calcd3' to FALSE.",sep="\n")
-		dxytrio(mypops=mysambar$poporder,doplot=TRUE,p_thres=0.05,add_legend=TRUE)
+		dxytrio(mypops=mysambar$poporder,doplot=TRUE,p_thres=0.05,add_legend=TRUE,mydataset=my_dataset)
 		}
 	if(Ttest)
 		{
@@ -31998,9 +32105,12 @@ runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=T
 		cat("Population dendrograms and pcoa plot have been exported to the directory:",sep="\n")
 		cat(getwd(),sep="\n")
 		}
+	cat("Exporting table with Dxy and Fst estimates.",sep="\n")
+	exportdxytable(mydataset=my_dataset)
+	cat("All analyses finished.",sep="\n")
 	}
 
-dxytrio<-function(mypops=mysambar$poporder,doplot=TRUE,p_thres=0.05,add_legend=TRUE,thresholdvector=seq(0.02,0.12,0.02))
+dxytrio<-function(mypops=mysambar$poporder,doplot=TRUE,p_thres=0.05,add_legend=TRUE,thresholdvector=seq(0.02,0.12,0.02),mydataset=NULL)
 	{
 	#if(!any(mysambar$poporder%in%mysambar$poporder2))
 	#	{
@@ -32070,8 +32180,18 @@ dxytrio<-function(mypops=mysambar$poporder,doplot=TRUE,p_thres=0.05,add_legend=T
 		cat("WARNING: adding dummy p-values because not enough individuals per population.",sep="\n") 
 		triodf$p		<- 0.01
 		}
-	mysambar$d3df			<<- triodf[order(triodf$prop),]
+	mysambar$d3df		<<- triodf[order(triodf$prop),]
 	cat("Results have been stored in mysambar$d3df.",sep="\n")
+	exportname			<- ifelse(is.null(mydataset),"d3df.txt",paste("d3df",mydataset,"txt",sep="."))
+	if(!is.null(mydataset))
+		{
+		triodf$dataset	<- mydataset
+		}else{
+		triodf$dataset	<- NA
+		}
+	write.table(triodf,exportname,quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)
+	cat("A dataframe with d3-scores, called 'd3df.txt', has also been exported to the directory:",sep="\n")
+	cat(getwd(),sep="\n")
 	#
 	if(doplot)
 		{
