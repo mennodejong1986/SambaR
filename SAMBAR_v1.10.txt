@@ -3559,9 +3559,10 @@ add2inds<-function(samplefile=NULL,filteronly=FALSE,geomap_thres=-15)
 				}
 			}
 		}
-	if(any(!as.character(myinfo$name)==as.character(indsretained$name)))
+	if(any(!as.character(myinfo$name)%in%as.character(indsretained$name)))
 		{
-		return(cat("ERROR: sample names in sample info file (see 'myinfo') do not correspond with inds$name column.",sep="\n"))	
+		missingvec	<<- myinfo$name[!as.character(myinfo$name)==as.character(indsretained$name)]
+		return(cat("ERROR: sample names in sample info file (see 'myinfo') do not correspond with inds$name column. See 'missingvec'.",sep="\n"))	
 		}
 	mycolnames		<- colnames(myinfo)
 	mycolnames		<- mycolnames[!mycolnames=="name"]
@@ -9349,7 +9350,7 @@ missingness_perpop<-function(export=NULL,addylabel=TRUE,logy=FALSE)
 	if(!is.null(export)){dev.off()}
 	}
 
-popboxplot<-function(export=NULL,exportname="popboxplot",ylabel=NULL,logy=FALSE,myscore=NULL,popvector=NULL,addstripchart=TRUE,y_lim=NULL,yline=NULL,mycex=2,labcex=2.5,plottitle=NULL,y_line=5.5,mywidth=0.5,myheight=9,x_axt="s")
+popboxplot<-function(export=NULL,exportname="popboxplot",ylabel=NULL,logy=FALSE,myscore=NULL,popvector=NULL,colvector=NULL,addstripchart=TRUE,y_lim=NULL,yline=NULL,mycex=2,labcex=2.5,plottitle=NULL,y_line=5.5,mywidth=0.5,myheight=9,x_axt="s")
 	{
 	if(is.null(myscore))
 		{
@@ -9363,13 +9364,20 @@ popboxplot<-function(export=NULL,exportname="popboxplot",ylabel=NULL,logy=FALSE,
 		{
 		return(cat("ERROR: Lengths of myscore vector and popvector do not correspond.",sep="\n"))
 		}
-	npops		<- length(mysambar$populations)
-	npops2		<- length(unique(popvector))
-	if(npops2!=npops)
+	if(is.null(colvector))
 		{
-		return(cat(paste("ERROR: found more populations in popvector (",npops2,") than expected based on length of mysambar$populations (",npops,"). Perhaps run the excludepop() function?.",sep=""),sep="\n"))
+		npops		<- length(mysambar$populations)
+		npops2		<- length(unique(popvector))
+		if(npops2!=npops)
+			{
+			return(cat(paste("ERROR: found more populations in popvector (",npops2,") than expected based on length of mysambar$populations (",npops,"). Perhaps run the excludepop() function?.",sep=""),sep="\n"))
+			}
+		popvector2		<- factor(popvector,levels=mysambar$poporder)
+		colvector		<- mysambar$colorder
+		}else{
+		popvector2		<- popvector
+		npops			<- unique(length(popvector2))
 		}
-	popvector2		<- factor(popvector,levels=mysambar$poporder)
 	if(!is.null(export))
 		{
 		mywidth2	<- mywidth*100
@@ -9388,10 +9396,10 @@ popboxplot<-function(export=NULL,exportname="popboxplot",ylabel=NULL,logy=FALSE,
 		}
 	if(addstripchart)
 		{
-		boxplot(myscore~popvector2,border=mysambar$colorder,log=mylog,col="grey90",las=2,xlab="",ylab="",pch=16,outline=FALSE,ylim=y_lim,xaxt=x_axt)
-		stripchart(myscore~popvector2,data=inds,vertical=TRUE,method="jitter",pch=16,cex=mycex,col=mysambar$colorder,bg="bisque",add=TRUE)
+		boxplot(myscore~popvector2,border=colvector,log=mylog,col="grey90",las=2,xlab="",ylab="",pch=16,outline=FALSE,ylim=y_lim,xaxt=x_axt)
+		stripchart(myscore~popvector2,data=inds,vertical=TRUE,method="jitter",pch=16,cex=mycex,col=colvector,bg="bisque",add=TRUE)
 		}else{
-		boxplot(myscore~popvector2,border=mysambar$colorder,log=mylog,col="grey90",las=2,xlab="",ylab="",pch=16,outline=TRUE,ylim=y_lim)
+		boxplot(myscore~popvector2,border=colvector,log=mylog,col="grey90",las=2,xlab="",ylab="",pch=16,outline=TRUE,ylim=y_lim)
 		}
 	if(!is.null(plottitle))
 		{
@@ -11559,18 +11567,6 @@ plot_indmatrix<-function(export=NULL,indsfilter=TRUE,inputvalues=NULL,popnames=m
 	}
 
 
-# phylogenetic tree
-# requires the package 'Ape'
-# Still need to find out how to assign the right colour codes to the tips
-# Tree does not reflect population structure accurately, so decided not to use it. 
-apetree<-function(mymatrix=mysambar$indneimatrix,my_inds=inds)
-	{
-	colnames(mymatrix)	<- my_inds$pop[my_inds$filter]
-	colnames(mymatrix)	<- my_inds$pop[my_inds$filter]
-	mytree				<- nj(mymatrix)
-	plot(mytree,edge.color=my_inds$popcol[my_inds$filter],cex=0.5)
-	}		
-
 # 28-03-2022: which method or distance performs best?
 # depends on getindtree 
 comparetrees<-function(do_analysis=FALSE,export=NULL,subtitle=NULL,do_parsimony=TRUE,do_likelihood=TRUE,pathlength_domean=FALSE)
@@ -12677,12 +12673,13 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 	mydistance	<- ifelse(mydistance=="edwards.dist","Edwardsdist",mydistance)
 	labelstr	<- ifelse(tiplabels,"tiplabels",ifelse(tipdots,"tipdots","notiplabels"))
 	labelstr2	<- ifelse(addnodelabels,ifelse(marknode,"nodemarked","nodelabels"),"nonodelabels")
+	labelstr3	<- ifelse(!is.null(legendpos),"WITHlegend","NOlegend")
 	colorstr	<- ifelse(edgecolors,"colortips","blacktips")
 	if(fullplotname)
 		{
-		plotname2	<- paste(plotname,mydistance,mymethod,mytype,labelstr,labelstr2,colorstr,sep=".")
+		plotname2	<- paste(plotname,mydistance,mymethod,mytype,labelstr,labelstr2,labelstr3,colorstr,sep=".")
 		}else{
-		plotname2	<- paste(plotname,mymethod,mytype,labelstr,labelstr2,colorstr,sep=".")
+		plotname2	<- paste(plotname,mymethod,mytype,labelstr,labelstr2,labelstr3,colorstr,sep=".")
 		}
 	plotname2		<- ifelse(makelinear,paste(plotname2,"linearized",sep="."),plotname2)
 	plotname2		<- ifelse(mybg=="white",plotname2,paste(plotname2,mybg,sep="."))
@@ -12707,7 +12704,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			ape::plot.phylo(myplottree,x.lim=myxlim,cex=labelcex,font=myfont,adj=0,show.tip.label=tiplabels,tip.color=my_colours,type=mytype,lab4ut=labelangle,edge.width=mylwd,node.pos=1,edge.color=mycolors2,rotate.tree=tree_angle,direction=mydirection)
 			}else{
 			cat(paste("Plotting tree with ",nshorten," shortened branches...",sep=""),sep="\n")
-			ape::plotBreakLongEdges(myplottree,n=nshorten,cex=labelcex,font=myfont,adj=0,show.tip.label=tiplabels,tip.color=my_colours,type=mytype,lab4ut=labelangle,edge.width=mylwd,node.pos=1,edge.color=mycolors2,rotate.tree=tree_angle,direction=mydirection)
+			ape::plotBreakLongEdges(myplottree,n=nshorten,cex=labelcex,font=myfont,adj=0,show.tip.label=tiplabels,tip.color=my_colours,type=mytype,lab4ut=labelangle,edge.width=mylwd,node.pos=1,edge.color=mycolors2,rotate.tree=tree_angle,direction=mydirection,nodenumbers=FALSE,rotatevec=82)
 			}
 		}else{
 		# UNDER CONSTRUCTION:
@@ -12841,7 +12838,7 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 			{
 			if(mytype=="phylogram")
 				{
-				axisPhylo(side=1,,backward=TRUE,cex=1.5)
+				axisPhylo(side=1,backward=TRUE,cex=1.5)
 				}else{
 				axis(side=1,cex=2)
 				}
@@ -13703,7 +13700,7 @@ dcplot<-function(exporttype=NULL,mycex=6)
 	if(!is.null(exporttype)){dev.off()}
 	}
 
-plotloadings<-function(exporttype=NULL,naxes=10,varthres=NULL,myloadings=mysambar$p$vectors,myperc=mysambar$pcoaperc,myxlim=NULL,plotname="Ordination_loadings")
+plotloadings<-function(exporttype=NULL,naxes=10,varthres=NULL,myloadings=mysambar$p$vectors,myperc=mysambar$pcoaperc,myxlim=NULL,plotname="Ordination_loadings",axisheight=0.75)
 	{
 	# or: p$values$Relative_eig
 	if(is.null(myloadings))
@@ -13767,7 +13764,7 @@ plotloadings<-function(exporttype=NULL,naxes=10,varthres=NULL,myloadings=mysamba
 		}
 	if(!is.null(exporttype))
 		{
-		myheight	<- naxes*0.75+2
+		myheight	<- naxes*axisheight+2
 		if(exporttype=="eps"){postscript(paste(plotname,"eps",sep="."),family=mysambar$myfont,width=10,height=myheight)}
 		if(exporttype=="pdf"){pdf(paste(plotname,"pdf",sep="."),family=mysambar$myfont,width=10,height=myheight)}
 		if(exporttype=="png"){png(paste(plotname,"png",sep="."),family=mysambar$myfont,width=720,height=myheight)}
@@ -13874,7 +13871,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 				}
 			# sambarfunction_findstructure:
 			p 				<- ape::pcoa(distmat, correction="none", rn=NULL)
-			if(makeglobal)
+				if(makeglobal)
 				{
 				mymatrix	<<- distmat
 				p			<<- p
@@ -14258,7 +14255,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 # 04-09-2024:
 # compare distances in pcoa to distances in underlying distance matrix:
 # renamed, previously called pcoadistances
-pcoastress<-function(mymethod="pi",ndim=NULL,distmat=mysambar$pcoamatrix,yline=NULL,doexport=TRUE,plottitle=NULL,doplot=TRUE,onlybetween=TRUE)
+pcoastress<-function(mymethod="pi",ndim=NULL,distmat=mysambar$pcoamatrix,yline=NULL,doexport=TRUE,doexport2=FALSE,plottitle=NULL,doplot=TRUE,onlybetween=TRUE,legendpos="topleft",legendcex=0.75)
 	{
 	if(!is.null(distmat))
 		{
@@ -14276,8 +14273,8 @@ pcoastress<-function(mymethod="pi",ndim=NULL,distmat=mysambar$pcoamatrix,yline=N
 	loadingdf		<- mysambar$myp$vectors			# loadings of pcoa-axes
 	#
 	ninds			<- ncol(distmat)
-	popcolmat1		<- matrix(rep(inds$popcol,times=ninds),ncol=ninds,nrow=ninds)
-	popcolmat2		<- matrix(rep(inds$popcol,each=ninds),ncol=ninds,nrow=ninds)
+	popcolmat1		<- matrix(rep(inds$popcol[inds$filter],times=ninds),ncol=ninds,nrow=ninds)
+	popcolmat2		<- matrix(rep(inds$popcol[inds$filter],each=ninds),ncol=ninds,nrow=ninds)
 	mypops			<- inds$pop[inds$filter]
 	if(length(mypops)!=ninds){return(cat("ERROR: length of population vector does not correspond with dimensions of distance matrix.",sep="\n"))}
 	#
@@ -14285,6 +14282,7 @@ pcoastress<-function(mymethod="pi",ndim=NULL,distmat=mysambar$pcoamatrix,yline=N
 	errorvec		<<- vector()
 	for(k in c(1:ndim))
 		{
+		if(k%%5==0){cat(k,sep="\n")}
 		loadingmat	<<- as.matrix(dist(loadingdf[,c(1:k)]))				# euclidean distances of loadings
 		diffmat		<<- (distmat-loadingmat)/distmat
 		if(onlybetween)
@@ -14299,15 +14297,19 @@ pcoastress<-function(mymethod="pi",ndim=NULL,distmat=mysambar$pcoamatrix,yline=N
 			}
 		if(doplot)
 			{
+			if(doexport2){pdf(paste("Pcoa_residualerror",k,"pdf",sep="."),height=6,width=6)}
 			plot(distmat[upper.tri(distmat)],loadingmat[upper.tri(loadingmat)],pch=21,cex=1,ylim=c(0,max(distmat)),xlim=c(0,max(distmat)),col=popcolmat1[upper.tri(popcolmat1)],bg=popcolmat2[upper.tri(popcolmat2)],xlab="True distance",ylab="PCoA distance",las=1)
+			mtext(side=3,paste(k,"primary axes",sep=" "),line=0.5,cex=1)
 			lines(c(0,max(distmat)),c(0,max(distmat)),col="red",lty=2)
+			legend(legendpos,mysambar$poporder,fill=mysambar$colorder,cex=legendcex,bty='n')
+			if(doexport2){dev.off()}
 			}
 		errorvec[k]	<<- mean(abs(diffmat[upper.tri(diffmat)]))
 		}
 	if(ndim==ncol(loadingdf))
 		{
-		if(doexport){pdf(paste("Pcoa_stress",ndim,"pdf",sep="."),height=4,width=4)}
-		plot(errorvec,xlab="# PCoA axes",ylab="",ylim=c(0,1),pch=16,cex=1,cex.lab=1.5,las=0,cex.axis=1.25)
+		if(doexport){pdf(paste("Pcoa_stress",ndim,"pdf",sep="."),height=5.5,width=5.5)}
+		plot(errorvec,xlab="# PCoA axes",ylab="",ylim=c(0,1),pch=16,lwd=2,cex.lab=1.5,las=0,cex.axis=1.25,type="l",las=1)
 		abline(h=yline,lty=2,lwd=2,col="red")
 		mtext(side=2,"PCOA residual error",line=2.5,cex=1.5)
 		if(!is.null(plottitle)){mtext(plottitle,side=3,line=0.5,cex=1.75)}
@@ -17120,9 +17122,11 @@ LEAce<-function(min_demes=2,max_demes=12,nruns=50,runanalysis=TRUE,plottitle=NUL
 	if(runanalysis)
 		{
 		cedf				<- data.frame("K"=rep(mydemes,times=nruns),"ce"=NA)
+		mysambar$celist		<<- vector(length=nruns,"list")
 		for(myrun in c(1:nruns))
 			{
 			runLEA(mindemes=min_demes,maxdemes=max_demes,popnames=mysambar$populations,order_on_longitude=FALSE,focuspop=NULL,poporder=leapoporder,dolong3=FALSE,myploidy=2)
+			mysambar$celist[[myrun]]	<<- mysambar$leaqmatrixlist
 			cedf$ce[((myrun-1)*ndemes+1):(myrun*ndemes)]	<- as.vector(mysambar$lea_CE)
 			}
 		mysambar$cedf		<<- cedf
@@ -17944,7 +17948,7 @@ plotfossils<-function(adjustlong=TRUE)
 	}
 
 # Create map using package Maps. Advantage compared to Rworldmap is that this function allows to centre the map around the Pacific ocean, if needed 
-plotlocations2<-function(export=NULL,indsfilter=inds$filter,mycols=inds$popcol[inds$filter],longthreshold=15,xmargin=0.05,ymargin=0.15,mapcol="grey90",mybg="white",msnmatrix=NULL,msnlwd=1.5,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,shapelist=NULL,addshapecol="grey50",legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=21,legendcex=0.75,mycex=1,pchlwd=0.25,dolabels=FALSE,printname=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90",boxlwd=1,linesdf=NULL,legendpos2="topright",rangefilter=NULL,mybreaks=c(-0.01,0.05,0.1,0.15,0.2,0.25,1),distdf=NULL,plotbin=4)
+plotlocations2<-function(export=NULL,indsfilter=inds$filter,mycols=inds$popcol[inds$filter],longthreshold=15,xmargin=0.05,ymargin=0.15,mapcol="grey90",mybg="white",msnmatrix=NULL,msnlwd=1.5,addaxislabels=FALSE,mydeviation=NULL,exportname="samplelocations",silent=TRUE,mygeodf=NULL,mygeofile=NULL,my_col=NULL,shapelist=NULL,addshapecol="grey50",legendpos="topleft",legendtxt=NULL,legendcol=NULL,my_pch=21,legendcex=0.75,mycex=1,pchlwd=0.25,dolabels=FALSE,printname=FALSE,showborders=FALSE,textdf=NULL,textcex=1.25,boxcol="grey90",boxlwd=1,linesdf=NULL,legendpos2="topright",rangefilter=NULL,myxlim=NULL,myylim=NULL,mybreaks=c(-0.01,0.05,0.1,0.15,0.2,0.25,1),distdf=NULL,plotbin=4)
 	{
 	if("maps" %in% rownames(installed.packages()) == FALSE) {install.packages("maps",repos='http://cran.us.r-project.org')}
 	if("maps" %in% (.packages()) == FALSE)					{library(maps)}
@@ -18094,18 +18098,22 @@ plotlocations2<-function(export=NULL,indsfilter=inds$filter,mycols=inds$popcol[i
 		}
 	ww2 		<- maps::map('world', wrap=c(0-longthreshold,360-longthreshold), plot=FALSE, fill=TRUE)
 	bordercol	<- ifelse(showborders,"white",NA)
-	if(is.null(rangefilter))
+	if(is.null(myxlim)&is.null(myylim))
 		{
-		myxlim		<- c(min(mygeocoord$longitude,na.rm=TRUE),max(mygeocoord$longitude,na.rm=TRUE))
-		myylim		<- c(min(mygeocoord$latitude,na.rm=TRUE),max(mygeocoord$latitude,na.rm=TRUE))
-		}else{
-		myxlim		<- c(min(allcoord$longitude,na.rm=TRUE),max(allcoord$longitude,na.rm=TRUE))
-		myylim		<- c(min(allcoord$latitude,na.rm=TRUE),max(allcoord$latitude,na.rm=TRUE))
+		cat("Defining range limits...",sep="\n")
+		if(is.null(rangefilter))
+			{
+			myxlim		<- c(min(mygeocoord$longitude,na.rm=TRUE),max(mygeocoord$longitude,na.rm=TRUE))
+			myylim		<- c(min(mygeocoord$latitude,na.rm=TRUE),max(mygeocoord$latitude,na.rm=TRUE))
+			}else{
+			myxlim		<- c(min(allcoord$longitude,na.rm=TRUE),max(allcoord$longitude,na.rm=TRUE))
+			myylim		<- c(min(allcoord$latitude,na.rm=TRUE),max(allcoord$latitude,na.rm=TRUE))
+			}
+		myxrange	<- myxlim[2]-myxlim[1]
+		myyrange	<- myylim[2]-myylim[1]
+		myxlim		<- c(myxlim[1]-xmargin*myxrange,myxlim[2]+xmargin*myxrange)
+		myylim		<- c(myylim[1]-ymargin*myyrange,myylim[2]+ymargin*myyrange)
 		}
-	myxrange	<- myxlim[2]-myxlim[1]
-	myyrange	<- myylim[2]-myylim[1]
-	myxlim		<- c(myxlim[1]-xmargin*myxrange,myxlim[2]+xmargin*myxrange)
-	myylim		<- c(myylim[1]-ymargin*myyrange,myylim[2]+ymargin*myyrange)
 	par(bg=mybg)
 	maps::map(ww2,ylim=myylim,xlim=myxlim,col=mapcol,border=bordercol,fill=TRUE)
 	#map(ww2,ylim=c(30,80),xlim=c(-10,280),col=mapcol,border=bordercol,fill=TRUE)	# for bears
@@ -18318,7 +18326,7 @@ getmultishapes<-function(myprefix=c("data_0"),mydir=".")
 	}
 
 # map species range using package Maps (originally called 'plotsingle2'):
-mapsingleshape<-function(export=NULL,plotratios=1,plottitle=NULL,exportname=NULL,mycolours=NULL,transparency_level=0.85,x_lim=c(-10,280),y_lim=c(25,80),mybg="white",boxcol="grey90",boxlwd=1,shapelist=NULL,addshapecol="grey50",addloc=FALSE,myfilter=NULL,mycoord=NULL,mycoordcol=NULL,mycoordcol2=NULL,mypchs=16,myrange=NULL,range_fac=0.02,mycex=1,showborders=TRUE,mylegend=NULL,mylegendcol=NULL,mylegendlty=NULL,legendcex=0.75,legendpos="bottom",legend2df=NULL,legend2title=NULL,legend2pos="bottomright",legend2cex=2,addrefuge=FALSE,linesdf=NULL,markbool=NULL,reverse_pchcol=FALSE,pchlwd=0.5)
+mapsingleshape<-function(export=NULL,species_column=NULL,plotratios=1,plottitle=NULL,exportname=NULL,mycolours=NULL,transparency_level=0.85,x_lim=c(-10,280),y_lim=c(25,80),mybg="white",boxcol="grey90",boxlwd=1,shapelist=NULL,addshapecol="grey50",addloc=FALSE,myfilter=NULL,mycoord=NULL,mycoordcol=NULL,mycoordcol2=NULL,mypchs=16,myrange=NULL,range_fac=0.02,mycex=1,showborders=TRUE,mylegend=NULL,mylegendcol=NULL,mylegendlty=NULL,legendcex=0.75,legendpos="bottom",legend2df=NULL,legend2title=NULL,legend2pos="bottomright",legend2cex=2,addrefuge=FALSE,linesdf=NULL,markbool=NULL,reverse_pchcol=FALSE,pchlwd=0.5)
 	{
 	if(is.null(mycolours))
 		{
@@ -18331,21 +18339,32 @@ mapsingleshape<-function(export=NULL,plotratios=1,plottitle=NULL,exportname=NULL
 	myextent 		<- as.vector(extent(mygenusshape)) 
 	# mygenusshape has been generated by typing as.data.frame(shape2), this results in the error:
 	# Error in extent(mygenusshape): c("x", "y") %in% names(x) are not all TRUE
-	if("binomial"%in%colnames(mydata))
+	if(!is.null(species_column))
 		{
-		species 		<- as.vector(unique(mydata$binomial))	
-		mydata$species	<- mydata$binomial
-		}else{
-		cat("WARNING: columnname 'binomial' not present. Trying 'BINOMIAL' instead...",sep="\n")
-		if("BINOMIAL"%in%colnames(mydata))
+		if(!any(colnames(mydata)==species_column))
 			{
-			species 		<- as.vector(unique(mydata$BINOMIAL))
-			mydata$species	<- mydata$BINOMIAL
-			}else{
-			return(cat("WARNING: columnname 'BINOMIAL' also not present. Type 'colnames(mydata) to observe the name of column with species names.",sep="\n"))
+			return(cat("ERROR: specified columnname not present. Type 'colnames(mydata) to observe the name of column with species names.",sep="\n"))
 			}
+		speciesvector	<- mydata[,colnames(mydata)==species_column]
+		mydata$species	<- speciesvector
+		species 		<- as.vector(unique(mydata$species))
+		}else{
+		if("binomial"%in%colnames(mydata))
+			{
+			species 		<- as.vector(unique(mydata$binomial))	
+			mydata$species	<- mydata$binomial
+			}else{
+			cat("WARNING: columnname 'binomial' not present. Trying 'BINOMIAL' instead...",sep="\n")
+			if("BINOMIAL"%in%colnames(mydata))
+				{
+				species 		<- as.vector(unique(mydata$BINOMIAL))
+				mydata$species	<- mydata$BINOMIAL
+				}else{
+				return(cat("ERROR: columnname 'BINOMIAL' also not present. Type 'colnames(mydata) to observe the name of column with species names. Use flag 'species_column' to specify column name.",sep="\n"))
+				}
+			}
+		species 		<- sort(species)
 		}
-	species 		<- sort(species)
 	#
 	xrange			<- diff(myextent[1:2])
 	yrange			<- diff(myextent[3:4])
@@ -27559,14 +27578,19 @@ plottajd<-function(tajdtable=NULL,genome_wide=FALSE,nsites=NULL,nsegsites=NULL,p
 			indstemp	<- inds[,c("pop","allseqsites")]
 			aggdata 	<- aggregate(indstemp$allseqsites,by=list(indstemp$pop),FUN=mean, na.rm=TRUE)
 			allsites	<- aggdata$x[order(as.character(aggdata$Group.1))]
+			
 			}else{
 			allsites	<- nsites
 			}
-		mywatt	<- mywatt*myseg/allsites*100
-		mypi	<- mypi*myseg/allsites*100
-		mytajd	<- mytajd*myseg/allsites*100
-		myscores<<- cbind(mywatt,mypi,mytajd)
+		mywatt			<- mywatt*myseg/allsites*100
+		mypi			<- mypi*myseg/allsites*100
+		mytajd			<- mytajd*myseg/allsites*100
 		}
+	# store info:
+	tajimaDdf			<- as.data.frame(cbind(popnames,mywatt,mypi,mytajd))
+	colnames(tajimaDdf)	<- c("pop","WattersonTheta","NucleotideDiversity","TajimaD")
+	mysambar$tajimaD	<<- tajimaDdf
+	#
 	mymin	<- min(mywatt,mypi)-0.02
 	mymax	<- max(mywatt,mypi)+0.02
 	myrange	<- c(mymin,mymax)
@@ -31804,7 +31828,8 @@ runDIST<-function(silent=TRUE,my_root=NULL,do_nj=TRUE,doindtree=TRUE,doindpcoa=T
 		#getindtree(plotname="Tree_Of_Individuals_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=FALSE,dopathlength=FALSE,edgecolors=FALSE,tipdots=TRUE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=legpos,fullplotname=FALSE,tree_angle=indtreeangle,myylabel="Sequence dissimilarity (%)")
 		getindtree(plotname="Tree_Of_Individuals_OLS",inputdistmat=mymat2,mymethod="OLS",drop_ind=dropvec,mytype="unrooted",labelangle="axial",labelcex=1,tiplabels=TRUE,dopathlength=TRUE,edgecolors=TRUE,tipdots=FALSE,nshorten=n_shorten,export="pdf",dotcex=3,legendpos=legpos,fullplotname=FALSE,tree_angle=indtreeangle,myylabel="Sequence dissimilarity (%)")
 		# UPGMA-PHYLOGRAM WITH DISTANCE DOTS:
-		getindtree(inputdistmat=mymat2,mymethod="upgma",drop_ind=dropvec,mytype="phylogram",fullplotname=FALSE,myylabel="Sequence dissimilarity (%)",export="pdf",labelcex=1.25,edgecolors=FALSE,tiplabels=TRUE,mylwd=1,add_distances=TRUE,dist_cex=1.3,dist_spacing=0.5,legendpos=NULL,legendcex=1.2)
+		getindtree(legendpos="topleft",inputdistmat=mymat2,mymethod="upgma",drop_ind=dropvec,mytype="phylogram",fullplotname=FALSE,myylabel="Sequence dissimilarity (%)",export="pdf",labelcex=1.25,edgecolors=FALSE,tiplabels=TRUE,mylwd=1,add_distances=TRUE,dist_cex=1.3,dist_spacing=0.4,legendcex=0.8)
+		getindtree(legendpos=NULL,inputdistmat=mymat2,mymethod="upgma",drop_ind=dropvec,mytype="phylogram",fullplotname=FALSE,myylabel="Sequence dissimilarity (%)",export="pdf",labelcex=1.25,edgecolors=FALSE,tiplabels=TRUE,mylwd=1,add_distances=TRUE,dist_cex=1.3,dist_spacing=0.4,legendcex=0.8)
 		}
 	# Hudson Fst: (pi_between - pi_within)/pi_between
 	popnames			<- mysambar$populations2
@@ -32122,6 +32147,7 @@ dxytrio<-function(mypops=mysambar$poporder,doplot=TRUE,p_thres=0.05,add_legend=T
 	triodf				<- data.frame("admixpop"=rep(NA,ntriplets),"inpop"=NA,"outpop"=NA,"d3raw"=NA,"d3"=NA,"d3_alt"=NA,"p"=NA,"sign"=NA,"bonferroni"=NA)
 	for(i in c(1:ntriplets))
 		{
+		#cat(i,sep="\n")
 		if(i%%500==0){cat(paste(i, " out of ",ntriplets," triplets.",sep=""),sep="\n")}
 		p1		<- mytriplets$p1[i]
 		p2		<- mytriplets$p2[i]
@@ -32133,58 +32159,60 @@ dxytrio<-function(mypops=mysambar$poporder,doplot=TRUE,p_thres=0.05,add_legend=T
 		distvec[1]	<- pops2$dperc[(pops2$pop1==p1&pops2$pop2==p2)|(pops2$pop1==p2&pops2$pop2==p1)] # 1 vs 2 
 		distvec[2]	<- pops2$dperc[(pops2$pop1==p1&pops2$pop2==p3)|(pops2$pop1==p3&pops2$pop2==p1)] # 1 vs 3 
 		distvec[3]	<- pops2$dperc[(pops2$pop1==p2&pops2$pop2==p3)|(pops2$pop1==p3&pops2$pop2==p2)] # 2 vs 3
-		#
-		# which population is putatively admixed?
-		maxdist		<- max(distvec)
-		k			<- which(distvec==maxdist)
-		admixnr		<- ifelse(k==1,3,ifelse(k==2,2,1))
-		admixpop	<- pvec[admixnr]
-		#
-		# which population is outgroup?
-		mindist		<- min(distvec)
-		j			<- which(distvec==mindist)
-		outnr		<- ifelse(j==1,3,ifelse(j==2,2,1))
-		outpop		<- pvec[outnr]
-		#
-		# which population is the ingroup?
-		mediandist	<- median(distvec)
-		m			<- which(distvec==mediandist)
-		inpop		<- pvec[-c(admixnr,outnr)]
-		#
-		# how unbalanced are the differences?
-		diffvec		<- rep(NA,3)
-		diffvec[1]	<- distvec[1]-distvec[2]		# compare against p1 (Kodiak):		Kodiak-HudsonBay vs Kodiak-Westcoast
-		diffvec[2]	<- distvec[1]-distvec[3]		# compare against p2 (HudsonBay):	Kodiak-HudsonBay vs HudsonBay-Westcoast
-		diffvec[3]	<- distvec[2]-distvec[3]		# compare against p3 (Westcoast):	Kodiak-Westcoast vs HudsonBay-Westcoast
-		#
-		if(printverbose)
+		if(!any(is.na(distvec)))
 			{
-			cat(paste(inpop,admixpop,outpop,sep=" "),sep="\n")
-			cat(paste("min: ",round(mindist,3),sep=""),sep="\n")
-			cat(paste("medium: ",round(mediandist,3),sep=""),sep="\n")
-			cat(paste("max: ",round(maxdist,3),sep=""),sep="\n")
-			}
-		#
-		triodf$admixpop[i]	<- admixpop
-		triodf$inpop[i]		<- inpop
-		triodf$outpop[i]	<- outpop
-		triodf$d3raw[i]		<- (maxdist-mediandist)						# not-normalised difference between maximum distance and median distance. Allows for better comparison to Dxy.
-		triodf$d3[i]		<- (maxdist-mediandist)/(maxdist-mindist)	# normalised (range between 0 and 1)
-		triodf$d3_alt[i]	<- (maxdist-mediandist)/maxdist
-		#
-		# t-test p-values:
-		dxyvec1				<- inds2$d[inds2$filter&((as.character(inds2$pop1)==outpop&as.character(inds2$pop2)==admixpop)|(as.character(inds2$pop1)==admixpop&as.character(inds2$pop2)==outpop))]
-		dxyvec2				<- inds2$d[inds2$filter&((as.character(inds2$pop1)==outpop&as.character(inds2$pop2)==inpop)|(as.character(inds2$pop1)==inpop&as.character(inds2$pop2)==outpop))]
-		vec1	<<- dxyvec1
-		vec2	<<- dxyvec2
-		if(length(dxyvec1)>1&length(dxyvec2)>1)
-			{
-			triodf$p[i]			<- round(t.test(x=dxyvec1,y=dxyvec2)$p.value,6)
-			triodf$sign[i]		<- ifelse(triodf$p[i]<0.05,ifelse(triodf$p[i]<0.01,ifelse(triodf$p[i]<0.001,"***","**"),"*"),"NS")
-			triodf$bonferroni[i]<- ifelse(triodf$p[i]<0.05/nrow(triodf),TRUE,FALSE)
-			}else{
-			triodf$p[i]			<- 0.5
-			triodf$sign[i]		<- "NS"
+			# which population is putatively admixed?
+			maxdist		<- max(distvec)
+			k			<- which(distvec==maxdist)
+			admixnr		<- ifelse(k==1,3,ifelse(k==2,2,1))
+			admixpop	<- pvec[admixnr]
+			#
+			# which population is outgroup?
+			mindist		<- min(distvec)
+			j			<- which(distvec==mindist)
+			outnr		<- ifelse(j==1,3,ifelse(j==2,2,1))
+			outpop		<- pvec[outnr]
+			#
+			# which population is the ingroup?
+			mediandist	<- median(distvec)
+			m			<- which(distvec==mediandist)
+			inpop		<- pvec[-c(admixnr,outnr)]
+			#
+			# how unbalanced are the differences?
+			diffvec		<- rep(NA,3)
+			diffvec[1]	<- distvec[1]-distvec[2]		# compare against p1 (Kodiak):		Kodiak-HudsonBay vs Kodiak-Westcoast
+			diffvec[2]	<- distvec[1]-distvec[3]		# compare against p2 (HudsonBay):	Kodiak-HudsonBay vs HudsonBay-Westcoast
+			diffvec[3]	<- distvec[2]-distvec[3]		# compare against p3 (Westcoast):	Kodiak-Westcoast vs HudsonBay-Westcoast
+			#
+			if(printverbose)
+				{
+				cat(paste(inpop,admixpop,outpop,sep=" "),sep="\n")
+				cat(paste("min: ",round(mindist,3),sep=""),sep="\n")
+				cat(paste("medium: ",round(mediandist,3),sep=""),sep="\n")
+				cat(paste("max: ",round(maxdist,3),sep=""),sep="\n")
+				}
+			#
+			triodf$admixpop[i]	<- admixpop
+			triodf$inpop[i]		<- inpop
+			triodf$outpop[i]	<- outpop
+			triodf$d3raw[i]		<- (maxdist-mediandist)						# not-normalised difference between maximum distance and median distance. Allows for better comparison to Dxy. How much closer is outgroup to one of sister populations?
+			triodf$d3[i]		<- (maxdist-mediandist)/(maxdist-mindist)	# normalised (range between 0 and 1). Top value of 1 means: 50-50 hybrid.
+			triodf$d3_alt[i]	<- (maxdist-mediandist)/maxdist				# rough estimate of gene flow proportion (m). Underestimate unless nucleotide diversity is zero.
+			#
+			# t-test p-values:
+			dxyvec1				<- inds2$d[inds2$filter&((as.character(inds2$pop1)==outpop&as.character(inds2$pop2)==admixpop)|(as.character(inds2$pop1)==admixpop&as.character(inds2$pop2)==outpop))]
+			dxyvec2				<- inds2$d[inds2$filter&((as.character(inds2$pop1)==outpop&as.character(inds2$pop2)==inpop)|(as.character(inds2$pop1)==inpop&as.character(inds2$pop2)==outpop))]
+			vec1				<<- dxyvec1
+			vec2				<<- dxyvec2
+			if(length(dxyvec1)>1&length(dxyvec2)>1)
+				{
+				triodf$p[i]			<- round(t.test(x=dxyvec1,y=dxyvec2)$p.value,6)
+				triodf$sign[i]		<- ifelse(triodf$p[i]<0.05,ifelse(triodf$p[i]<0.01,ifelse(triodf$p[i]<0.001,"***","**"),"*"),"NS")
+				triodf$bonferroni[i]<- ifelse(triodf$p[i]<0.05/nrow(triodf),TRUE,FALSE)
+				}else{
+				triodf$p[i]			<- 0.5
+				triodf$sign[i]		<- "NS"
+				}
 			}
 		}
 	if(all(is.na(triodf$p)))
@@ -32961,7 +32989,7 @@ dxyhisto<-function(mydf=mydistdf,pairdf=NULL,export=NULL,mybreaks=seq(-1,10000,5
 # 21-08-2022: renamed from popdxymantel to pops2scatter, to make it generally useful to create scatter plots for pops2 dataframe.
 # 21-06-2022: rebuilt from dxyfac() function, and renamed to popdxymantel:
 # 23-03-2023: can this replace popscatter function?
-pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,export=NULL,xscore="geodist",yscore="d",mybg="white",mylas=2,plotname="Mantelplot_rawdistance",addlines=NULL,plottitle=NULL,mylinemat=NULL,mycex=3,myxlim=NULL,axiscex=2.5,labcex=3,maincex=3,xline=4.5,yline=5.5,addlegend=TRUE,legendpos="topleft",legend2pos="bottomright",legendcex=1.5,vline=NULL,xlabel="Distance (100 km)",ylabel="Dxy (%)",addregression=TRUE)
+pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,mylog="x",export=NULL,xscore="geodist",yscore="d",mybg="white",mylas=2,plotname="Mantelplot_rawdistance",addlines=NULL,plottitle=NULL,mylinemat=NULL,mycex=3,myxlim=NULL,axiscex=2.5,labcex=3,maincex=3,xline=4.5,yline=5.5,addlegend=TRUE,legendpos="topleft",legend2pos="bottomright",legendcex=1.5,vline=NULL,xlabel="Distance (100 km)",ylabel="Dxy (%)",addregression=TRUE)
 	{
 	if((!"filter1"%in%colnames(pops2))|(!"filter2"%in%colnames(pops2)))
 		{
@@ -33008,9 +33036,9 @@ pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,export=NULL,xscore="geodist
 	mydf			<<- mydf
 	if(is.null(myxlim))
 		{
-		plot(mydf$x,mydf$y,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=mylas,main=plottitle)
+		plot(mydf$x,mydf$y,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log=mylog,xlab="",ylab="",las=mylas,main=plottitle)
 		}else{
-		plot(mydf$x,mydf$y,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log="x",xlab="",ylab="",las=mylas,xlim=myxlim,main=plottitle)
+		plot(mydf$x,mydf$y,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log=mylog,xlab="",ylab="",las=mylas,xlim=myxlim,main=plottitle)
 		}
 	if(!is.null(addlines)){abline(h=addlines,lty=2,col="grey50")}
 	if(addlegend){legend(legendpos,legend=mysambar$poporder,bty='n',fill=mysambar$colorder,border=mysambar$colorder,cex=legendcex)}
@@ -35927,7 +35955,7 @@ plotstairway<-function(u_rate="2.5e-8",gen_time="20",mysuffix=NULL,grayscale=FAL
 # Selection analyses
 
 # Another not explored option, for phased data I suppose: R package rEHH
-selectionanalyses<-function(export="pdf",do_meta=TRUE,plothisto=TRUE,dopiechart=TRUE,signlevel=0.05,do_pairwise=FALSE,do_pheno=FALSE,onlypooled=TRUE,add_bayescan=FALSE,bayescanFDR=0.01,overwrite_bayescan=FALSE,phenolabels=c("pheno1","pheno2"),do_lk=FALSE,do_pcadapt=TRUE,do_outflank=TRUE,do_fsthet=FALSE,bayescan_mapfile=NULL,silent=TRUE,pcadaptped=FALSE,overwriteped=TRUE,do_thin=FALSE,gwdsbinsize=1000000,my_correction="bonferroni",doplotvenn=TRUE,authors=NULL,species=NULL,selclaim=NULL,demography=NULL,ngenerations=NULL,geneflow=NULL,datainfo=NULL,controldata=FALSE,logp_max=NULL,export_data=FALSE)
+selectionanalyses<-function(export="pdf",do_meta=TRUE,plothisto=TRUE,dopiechart=TRUE,signlevel=0.05,n_haploblocks=100000,do_pairwise=FALSE,do_pheno=FALSE,onlypooled=TRUE,add_bayescan=FALSE,bayescanFDR=0.01,overwrite_bayescan=FALSE,phenolabels=c("pheno1","pheno2"),do_lk=FALSE,do_pcadapt=TRUE,do_outflank=TRUE,do_fsthet=FALSE,bayescan_mapfile=NULL,silent=TRUE,pcadaptped=FALSE,overwriteped=TRUE,do_thin=FALSE,gwdsbinsize=1000000,my_correction="bonferroni",doplotvenn=TRUE,authors=NULL,species=NULL,selclaim=NULL,demography=NULL,ngenerations=NULL,geneflow=NULL,datainfo=NULL,controldata=FALSE,logp_max=NULL,export_data=FALSE)
 	{
 	if(!silent){cat("Checking settings...",sep="\n")}
 	mysambar$pcadapt_error<<-FALSE
@@ -36172,7 +36200,7 @@ selectionanalyses<-function(export="pdf",do_meta=TRUE,plothisto=TRUE,dopiechart=
 	if(do_pairwise)
 		{
 		cat("Executing selection analyses for all pairwise population comparisons.",sep="\n")
-		run_pairwise(overwrite_ped=overwriteped,pcadapt_ped=pcadaptped,dopheno=FALSE,only_pooled=FALSE,allpairwise=TRUE,sign_level=signlevel,do_piechart=dopiechart,addbayescan=add_bayescan,bayescan_FDR=bayescanFDR,bayescan_overwrite=overwrite_bayescan,dopcadapt=do_pcadapt,dooutflank=do_outflank,dofsthet=do_fsthet,do_thinning=do_thin,bin_size=gwdsbinsize,test_correction=my_correction,plotvenn=doplotvenn,log_p_max=logp_max,myauthors=authors,myspecies=species,s_claim=selclaim,demography_model=demography,n_generations=ngenerations,with_geneflow=geneflow,data_information=datainfo,control_dataset=controldata,exportdata=export_data)						
+		run_pairwise(overwrite_ped=overwriteped,pcadapt_ped=pcadaptped,dopheno=FALSE,only_pooled=FALSE,allpairwise=TRUE,sign_level=signlevel,n_haploblocks=n_haploblocks,do_piechart=dopiechart,addbayescan=add_bayescan,bayescan_FDR=bayescanFDR,bayescan_overwrite=overwrite_bayescan,dopcadapt=do_pcadapt,dooutflank=do_outflank,dofsthet=do_fsthet,do_thinning=do_thin,bin_size=gwdsbinsize,test_correction=my_correction,plotvenn=doplotvenn,log_p_max=logp_max,myauthors=authors,myspecies=species,s_claim=selclaim,demography_model=demography,n_generations=ngenerations,with_geneflow=geneflow,data_information=datainfo,control_dataset=controldata,exportdata=export_data)						
 		if(mysambar$pcadapt_error){return(cat("Aborting selectionanalyses run because of PCadapt error.",sep="\n"))}
 		cat("Plotting -log p values...",sep="\n")
 		multi_plot_scanlog(allpairwise=TRUE,do_export=export,outflank_q=FALSE)
@@ -36235,7 +36263,7 @@ selectionanalyses<-function(export="pdf",do_meta=TRUE,plothisto=TRUE,dopiechart=
 			}else{
 			cat("Because the flag onlypooled is set to FALSE, selection scans will be run for the pooled comparison as well as for pairwise comparisons.",sep="\n")
 			}
-		run_pairwise(overwrite_ped=overwriteped,pcadapt_ped=pcadaptped,dopheno=TRUE,only_pooled=onlypooled,sign_level=signlevel,do_piechart=dopiechart,addbayescan=add_bayescan,bayescan_FDR=bayescanFDR,bayescan_overwrite=overwrite_bayescan,dopcadapt=do_pcadapt,dooutflank=do_outflank,dofsthet=do_fsthet,bayescanmapfile=bayescan_mapfile,do_thinning=do_thin,bin_size=gwdsbinsize,test_correction=my_correction,plotvenn=doplotvenn,log_p_max=logp_max,myauthors=authors,myspecies=species,s_claim=selclaim,demography_model=demography,n_generations=ngenerations,with_geneflow=geneflow,data_information=datainfo,control_dataset=controldata,exportdata=export_data)						
+		run_pairwise(overwrite_ped=overwriteped,pcadapt_ped=pcadaptped,dopheno=TRUE,only_pooled=onlypooled,sign_level=signlevel,n_haploblocks=n_haploblocks,do_piechart=dopiechart,addbayescan=add_bayescan,bayescan_FDR=bayescanFDR,bayescan_overwrite=overwrite_bayescan,dopcadapt=do_pcadapt,dooutflank=do_outflank,dofsthet=do_fsthet,bayescanmapfile=bayescan_mapfile,do_thinning=do_thin,bin_size=gwdsbinsize,test_correction=my_correction,plotvenn=doplotvenn,log_p_max=logp_max,myauthors=authors,myspecies=species,s_claim=selclaim,demography_model=demography,n_generations=ngenerations,with_geneflow=geneflow,data_information=datainfo,control_dataset=controldata,exportdata=export_data)						
 		if(mysambar$pcadapt_error){return(cat("Aborting selectionanalyses run because of PCadapt error.",sep="\n"))}
 		setwd(phenodir)
 		if(!onlypooled)
@@ -36324,7 +36352,7 @@ selectionstudy_workflow<-function()
 	# this will create outlier.assoc1_assoc2.txt file
 	}
 
-run_pairwise<-function(dopheno=FALSE,do_analysis=TRUE,only_pooled=FALSE,allpairwise=FALSE,sign_level=0.05,do_piechart=TRUE,pheno_labels=NULL,mylabels=NULL,popnames=mysambar$populations,addbayescan=FALSE,bayescan_FDR=0.01,bayescan_overwrite=FALSE,dopcadapt=TRUE,pcadapt_ped=FALSE,dooutflank=TRUE,dofsthet=FALSE,bayescanmapfile=NULL,overwrite_ped=FALSE,do_thinning=TRUE,bin_size=1000000,overwritebin=TRUE,log_p_max=NULL,test_correction="bonferroni",plotvenn=TRUE,myauthors=NULL,myspecies=NULL,s_claim=NULL,demography_model=NULL,n_generations=NULL,with_geneflow=NULL,data_information=NULL,control_dataset=FALSE,exportdata=FALSE)
+run_pairwise<-function(dopheno=FALSE,do_analysis=TRUE,only_pooled=FALSE,allpairwise=FALSE,sign_level=0.05,n_haploblocks=100000,do_piechart=TRUE,pheno_labels=NULL,mylabels=NULL,popnames=mysambar$populations,addbayescan=FALSE,bayescan_FDR=0.01,bayescan_overwrite=FALSE,dopcadapt=TRUE,pcadapt_ped=FALSE,dooutflank=TRUE,dofsthet=FALSE,bayescanmapfile=NULL,overwrite_ped=FALSE,do_thinning=TRUE,bin_size=1000000,overwritebin=TRUE,log_p_max=NULL,test_correction="bonferroni",plotvenn=TRUE,myauthors=NULL,myspecies=NULL,s_claim=NULL,demography_model=NULL,n_generations=NULL,with_geneflow=NULL,data_information=NULL,control_dataset=FALSE,exportdata=FALSE)
 	{
 	mysambar$pcadapt_error	<<- FALSE
 	if(is.null(inds$type)&!allpairwise)
@@ -36438,11 +36466,11 @@ run_pairwise<-function(dopheno=FALSE,do_analysis=TRUE,only_pooled=FALSE,allpairw
 			indselect	<- inds$filter&(inds$pop==allcombi[1,my_i]|inds$pop==allcombi[2,my_i])
 			combiname	<- paste(my_pair,"filter2.miss0.letter",sep=".")
 			cat("Running genome wide differentiation scan (GWDS)...",sep="\n")
-			gwdsfisher(my_dataset=my_pair,my_sign_level=sign_level,dothin=do_thinning,binsize=bin_size,mycorrection=test_correction)
+			gwdsfisher(my_dataset=my_pair,my_sign_level=sign_level,nhaploblocks=n_haploblocks,dothin=do_thinning,binsize=bin_size,mycorrection=test_correction)
 			cat("Creating Manhattan plot showing -ln(Fisher exact test p-values)...",sep="\n")
-			gwdsmanhattan(my_dataset=my_pair,showfisher=TRUE,my_sign_level=sign_level,dothin=do_thinning,exporttype="pdf",addpairwiseout=FALSE,addlab=TRUE,popcex=1.5)
+			gwdsmanhattan(my_dataset=my_pair,showfisher=TRUE,my_sign_level=sign_level,nhaploblocks=n_haploblocks,dothin=do_thinning,exporttype="pdf",addpairwiseout=FALSE,addlab=TRUE,popcex=1.5)
 			cat("Creating Manhattan plot showing -log(GWDS p-values)...",sep="\n")
-			gwdsmanhattan(my_dataset=my_pair,showfisher=FALSE,my_sign_level=sign_level,dothin=do_thinning,exporttype="pdf",addpairwiseout=FALSE,addlab=TRUE,popcex=1.5)
+			gwdsmanhattan(my_dataset=my_pair,showfisher=FALSE,my_sign_level=sign_level,nhaploblocks=n_haploblocks,dothin=do_thinning,exporttype="pdf",addpairwiseout=FALSE,addlab=TRUE,popcex=1.5)
 			if(dopcadapt)
 				{
 				# 28_10_2021: until now data was exported to ped and then imported with read.pcadapt function
@@ -38168,8 +38196,8 @@ ils<-function()
 # my R function:	0.1374497 0.0000000 0.3262634 0.5235213	1.9187528
 # plink:			0.1374247 0.0000000 0.3262843 0.5235732	1.9186842 		
 # odds ratios are different though.	
-	
-gwdsfisher<-function(my_dataset="pheno",my_sign_level=0.05,pheno=inds$type,binsize=1000000,overwrite_bin=FALSE,dothin=FALSE,make_global=FALSE,mycorrection=NULL,wingwds=FALSE)
+
+gwdsfisher<-function(my_dataset="pheno",my_sign_level=0.05,nhaploblocks=100000,pheno=inds$type,binsize=1000000,overwrite_bin=FALSE,dothin=FALSE,make_global=FALSE,mycorrection=NULL,wingwds=FALSE)
 	{
 	if(is.null(mycorrection))
 		{
@@ -38322,11 +38350,22 @@ gwdsfisher<-function(my_dataset="pheno",my_sign_level=0.05,pheno=inds$type,binsi
 	mymean				<- mean(mylogpvalues)	
 	myrate				<- 1/mymean
 	#
-	# bonferroni correction:
-	# 21-07-2020: out of use: mybonf<- 1-(my_sign_level/(nrow(snps[snps$filter2,])))
-	# 17-06-2021: out of use: mybonf<- 1-(my_sign_level/(length(mylogpvalues)))			
-	# 17-06-2021: back to use (I realized that otherwise all what thinning does is decreasing number of SNPs and thereby relaxing the Bonferroni treshold, which is undesirable): 
-	mybonf				<- 1-(my_sign_level/(nrow(snps[snps$filter2,])))				
+	### BONFERRONI CORRECTION ###
+	# 12-05-2026: 
+	# Before, the number of tests for multiple test correction was set equal to the number of SNPs.
+	# However, linked SNPs are not independent tests, so hence this threshold is to strict. 
+	# Therefore, I decided to set the maximum number of tests equal to the number of haploblocks.
+	# Users can define this number of using the nhaploblocks flag (or n_haploblocks in the selectionanalyses function). 
+	# The default number of haploblocks is set to 100000.
+	# This default number is based on the idea that a typical haploblock in a mammalian genome is around 25Kb (very rough estimate).  
+	# Assuming a genome size of 2.5Gb, this implies 100000 haploblocks.   
+	ntests				<- nrow(snps[snps$filter2,])
+	if(nhaploblocks<ntests)
+		{
+		cat("More SNPs than haploblocks (default: 50.000). Bonferroni correction will be based on number of haploblocks.",sep="\n") 
+		ntests			<- nhaploblocks
+		}
+	mybonf				<- 1-(my_sign_level/ntests)				
 	myvalue				<- qexp(mybonf,myrate)
 	#
 	##### CALCULATE GWDS P-VALUES #####
@@ -38528,9 +38567,26 @@ gwdshisto<-function(myinput=snps$rfisherlog_p_pheno,nbreaks=100,binwidth=1,myxax
 		cat(getwd(),sep="\n")
 		}
 	}
+
+# 12-05-2026: run gwdsmanhattan per chromosome:
+gwdschrom<-function(minlength=50000000,n_haploblocks=100000,grouplabels=NULL,my_dataset="pheno")
+	{
+	mychroms	<- unique(snps$chr[snps$pos>minlength])
+	if(length(mychroms)==0)
+		{
+		return(cat("ERROR: no chromosomes longer than specified minimum length. Use the 'minlength' flag to lower this threshold (default: 50 Mb).",sep="\n"))
+		}
+	for(my_chrom in mychroms)
+		{
+		cat(my_chrom,sep="\n")
+		gwdsmanhattan(my_dataset=my_dataset,nhaploblocks=n_haploblocks,mychrom=my_chrom,showfisher=TRUE,my_sign_level=0.05,dothin=FALSE,exporttype="pdf",mycolours=c("black","red","orange"),mycex=1,mycexout=1.5,my_labels=grouplabels,myxaxis='s',addpairwiseout=FALSE,addlab=TRUE,popcex=1.25,addaxis2=TRUE,silent=TRUE)
+		}
+	cat("Chromosome plots have been exported to the directory:",sep="\n")
+	cat(getwd(),sep="\n")
+	}
 	
 # first execute gwdsfisher 
-gwdsmanhattan<-function(my_dataset="pheno",showfisher=TRUE,my_sign_level=0.05,dothin=FALSE,exporttype=NULL,mycolours=c("black","red","orange"),mycex=1,mycexout=1.5,my_labels=NULL,myxaxis='s',addpairwiseout=FALSE,addlab=FALSE,popcex=1.25,addaxis2=TRUE,silent=TRUE)
+gwdsmanhattan<-function(my_dataset="pheno",nhaploblocks=100000,showfisher=TRUE,my_sign_level=0.05,dothin=FALSE,exporttype=NULL,mycolours=c("black","red","orange"),mycex=1,mycexout=1.5,mychrom=NULL,my_labels=NULL,myxaxis='s',addpairwiseout=FALSE,addlab=FALSE,popcex=1.25,addaxis2=TRUE,silent=TRUE)
 	{
 	#if(any(nchar(my_labels)>6))
 	#	{
@@ -38565,56 +38621,75 @@ gwdsmanhattan<-function(my_dataset="pheno",showfisher=TRUE,my_sign_level=0.05,do
 	mylogp[is.infinite(mylogp)]		<- NA
 	mylogp2[is.infinite(mylogp2)]	<- NA
 	myfisherout			<- snps[,paste("rfisherout",my_dataset,sep="_")]
+	#
+	# subselect sites:
+	if(!is.null(mychrom))
+		{
+		snpbool			<- snps$filter2&(snps$chr==mychrom)
+		chromlabel		<- mychrom
+		xvector			<- snps$pos
+		xlabel			<- paste("Position along ",mychrom,sep="")
+		}else{
+		snpbool			<- snps$filter2
+		chromlabel		<- "allchroms"
+		xvector			<- c(1:nrow(snps))
+		xlabel			<- "SNP index"
+		}
+	#
 	# bonferroni threshold:
+	# This will be defined based on all sites, even if plotting a single chromosome only
 	mymean				<- mean(mylogp[snps$filter2])	
 	myrate				<- 1/mymean
+	ntests				<- nrow(snps[snps$filter2,])
+	if(nhaploblocks<ntests)
+		{
+		ntests			<- nhaploblocks
+		}
 	if(!dothin)
 		{
-		mybonf				<- 1-(my_sign_level/(nrow(snps[snps$filter2,])))
-		mybonf2				<- my_sign_level/(nrow(snps[snps$filter2,]))
+		mybonf			<- 1-(my_sign_level/ntests)
+		mybonf2			<- my_sign_level/ntests
 		}else{
-		mybonf				<- 1-(my_sign_level/(nrow(snps[snps$filter2,])))
-		mybonf2				<- my_sign_level/(nrow(snps[snps$filter2,]))
-		# 17-06-2021: replaced lines below with lines above, for reasons explained in gwdsfisher plot.
-		# mybonf				<- 1-(my_sign_level/(nrow(snps[snps$filter2&snps$binfilter,])))
-		# mybonf2			<- my_sign_level/(nrow(snps[snps$filter2&snps$binfilter,]))
-	}
+		mybonf			<- 1-(my_sign_level/ntests)
+		mybonf2			<- my_sign_level/ntests
+		}
 	if(showfisher)
 		{
-		myvalue				<- qexp(mybonf,myrate)
-		myvalue2			<- -log10(mybonf2)
+		myvalue			<- qexp(mybonf,myrate)
+		myvalue2		<- -log10(mybonf2)
 		}else{
-		myvalue				<- -log10(mybonf2)
-		myvalue2			<- qexp(mybonf,myrate)
+		myvalue			<- -log10(mybonf2)
+		myvalue2		<- qexp(mybonf,myrate)
 		}
 	# find maximum logp value for all comparisons (pooled and pairwise):
 	if(!silent){cat("Defining y-limit...",sep="\n")}
 	if(addpairwiseout)
 		{
+		# add outliers for pairwise comparisons (in addition to pooled outliers):
 		if(showfisher)
 			{
-			mylogpdf			<- snps[, grep('^rfisherlog_p', names(snps))] 
-			mymax				<- 1.1*max(mylogpdf)
+			mylogpdf	<- snps[, grep('^rfisherlog_p', names(snps))] 
+			mymax		<- 1.1*max(mylogpdf)
 			}else{
-			mylogpdf			<- snps[, grep('^rfisherGWDSlogp', names(snps))] 
-			mymax				<- 1.1*max(myvalue)
+			mylogpdf	<- snps[, grep('^rfisherGWDSlogp', names(snps))] 
+			mymax		<- 1.1*max(myvalue)
 			if(mymax<(1.1*max(mylogpdf)))
 				{
-				mymax		<- 1.1*max(mylogpdf)
+				mymax	<- 1.1*max(mylogpdf)
 				}
 			}
-		myoutdf				<- snps[, grep('^rfisherout', names(snps))]
-		myoutallvec			<- apply(myoutdf,1,any)
-		myoutother			<- myoutallvec&(!myfisherout)
+		myoutdf			<- snps[, grep('^rfisherout', names(snps))]
+		myoutallvec		<- apply(myoutdf,1,any)
+		myoutother		<- myoutallvec&(!myfisherout)
 		}else{
 		if(showfisher)
 			{
-			mymax			<- 1.1*max(mylogp[snps$filter2],na.rm=TRUE)	
+			mymax		<- 1.1*max(mylogp[snps$filter2],na.rm=TRUE)	
 			}else{
-			mymax			<- 1.1*max(myvalue)
+			mymax		<- 1.1*max(myvalue)
 			if(mymax<(1.1*max(mylogp[snps$filter2])))
 				{
-				mymax		<- 1.1*max(mylogp[snps$filter2])
+				mymax	<- 1.1*max(mylogp[snps$filter2])
 				}
 			}
 		}
@@ -38623,14 +38698,13 @@ gwdsmanhattan<-function(my_dataset="pheno",showfisher=TRUE,my_sign_level=0.05,do
 	myfishercol			<- mycolours[as.factor(myfisherout)]
 	#outvectors			<- names(snps)[grepl("rfisherout",names(snps))]
 	# plot:
-	snpnumber			<- c(1:nrow(snps))
 	if(!is.null(exporttype))
 		{
 		if(showfisher)
 			{
-			plotname		<- paste("Manhattan_GWDS_fisherlogp",my_dataset,sep="_")
+			plotname	<- paste("Manhattan_GWDS_fisherlogp",chromlabel,my_dataset,sep="_")
 			}else{
-			plotname		<- paste("Manhattan_GWDS_gwdslogp",my_dataset,sep="_")
+			plotname	<- paste("Manhattan_GWDS_gwdslogp",chromlabel,my_dataset,sep="_")
 			}
 		if(exporttype=="pdf"){pdf(paste(plotname,"pdf",sep="."),width=15,height=5)}
 		if(addlab)
@@ -38640,27 +38714,28 @@ gwdsmanhattan<-function(my_dataset="pheno",showfisher=TRUE,my_sign_level=0.05,do
 			par(oma=c(0,1,0,1.5),cex.axis=1.5)
 			}
 		}
-	plot(snpnumber[snps$filter2],mylogp[snps$filter2],col=mycolours[1],cex=mycex,ylim=c(0,mymax),pch=16,ylab="",xlab="",main="",xaxt=myxaxis,las=1)
+	plot(xvector[snpbool],mylogp[snpbool],col=mycolours[1],cex=mycex,ylim=c(0,mymax),pch=16,ylab="",xlab="",main="",xaxt=myxaxis,las=1)
 	if(addpairwiseout)
 		{
-		points(snpnumber[myoutother&snps$filter2],mylogp[myoutother&snps$filter2],col=mycolours[3],cex=mycexout,pch=16)
+		points(xvector[myoutother&snpbool],mylogp[myoutother&snpbool],col=mycolours[3],cex=mycexout,pch=16)
 		}
-	points(snpnumber[myfisherout&snps$filter2],mylogp[myfisherout&snps$filter2],col=mycolours[2],cex=mycexout,pch=16)
-	segments(x0=0,y0=myvalue,x1=nrow(snps),y1=myvalue,lty=2,lwd=1,col="grey")
+	points(xvector[myfisherout&snpbool],mylogp[myfisherout&snpbool],col=mycolours[2],cex=mycexout,pch=16)
+	segments(x0=0,y0=myvalue,x1=max(xvector),y1=myvalue,lty=2,lwd=1,col="grey")
 	if(!silent){cat("Adding dataset labels...",sep="\n")}
 	if(my_dataset=="pheno")
 		{
 		if(!is.null(my_labels))
 			{
-			mtext(paste(my_labels[1],"vs",my_labels[2],sep=" "),side=4,cex=1.25,line=1.5)
-			}else{
-			if(addlab)
-				{
-				mtext("typeA vs typeB",side=3,cex=1.25,line=1.5)
-				}else{
-				mtext("typeA vs typeB",side=4,cex=1.25,line=1.5)
-				}
+			mtext(paste(my_labels[1],"vs",my_labels[2],sep=" "),side=3,cex=1.5,line=1.5)
 			}
+			#}else{
+			#if(addlab)
+			#	{
+			#	mtext("typeA vs typeB",side=3,cex=1.25,line=1.5)
+			#	}else{
+			#	mtext("typeA vs typeB",side=4,cex=1.25,line=1.5)
+			#	}
+			#}
 		}else{
 		pop_1		<- unlist(strsplit(my_dataset, split="_"))[1]
 		pop_2		<- unlist(strsplit(my_dataset, split="_"))[2]
@@ -38674,12 +38749,12 @@ gwdsmanhattan<-function(my_dataset="pheno",showfisher=TRUE,my_sign_level=0.05,do
 	if(!silent){cat("Adding axis labels...",sep="\n")}
 	if(addlab)
 		{
-		mtext("SNP index",side=1,cex=2,line=3)
+		mtext(xlabel,side=1,cex=2,line=3)
 		if(showfisher)
 			{
-			mtext("-ln(Fisher p-value)",side=2,cex=2,line=3.5)
+			mtext("-ln(Fisher p-value)",side=2,cex=2,line=3.25)
 			}else{
-			mtext("-log10(GWDS p-value)",side=2,cex=2,line=3.5)
+			mtext("-log10(GWDS p-value)",side=2,cex=2,line=3.25)
 			}
 		if(addaxis2&any(mylogp2!=0,na.rm=TRUE))
 			{
@@ -38687,13 +38762,13 @@ gwdsmanhattan<-function(my_dataset="pheno",showfisher=TRUE,my_sign_level=0.05,do
 			y2max	<- 1.1*max(mylogp2[snps$filter2],na.rm=TRUE)
 			y2range	<- c(0,y2max)
 			y2sub	<- head(mylogp2[snps$filter2],5)
-			plot(c(0,0,0),col="black",yaxt='n',xaxt='n',ylab="",xlab="",xaxt='n',ylim=y2range)
+			plot(c(200,200,200),col="white",yaxt='n',xaxt='n',ylab="",xlab="",xaxt='n',ylim=y2range)
 			#segments(x0=0,y0=myvalue2,x1=nrow(snps),y1=myvalue,lty=2,lwd=1,col="grey")
 			if(showfisher)
 				{
-				mtext("-log10(GWDS p-value)",side=4,cex=2,line=3.5)
+				mtext("-log10(GWDS p-value)",side=4,cex=2,line=3.25)
 				}else{
-				mtext("-ln(Fisher p-value)",side=4,cex=2,line=3.5)
+				mtext("-ln(Fisher p-value)",side=4,cex=2,line=3.25)
 				}
 			axis(side=4,las=1)
 			}
@@ -42332,6 +42407,10 @@ gldummy<-function(popfile="popfile.txt")
 	# OPTIONAL, still to be included: use pop_order flag to set the order of the populations in output plots, and use colourvector to define the colours of the populations (based on alphabetic order of the populations)
 	#
 	inddf 			<<- read.table(popfile,header=TRUE) 
+	if(any(!c("name","pop")%in%colnames(inddf)))
+		{
+		return(cat("ERROR: popfile should contain columns named 'name' and 'pop'.",sep="\n"))
+		}
 	mymat 			<- matrix(sample(c(0,1),nrow(inddf)*100,replace=TRUE),nrow=nrow(inddf),ncol=100)
 	rownames(mymat) <- inddf$name
 	colnames(mymat) <- paste("snp",c(1:100),sep="_")
