@@ -11566,7 +11566,6 @@ plot_indmatrix<-function(export=NULL,indsfilter=TRUE,inputvalues=NULL,popnames=m
 		}
 	}
 
-
 # 28-03-2022: which method or distance performs best?
 # depends on getindtree 
 comparetrees<-function(do_analysis=FALSE,export=NULL,subtitle=NULL,do_parsimony=TRUE,do_likelihood=TRUE,pathlength_domean=FALSE)
@@ -12042,8 +12041,6 @@ neighbournetwork<-function(mydistmat=mymat,do_analysis=TRUE,plotname="Phylonetwo
 		cat(getwd(),sep="\n")
 		}
 	}
-
-
 
 popprtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="bitwise.dist",legendpos=NULL,legendcex=1.5,makelinear=FALSE,mutrate=NULL,genomeprop=1,interval_col="lightblue",interval_lwd=3,myrect=NULL,rectcol=NULL,recttext=NULL,mytype="phylogram",printnodes=FALSE,nodedf=NULL,addscale=TRUE,mybg="white",heightfac=0.15,nbootstrap=0,axiscex=2,mycolours=NULL,genofilter=FALSE,plotname="Tree_DistanceBased",fullplotname=TRUE,plottitle=NULL,titlecex=3,myxlim=NULL,titleline=-11,labelcex=1,nodelabelcex=1,myadj=0,myfont=3,mylwd=1,labelangle="horizontal",tiplabels=TRUE,addnodelabels=TRUE,marknode=FALSE,marklabelcex=0.75,edgecolors=TRUE,maxnodelabel=80,nodelabelcol="grey50",showpop=FALSE,tree_angle=0,mydirection="rightwards",nshorten=0,silent=TRUE,calc_parsimony=TRUE,calc_likelihood=TRUE,dopathlength=FALSE,pathlengthbreaks=NULL,inputdistmat=NULL,inputtree=mysambar$mytree,inputnewickfile=NULL,inputnexusfile=NULL,drop_ind=NULL,ann_df=NULL,ann_legend=TRUE,ann_legendpos="bottomleft",use_ggtree=FALSE,do_append=FALSE)
 	{
@@ -13051,6 +13048,21 @@ getindtree<-function(export=NULL,do_analysis=TRUE,mymethod="upgma",mydistance="b
 		# mytree[[2]]<-NULL
 		# write.tree(mytree,file=paste(filename,"labels.newick.nobranchlengths.txt",sep="."),append=FALSE,digits=0,tree.names=FALSE)
 		}
+	if(dopathlength&"dperc"%in%colnames(inds2))
+		{
+		cat("Plotting pathlength versus true distance.-..",sep="\n")
+		mybool		<- (inds2$pop1!=inds2$pop2)&inds2$filter1&inds2$filter2
+		mymin		<- min(c(inds2$dperc[mybool],inds2$pathlength[mybool]))
+		mymax		<- max(c(inds2$dperc[mybool],inds2$pathlength[mybool]))
+		#
+		pdf("Pathlengths_true_vs_predicted_distance.pdf",height=8,width=8)
+		par(cex.lab=2,cex.axis=1.75,mar=c(5,5,2,2))
+		plot(inds2$dperc[mybool],inds2$pathlength[mybool],pch=21,cex=2.5,col=inds2$popcol1[mybool],bg=inds2$popcol2[mybool],lwd=2.5,xlab="",ylab="",xlim=c(mymin,mymax),ylim=c(mymin,mymax))
+		mtext("Predicted distance",side=2,line=3,cex=2)
+		mtext("True distance",side=1,line=3,cex=2)
+		lines(c(-1,1),c(-1,1))
+		dev.off()
+		}
 	}
 
 # 23-08-2022: function to plot dependency of TMRCA on mutation rate
@@ -13175,10 +13187,13 @@ calcpathlength<-function(mytree=mytree)
 	mymatrix			<- matrix(NA,nrow=ninds,ncol=ninds)
 	colnames(mymatrix)	<- myinds
 	rownames(mymatrix)	<- myinds
+	inds2$pathlength	<<- NA
 	for(i in c(1:ninds))
 		{
+		ind1			<- myinds[i] 
 		for(j in c(1:ninds))
 			{
+			ind2		<- myinds[j]
 			mypath		<- nodepath(mytree,from=i,to=j)
 			myindices	<- vector()
 			for(k in c(1:length(mypath)))
@@ -13188,7 +13203,9 @@ calcpathlength<-function(mytree=mytree)
 				myindex		<- which((mytree$edge[,1]==node1&mytree$edge[,2]==node2)|(mytree$edge[,1]==node2&mytree$edge[,2]==node1))
 				myindices	<- c(myindices,myindex)
 				}
-			mymatrix[i,j]	<- sum(mytree$edge.length[myindices])
+			mylength		<- sum(mytree$edge.length[myindices])
+			inds2$pathlength[(inds2$name1==ind1&inds2$name2==ind2)|(inds2$name1==ind2&inds2$name2==ind1)]	<<- mylength
+			mymatrix[i,j]	<- mylength
 			}
 		}
 	return(mymatrix)
@@ -13236,10 +13253,13 @@ pathlength<-function(mytree=mysambar$mytree,exporttype=NULL,plot_name="Pathlengt
 	mymatrix			<- matrix(NA,nrow=ninds,ncol=ninds)
 	colnames(mymatrix)	<- myinds
 	rownames(mymatrix)	<- myinds
+	inds2$pathlength	<<- NA
 	for(i in c(1:ninds))
 		{
+		ind1			<- myinds[i] 
 		for(j in c(1:ninds))
 			{
+			ind2			<- myinds[j] 
 			mypath		<- nodepath(mytree,from=i,to=j)
 			myindices	<- vector()
 			for(k in c(1:length(mypath)))
@@ -13249,6 +13269,8 @@ pathlength<-function(mytree=mysambar$mytree,exporttype=NULL,plot_name="Pathlengt
 				myindex		<- which((mytree$edge[,1]==node1&mytree$edge[,2]==node2)|(mytree$edge[,1]==node2&mytree$edge[,2]==node1))
 				myindices	<- c(myindices,myindex)
 				}
+			mylength		<- sum(mytree$edge.length[myindices])
+			inds2$pathlength[(inds2$name1==ind1&inds2$name2==ind2)|(inds2$name1==ind2&inds2$name2==ind1)]	<<- mylength
 			mymatrix[i,j]	<- sum(mytree$edge.length[myindices])
 			}
 		}
@@ -14162,11 +14184,13 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 			}else{
 			if(use_symboltype2)
 				{
+				cat("Adding symboltype2...",sep="\n")
 				#points(myp1,myp2,col=colourcode[indselection],bg=colourcode[indselection],pch=as.vector(inds$symboltype2[indselection]),cex=symbolsize)
 				points(myp1,myp2,col="grey50",bg=colourcode[indselection],pch=as.vector(inds$symboltype2[indselection]),cex=symbolsize)
 				}else{
 				if(is.null(symbolkey))
 					{
+					cat("No symbolkey defined.",sep="\n")
 					if(mypch==21)	
 						{
 						points(myp1,myp2,col="grey50",bg=colourcode[indselection],pch=mypch,cex=symbolsize)
@@ -14174,9 +14198,15 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 						points(myp1,myp2,col=colourcode[indselection],pch=mypch,cex=symbolsize)
 						}
 					}else{
+					cat("Symbolkey defined...",sep="\n")
 					symbolvector	<- c(16,17,18,20,15,0,1,2,6,3,4,5,8)
-					mypch			<<- symbolvector[as.factor(symbolkeyvec)]
-					points(myp1,myp2,col=colourcode[indselection],pch=mypch[indselection],cex=symbolsize)
+					#mypchs			<<- symbolvector[as.factor(symbolkeyvec)]
+					#mycols			<<- colourcode[indselection]
+					#myp1			<<- myp1
+					#myp2			<<- myp2
+					#mysize			<<- symbolsize
+					#myselection	<<- indselection
+					points(myp1,myp2,col=colourcode[indselection],pch=mypchs[indselection],cex=symbolsize)
 					}
 				}
 			}
@@ -14255,7 +14285,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 # 04-09-2024:
 # compare distances in pcoa to distances in underlying distance matrix:
 # renamed, previously called pcoadistances
-pcoastress<-function(mymethod="pi",ndim=NULL,distmat=mysambar$pcoamatrix,yline=NULL,doexport=TRUE,doexport2=FALSE,plottitle=NULL,doplot=TRUE,onlybetween=TRUE,legendpos="topleft",legendcex=0.75)
+pcoastress<-function(mymethod="pi",ndim=NULL,addlegend=FALSE,distmat=mysambar$pcoamatrix,yline=NULL,doexport=TRUE,doexport2=FALSE,plottitle=NULL,doplot=TRUE,onlybetween=TRUE,legendpos="topleft",legendcex=0.75)
 	{
 	if(!is.null(distmat))
 		{
@@ -14297,23 +14327,32 @@ pcoastress<-function(mymethod="pi",ndim=NULL,distmat=mysambar$pcoamatrix,yline=N
 			}
 		if(doplot)
 			{
-			if(doexport2){pdf(paste("Pcoa_residualerror",k,"pdf",sep="."),height=6,width=6)}
-			plot(distmat[upper.tri(distmat)],loadingmat[upper.tri(loadingmat)],pch=21,cex=1,ylim=c(0,max(distmat)),xlim=c(0,max(distmat)),col=popcolmat1[upper.tri(popcolmat1)],bg=popcolmat2[upper.tri(popcolmat2)],xlab="True distance",ylab="PCoA distance",las=1)
-			mtext(side=3,paste(k,"primary axes",sep=" "),line=0.5,cex=1)
-			lines(c(0,max(distmat)),c(0,max(distmat)),col="red",lty=2)
-			legend(legendpos,mysambar$poporder,fill=mysambar$colorder,cex=legendcex,bty='n')
+			if(doexport2){pdf(paste("Pcoa_residualerror",k,"pdf",sep="."),height=8,width=8)}
+			par(cex.lab=2,cex.axis=1.75,mar=c(5,5,2,2))
+			plot(distmat[upper.tri(distmat)],loadingmat[upper.tri(loadingmat)],pch=21,cex=2.5,lwd=2.5,ylim=c(0,max(distmat)),xlim=c(0,max(distmat)),col=popcolmat1[upper.tri(popcolmat1)],bg=popcolmat2[upper.tri(popcolmat2)],xlab="",ylab="")
+			mtext(side=3,paste(k,"primary axes",sep=" "),line=0.5,cex=1.5)
+			mtext("Predicted distance",side=2,line=3,cex=2)
+			mtext("True distance",side=1,line=3,cex=2)
+			lines(c(-10000,10000),c(-10000,10000))
+			if(addlegend){legend(legendpos,mysambar$poporder,fill=mysambar$colorder,cex=legendcex,bty='n')}
 			if(doexport2){dev.off()}
 			}
 		errorvec[k]	<<- mean(abs(diffmat[upper.tri(diffmat)]))
 		}
-	if(ndim==ncol(loadingdf))
+	#
+	if(ndim==nrow(loadingdf))
 		{
 		if(doexport){pdf(paste("Pcoa_stress",ndim,"pdf",sep="."),height=5.5,width=5.5)}
 		plot(errorvec,xlab="# PCoA axes",ylab="",ylim=c(0,1),pch=16,lwd=2,cex.lab=1.5,las=0,cex.axis=1.25,type="l",las=1)
 		abline(h=yline,lty=2,lwd=2,col="red")
 		mtext(side=2,"PCOA residual error",line=2.5,cex=1.5)
 		if(!is.null(plottitle)){mtext(plottitle,side=3,line=0.5,cex=1.75)}
-		if(doexport){dev.off()}
+		if(doexport)
+			{
+			cat("Export file 'Pcoa_stress to the directory:",sep="\n")
+			cat(getwd(),sep="\n")
+			dev.off()
+			}
 		}
 	}
 
@@ -17041,29 +17080,38 @@ runLEA<-function(mindemes=2,maxdemes=6,mydemes=NULL,popnames=mysambar$population
 		}
 	totalnr			<- length(mydemes)
 	leaqmatrixlist	<- vector(mode="list",length=length(totalnr))
+	leapmatrixlist	<- vector(mode="list",length=length(totalnr))
 	for(mynr in c(1:totalnr))
 		{
-		ndemes		<- mydemes[mynr]
+		ndemes					<- mydemes[mynr]
 		cat(paste("K = ",ndemes,sep=""), sep ="\n")	
 		# sambarfunction_findstructure:
-		obj.snmf	<- LEA::snmf("LEAinput.geno", K = ndemes, alpha = 100, project = "new")
+		obj.snmf				<- LEA::snmf("LEAinput.geno", K = ndemes, alpha = 100, project = "new")
 		# sambarfunction_findstructure:
-		qmatrix 	<- LEA::Q(obj.snmf, K = ndemes)
-		leaqmatrixlist[[mynr]]		<- qmatrix
+		qmatrix 				<- LEA::Q(obj.snmf,K=ndemes)
+		rownames(qmatrix)		<- indstemp$name[indstemp$filter]
+		leaqmatrixlist[[mynr]]	<- qmatrix
+		# obtain implied genotype frequency matrix of the ancestral demes (a matrix with: number of rows = 3x SNPs; number of columns = number of K)
+		gmatrix 				<- LEA::G(obj.snmf,K=ndemes)
+		names(gmatrix)			<- indstemp$name[indstemp$filter]
+		leapmatrixlist[[mynr]]	<- gmatrix
 		#
 		# 09-06-2023: export matrix as txt file:
-		qmatrix2			<- qmatrix
-		rownames(qmatrix2)	<- indstemp$name[indstemp$filter]
-		leamatrixname		<- paste("Structureplot.LEAqmatrix_K",ndemes,sep="")
-		leamatrixname		<- ifelse(is.null(focuspop),paste(leamatrixname,"txt",sep="."),paste(leamatrixname,focuspop,"txt",sep="."))
+		qmatrix2				<- qmatrix
+		rownames(qmatrix2)		<- indstemp$name[indstemp$filter]
+		leamatrixname			<- paste("Structureplot.LEAqmatrix_K",ndemes,sep="")
+		leamatrixname			<- ifelse(is.null(focuspop),paste(leamatrixname,"txt",sep="."),paste(leamatrixname,focuspop,"txt",sep="."))
 		write.table(qmatrix2,leamatrixname,sep="\t",quote=FALSE,row.names=TRUE,col.names=FALSE)
 		}
-	names(leaqmatrixlist)	<- paste("K",mydemes,sep="_")
+	names(leaqmatrixlist)		<- paste("K",mydemes,sep="_")
+	names(leapmatrixlist)		<- paste("K",mydemes,sep="_")
 	if(order_on_longitude)
 		{
 		mysambar$leaqmatrixlist_longitude	<<- leaqmatrixlist
+		mysambar$leapmatrixlist_longitude	<<- leapmatrixlist
 		}else{
 		mysambar$leaqmatrixlist				<<- leaqmatrixlist
+		mysambar$leapmatrixlist				<<- leapmatrixlist
 		}
 	#
 	# to subsequently create pca:
@@ -17077,6 +17125,153 @@ runLEA<-function(mindemes=2,maxdemes=6,mydemes=NULL,popnames=mysambar$population
 	unlink("LEAinput.snmf", recursive=TRUE)
 	cat("Files with qmatrices have been exported to the directory:",sep="\n")
 	cat(getwd(),sep="\n")
+	}
+
+# 30-01-2026:
+# function to calculate distances predicted by the LEA model
+# Still to include: a loop to run calculations for all K. 
+# obj.snmf	<- LEA::snmf("LEAinput.geno", K = ndemes, alpha = 100, project = "new")
+# qmatrix 	<- LEA::Q(obj.snmf, K = ndemes)
+# gmatrix 	<- LEA::G(obj.snmf, K = ndemes)
+LEAdist<-function(dotree=FALSE,dopcoa=FALSE)
+	{
+	qlist			<- mysambar$leaqmatrixlist
+	glist			<- mysambar$leapmatrix
+	nruns			<- length(qlist)
+	distmatlist		<- vector(mode="list",length=nruns)
+	distdflist		<- vector(mode="list",length=nruns)
+	names(distmatlist)<- names(qlist)
+	names(distdflist)<- names(qlist)
+	#
+	for(runnr in c(1:nruns))
+		{
+		cat(paste("Run ",runnr," out of ",nruns,sep=""),sep="\n")
+		## OBTAIN QMATRIX AND GMATRIX:
+		qmat	<- mysambar$leaqmatrix[[runnr]]
+		genomat	<- mysambar$leapmatrix[[runnr]]
+		myinds	<- rownames(qmat)
+		ninds	<- nrow(qmat)
+		nsnps 	<- nrow(genomat)/3
+		ndemes 	<- ncol(genomat)
+		#
+		## CONVERT GENOTYPE FREQUENCIES INTO ALLELE FREQUENCIES:
+		pmat	<- matrix(NA,nrow=nsnps,ncol=ndemes)
+		for(k in c(1:ndemes))
+			{
+			# rearrange genotype frequency matrix:
+			genomat2			<- matrix(genomat[,k],ncol=3,nrow=nsnps,byrow=TRUE)
+			colnames(genomat2)	<- c("AA","AB","BB")
+			# calculate minor allele frequency:
+			pmat[,k]			<- genomat2[,1]+0.5*genomat2[,2]
+			}
+		#
+		## CALCULATE ALLELE PROBABILITIES PER INDIVIDUAL:
+		# Not realistic perhaps (because in reality either 0, 0.5 or 1), but it evens out over many loci, so no need to make it more complicated.
+		# for instance, say ancestry proportions are 0.8, 0.2 for individual David at locus 1
+		# say the minor allele frequencies in ancestral demes A and B are 1 and 0 at locus 1.
+		# Then, the expected minor allele frequency of David at locus 1 is:
+		# 0.8*1 + 0.2*0 = 0.8
+		# Note that we do not calculate the probability of each of the three genotypes.     
+		# The actual command:
+		indmat 				<- t(qmat %*% t(pmat)) 
+		#
+		## CALCULATE EXPECTED PAIRWISE DISTANCES:
+		cat("Calculating distances implied by admixture plot...",sep="\n")
+		npairs				<- 0.5*(ninds*(ninds-1))+ninds
+		distmat				<- matrix(NA,nrow=ninds,ncol=ninds)
+		rownames(distmat)	<- myinds
+		colnames(distmat)	<- myinds
+		for(i in c(1:ninds))
+			{
+			ind1	<- myinds[i]
+			#cat(i,sep="\n")
+			for(j in c(1:ninds))
+				{
+				#cat(j,sep="\n")
+				ind2			<- myinds[j]
+				p1				<- indmat[,i]
+				p2				<- indmat[,j]
+				p				<- mean(p1*(1-p2)+(1-p1)*p2)	
+				distmat[i,j]	<- p	
+				if(i<=j)
+					{
+					if(i==1&j==1)
+						{
+						distdf	<- data.frame("name1"=ind1,"name2"=ind2,"p"=p)
+						}else{
+						distdf 	<- rbind(distdf,data.frame("name1"=ind1,"name2"=ind2,"p"=p))
+						}
+					}
+				}
+			}
+		#cat("Saving to list..",sep="\n")
+		distdf$indpair			<- ifelse(distdf$name1<=distdf$name2,paste(distdf$name1,distdf$name2,sep="_"),paste(distdf$name2,distdf$name1,sep="_"))
+		distmatlist[[runnr]]	<- distmat
+		distdflist[[runnr]]		<- distdf
+		#
+		## NJ TREE AND PCOA:
+		if(dotree)
+			{
+			tree <- nj(distmat)
+			plot(tree,type="unrooted",lab4ut="axial")
+			}
+		if(dopcoa)
+			{
+			p		<- pcoa(distmat)
+			myp1	<- p$vectors[,1]
+			myp2	<- p$vectors[,2]
+			plot(myp1,myp2)
+			}
+		}
+	mysambar$leadistmatlist	<<- distmatlist
+	mysambar$leadistdflist	<<- distdflist	
+	}
+
+LEAfit<-function(mydivision=1)
+	{
+	if(!"ndiffpersite"%in%colnames(inds2))
+		{
+		cat("Column 'ndiffpersite' missing in inds2 dataframe. First executing calcpi function to calculate sequence dissimilarity...",sep="\n")
+		calcpi()
+		}
+	obsdf		<- inds2[inds2$filter,c("name1","name2","indpair","popcol1","popcol2","ASD","ndiffpersite")]
+	obsdf		<- obsdf[order(obsdf$indpair),]
+	obsvec		<- obsdf$ndiffpersite[obsdf$name1!=obsdf$name2]
+	obsvec		<- obsvec/mydivision
+	colvec1		<- obsdf$popcol1[obsdf$name1!=obsdf$name2]
+	colvec2		<- obsdf$popcol2[obsdf$name1!=obsdf$name2]
+	#
+	lealist		<- mysambar$leadistdflist
+	nruns		<- length(lealist)
+	leafitvec	<- rep(NA,nruns)
+	names(leafitvec)	<- names(lealist)
+	#
+	for(runnr in c(1:nruns))
+		{
+		cat(paste("Run ",runnr," out of ",nruns,sep=""),sep="\n")
+		expdf		<- lealist[[runnr]]
+		if(nrow(expdf)!=nrow(obsdf)){return(cat("ERROR: number of rows in expdf and obsdf do not correspond.",sep="\n"))}
+		expdf		<- expdf[order(expdf$indpair),]
+		expvec		<- expdf$p[expdf$name1!=expdf$name2]
+		leafitvec[runnr]	<- mean(abs(obsvec-expvec)/obsvec) 
+		#
+		expvec		<- expvec/mydivision
+		mymin		<- min(c(obsvec,expvec),na.rm=TRUE)
+		mymax		<- max(c(obsvec,expvec),na.rm=TRUE)
+		my_k		<- names(lealist)[runnr]
+		#
+		pdf(paste("LEAfit",my_k,"pdf",sep="."),height=8,width=8)
+		par(cex.lab=2,cex.axis=1.75,mar=c(5,5,2,2))
+		plot(obsvec,expvec,ylim=c(mymin,mymax),xlim=c(mymin,mymax),xlab="",ylab="",pch=21,bg=colvec1,col=colvec2,lwd=3,cex=3)
+		plotlabel	<- names(lealist)[runnr]
+		plotlabel	<- gsub("_"," = ",plotlabel)
+		mtext(plotlabel,side=3,line=0.5,cex=2)
+		mtext("Predicted distance",side=2,line=3,cex=2)
+		mtext("True distance",side=1,line=3,cex=2)
+		lines(c(-1,1),c(-1,1))
+		dev.off()
+		}
+	mysambar$LEAfit	<<- leafitvec
 	}
 
 # function to plot cross-entropy score (which can be used to determine optimal K):
@@ -33017,10 +33212,33 @@ dxyhisto<-function(mydf=mydistdf,pairdf=NULL,export=NULL,mybreaks=seq(-1,10000,5
 		}
 	}
 
+# 08-07-2026:
+manteltest<-function()
+	{
+	npops			<- length(mysambar$poporder)
+	geomat			<- matrix(NA,nrow=npops,ncol=npops)
+	colnames(geomat)<- mysambar$poporder
+	rownames(geomat)<- mysambar$poporder
+	dxymat			<- geomat		
+	for(i in c(1:npops))
+		{
+		mypop1		<- mysambar$poporder[i]
+		for(j in c(1:npops))
+			{
+			mypop2		<- mysambar$poporder[i]
+			popbool		<- (pops2$pop1==mypop1&pops2$pop2==mypop2)|(pops2$pop1==mypop2&pops2$pop2==mypop1)
+			dxymat[i,j]	<- pops2$dxy[popbool]
+			geomat[i,j]	<- pops2$geodist[popbool]
+			}
+		}
+	library("vegan")
+	mantel(geomat,dxymat,method="pearson",permutations=999)
+	}
+
 # 21-08-2022: renamed from popdxymantel to pops2scatter, to make it generally useful to create scatter plots for pops2 dataframe.
 # 21-06-2022: rebuilt from dxyfac() function, and renamed to popdxymantel:
 # 23-03-2023: can this replace popscatter function?
-pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,mylog="x",export=NULL,xscore="geodist",yscore="d",mybg="white",mylas=2,plotname="Mantelplot_rawdistance",addlines=NULL,plottitle=NULL,mylinemat=NULL,mycex=3,myxlim=NULL,axiscex=2.5,labcex=3,maincex=3,xline=4.5,yline=5.5,addlegend=TRUE,legendpos="topleft",legend2pos="bottomright",legendcex=1.5,vline=NULL,xlabel="Distance (100 km)",ylabel="Dxy (%)",addregression=TRUE)
+pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,mylog="x",export=NULL,xscore="geodist",yscore="d",mybg="white",mylas=2,plotname="Mantelplot_rawdistance",addlines=NULL,plottitle=NULL,mylinemat=NULL,mycex=3,myxlim=NULL,axiscex=2.5,labcex=3,maincex=3,xline=4.5,yline=5.5,addlegend=TRUE,legendpos="topleft",legend2pos="bottomright",legendcex=1.5,vline=NULL,xlabel="Distance (100 km)",ylabel="Dxy (%)",addregression=TRUE,fitlegend=TRUE)
 	{
 	if((!"filter1"%in%colnames(pops2))|(!"filter2"%in%colnames(pops2)))
 		{
@@ -33035,7 +33253,13 @@ pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,mylog="x",export=NULL,xscor
 		return(cat("ERROR: yscore (default: 'd') missing in pops2 dataframe.",sep="\n"))
 		}
 	cat("Selecting data...",sep="\n")
-	mydf			<- pops2[pops2$filter&!pops2$samepop,colnames(pops2)%in%c(xscore,yscore,"popcol1","popcol2","pop1","pop2")]
+	popbool			<- pops2$filter&!pops2$samepop
+	if(all(c("species1","species2")%in%colnames(pops2)))
+		{
+		mydf			<- pops2[popbool,colnames(pops2)%in%c(xscore,yscore,"popcol1","popcol2","pop1","pop2","species1","species2")]
+		}else{
+		mydf			<- pops2[popbool,colnames(pops2)%in%c(xscore,yscore,"popcol1","popcol2","pop1","pop2")]
+		}
 	colnames(mydf)[colnames(mydf)%in%xscore]	<- "x"
 	colnames(mydf)[colnames(mydf)%in%yscore]	<- "y"
 	#mydf2			<- pops2[pops2$filter&!pops2$samepop,c("popcol1","popcol2")]
@@ -33064,7 +33288,7 @@ pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,mylog="x",export=NULL,xscor
 		if(export=="wmf"){win.metafile(paste(plotname,legendlabel,"wmf",sep="."),width=8,height=8)} 
 		}
 	par(mar=c(5.5,7.5,3,0.25),cex.axis=axiscex,cex.lab=labcex,cex.main=maincex,bg=mybg)	
-	mydf			<<- mydf
+	#mydf			<<- mydf
 	if(is.null(myxlim))
 		{
 		plot(mydf$x,mydf$y,pch=21,bg=as.character(mydf$popcol1),col=as.character(mydf$popcol2),cex=mycex,lwd=4,log=mylog,xlab="",ylab="",las=mylas,main=plottitle)
@@ -33085,15 +33309,67 @@ pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,mylog="x",export=NULL,xscor
 	mtext(side=2,line=yline,ylabel,cex=labcex)
 	if(addregression)
 		{
-		mydata			<- mydf
-		mydata$x[mydata$x==0]	<- 0.1	
-		myfit			<- lm(y ~ log10(x),data=mydata)
-		abline(myfit,lty=2,lwd=3)
-		myfit2			<- summary(myfit)
-		myr				<- round(myfit2$r.squared,3)
-		myp				<- round(myfit2$coefficients[2,4],4)
-		legend(legend2pos,legend=c(paste("r = ",myr,sep=""),paste("p = ",myp,sep="")),cex=legendcex,bty='n',col=NA,lty=2)
+		pops2$predicted	<<- NA
+		mydf$predicted	<- NA
+		if(all(c("species1","species2")%in%colnames(pops2)))
+			{
+			docombined	<- FALSE
+			speciesvec	<- unique(c(mydf$species1,mydf$species2))
+			nmodels		<- length(speciesvec)+1
+			}else{
+			docombined	<- TRUE
+			nmodels		<- 1
+			}
+		for(modelnr in c(1:nmodels))
+			{
+			mydata			<- mydf
+			cat(modelnr,sep="\n")
+			if(modelnr==1)
+				{
+				if(!docombined)
+					{
+					mydata	<- mydata[mydata$species1!=mydata$species2,]
+					cat("Between-species comparisons",sep="\n")
+					}
+				}else{
+				myspecies	<- speciesvec[modelnr-1]
+				mydata		<- mydata[mydata$species1==myspecies&mydata$species2==myspecies,]
+				cat(myspecies,sep="\n")
+				}
+			if(nrow(mydata)>5)
+				{
+				if(mylog=="x")
+					{
+					mydata$x[mydata$x==0]	<- 0.1	
+					myfit		<- lm(y ~ log10(x),data=mydata)
+					}else{
+					myfit		<- lm(y ~ x,data=mydata)
+					}
+				abline(myfit,lty=2,lwd=3)
+				myfit2			<- summary(myfit)
+				myr				<- round(myfit2$r.squared,3)
+				myp				<- round(myfit2$coefficients[2,4],4)
+				cat(paste("explained variance: ",myr,sep=""),sep="\n")
+				cat(paste("p-value: ",myp,sep=""),sep="\n")
+				if(fitlegend){legend(legend2pos,legend=c(paste("r = ",myr,sep=""),paste("p = ",myp,sep="")),cex=legendcex,bty='n',col=NA,lty=2)}
+				#
+				myintercept			<- myfit$coefficients[1]
+				myslope				<- myfit$coefficients[2]
+				if(xscore=="geodist")
+					{
+					for(myline in c(1:nrow(mydata)))
+						{
+						mypop1			<- mydata$pop1[myline]
+						mypop2			<- mydata$pop2[myline]
+						mygeo			<- mydata$x[myline]
+						pops2$predicted[pops2$pop1==mypop1&pops2$pop2==mypop2]	<<- myintercept+myslope*mygeo
+						mydf$predicted[mydf$pop1==mypop1&mydf$pop2==mypop2]		<- myintercept+myslope*mygeo
+						}
+					}
+				}
+			}
 		}
+	mytestdf		<<- mydf
 	if(!is.null(vline))
 		{
 		abline(v=vline,lty=2,col="grey80")	
@@ -33103,6 +33379,18 @@ pops2scatter<-function(dobetween=TRUE,dowithin=FALSE,mylog="x",export=NULL,xscor
 		dev.off()
 		cat("Scatterplot has been exported to the directory:",sep="\n")
 		cat(getwd(),sep="\n")
+		}
+	if(addregression&xscore=="geodist")
+		{
+		pdf("True_vs_predicted_distance.regression.pdf",height=8,width=8)
+		par(cex.lab=2,cex.axis=1.75,mar=c(5,5,2,2))
+		mymin	<- min(c(mydf$y,mydf$predicted),na.rm=TRUE)
+		mymax	<- max(c(mydf$y,mydf$predicted),na.rm=TRUE)
+		plot(mydf$y,mydf$predicted,pch=21,cex=3,lwd=3,col=mydf$popcol1,bg=mydf$popcol2,xlab="",ylab="",xlim=c(mymin,mymax),ylim=c(mymin,mymax))
+		mtext("Predicted distance",side=2,line=3,cex=2)
+		mtext("True distance",side=1,line=3,cex=2)
+		lines(c(-1,1),c(-1,1))
+		dev.off()
 		}
 	}
 
