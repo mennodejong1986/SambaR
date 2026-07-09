@@ -14200,7 +14200,7 @@ ape_pcoa<-function(pscores=NULL,inputdistmat=NULL,method="nei",axis1=1,axis2=2,d
 					}else{
 					cat("Symbolkey defined...",sep="\n")
 					symbolvector	<- c(16,17,18,20,15,0,1,2,6,3,4,5,8)
-					#mypchs			<<- symbolvector[as.factor(symbolkeyvec)]
+					mypchs			<- symbolvector[as.factor(symbolkeyvec)]
 					#mycols			<<- colourcode[indselection]
 					#myp1			<<- myp1
 					#myp2			<<- myp2
